@@ -71,13 +71,18 @@ func AddPlayer(playerData DBPlayerPofile) (error) {
 	}
 	return nil
 }
-// GetPlayer - Get a player record from DB
-func GetPlayer(filter interface{}) (result DBPlayerPofile, err error) {
+// getPlayer - Get a player record from DB
+func getPlayer(filter interface{}) (result DBPlayerPofile, err error) {
 	err = playersCollection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		return result, err
 	}
 	return result, nil
+}
+// GetPlayerProfile - Get a player record from DB
+func GetPlayerProfile(pid int) (DBPlayerPofile, error) {
+	filter := makeFilter(FilterPair{Key: "_id", Value: pid})
+	return getPlayer(filter)
 }
 // UpdatePlayer - Update a player record in DB
 func UpdatePlayer(filter interface{}, playerData DBPlayerPofile) (result string, err error) {

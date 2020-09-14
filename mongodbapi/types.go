@@ -17,7 +17,8 @@ type Session struct {
 	StatsAll		wgapi.StatsFrame		`json:"stats_random" bson:"stats_random"`
 	BattlesRating	int						`json:"battles_rating" bson:"battles_rating"`
 	StatsRating		wgapi.StatsFrame		`json:"stats_rating" bson:"stats_rating"`
-	Convert
+	SessionRating	int						`json:"session_wn8" bson:"session_wn8"`
+	Convert									`json:"-" bson:"-"`
 }
 
 // RetroSession - Session using old data structure
@@ -30,7 +31,8 @@ type RetroSession struct {
 	StatsAll		wgapi.StatsFrame				`json:"stats_random" bson:"stats_random"`
 	BattlesRating	int								`json:"battles_rating" bson:"battles_rating"`
 	StatsRating		wgapi.StatsFrame				`json:"stats_rating" bson:"stats_rating"`
-	Convert
+	SessionRating	int								`json:"session_wn8" bson:"session_wn8"`
+	Convert											`json:"-" bson:"-"`
 }
 // Convert - Convert between Session and RetroSession
 type Convert interface {
@@ -46,6 +48,7 @@ func (s RetroSession) ToSession() (sessionNew Session) {
 	sessionNew.StatsAll			= s.StatsAll
 	sessionNew.BattlesRating	= s.BattlesRating
 	sessionNew.StatsRating		= s.StatsRating
+	sessionNew.SessionRating	= s.SessionRating
 	// Convert Vehicle Stats
 	for _, v := range s.Vehicles {
 		sessionNew.Vehicles = append(sessionNew.Vehicles, v)
@@ -61,6 +64,7 @@ func (s Session) ToRetro() (sessionNew RetroSession) {
 	sessionNew.StatsAll			= s.StatsAll
 	sessionNew.BattlesRating	= s.BattlesRating
 	sessionNew.StatsRating		= s.StatsRating
+	sessionNew.SessionRating	= s.SessionRating
 	// Convert Vehicle Stats
 	vehicleMap := make(map[string]wgapi.VehicleStats)
 	for _, v := range s.Vehicles {
@@ -75,11 +79,11 @@ func (s Session) ToRetro() (sessionNew RetroSession) {
 type DBPlayerPofile struct {
 	ID				int			`json:"player_id" bson:"_id"`
 	ClanID			int			`json:"clan_id" bson:"clan_id"`
-	ClanName		int			`json:"clan_name" bson:"clan_name"`
-	ClanRole		int			`json:"clan_role" bson:"clan_role"`
-	ClanTag			int			`json:"clan_tag" bson:"clan_tag"`
+	ClanName		string		`json:"clan_name" bson:"clan_name"`
+	ClanRole		string		`json:"clan_role" bson:"clan_role"`
+	ClanTag			string		`json:"clan_tag" bson:"clan_tag"`
 	LastBattle		time.Time	`json:"last_battle_time" bson:"last_battle_time"`
-	Nickname		int			`json:"nickname" bson:"nickname"`
+	Nickname		string		`json:"nickname" bson:"nickname"`
 	CareerWN8		int			`json:"career_wn8" bson:"career_wn8"`
 }
 
