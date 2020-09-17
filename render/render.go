@@ -31,11 +31,8 @@ var (
 )
 // ImageFromStats - 
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (finalImage image.Image, err error){
-    defer func() {
-        if r := recover(); r != nil {
-			log.Println("Recovered in f", r)
-        }
-    }()
+	errorsChan := make(chan error)
+
 	var finalCards allCards
 	cardsChan := make(chan cardData, (2 + len(data.SessionStats.Vehicles)))
 	var wg sync.WaitGroup
@@ -49,6 +46,11 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 		}
 		header, err := makeHeaderCard(prepNewCard(0, 1.0), data.PlayerDetails.Name, clanTag, "Random Battles")
 		if err != nil {
+			select {
+			case errorsChan <- err:
+			default:
+				log.Println(err)
+			}
 			return
 		}
 		cardsChan <- header
@@ -58,6 +60,11 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 		defer wg.Done()
 		allStats, err := makeAllStatsCard(prepNewCard(1, 1.5), data)
 		if err != nil {
+			select {
+			case errorsChan <- err:
+			default:
+				log.Println(err)
+			}
 			return
 		}
 		cardsChan <- allStats
@@ -76,6 +83,11 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 			lastSession := data.LastSession.Vehicles[strconv.Itoa(tank.TankID)]
 			tankCard, err := makeDetailedCard(prepNewCard((i+2), 1.0), tank, lastSession)
 			if err != nil {
+				select {
+				case errorsChan <- err:
+				default:
+					log.Println(err)
+				}
 				return
 			}
 			cardsChan <- tankCard
@@ -84,6 +96,13 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 
 	wg.Wait()
 	close(cardsChan)
+
+	// Check for errors in go routines
+	if err := <-errorsChan; err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
 	for c := range cardsChan {
 		finalCards.cards = append(finalCards.cards, c)
 	}
