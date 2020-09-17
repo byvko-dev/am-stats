@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"time"
 	"math"
 	"strconv"
 	
@@ -107,14 +108,14 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 	for c := range cardsChan {
 		finalCards.cards = append(finalCards.cards, c)
 	}
-	finalCtx, err := addAllCardsToFrame(finalCards)
+	finalCtx, err := addAllCardsToFrame(finalCards, data.SessionStats.Timestamp)
 	if err != nil {
 		return nil, err
 	}
 	return finalCtx.Image(), err
 }
 
-func addAllCardsToFrame(finalCards allCards) (*gg.Context, error){
+func addAllCardsToFrame(finalCards allCards, timestamp time.Time) (*gg.Context, error){
 	if len(finalCards.cards) == 0 {
 		return nil, fmt.Errorf("no cards to be rendered")
 	}
@@ -138,6 +139,17 @@ func addAllCardsToFrame(finalCards allCards) (*gg.Context, error){
 		finalCards.frame.DrawImage(card.image, frameMargin, cardMarginH)
 		lastCardPos = cardMarginH + card.context.Height()
 	}
+
+	// Draw timestamp
+    if err := finalCards.frame.LoadFontFace(fontPath, fontSize * 0.75);err != nil {
+        return finalCards.frame, err
+    }
+	finalCards.frame.SetColor(color.RGBA{100,100,100,100})
+	time := timestamp.Format("Session from Jan 2")
+	timeW, timeH := finalCards.frame.MeasureString(time)
+	timeX := (float64(finalCards.frame.Width()) - timeW) / 2
+	timeY := (float64(frameMargin) - timeH) / 2 + timeH
+	finalCards.frame.DrawString(time, timeX, timeY)
 
     return finalCards.frame, nil
 }
