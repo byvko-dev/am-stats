@@ -43,7 +43,11 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		header, err := makeHeaderCard(prepNewCard(0, 1.0), data.PlayerDetails.Name, data.PlayerDetails.ClanTag, "Random Battles")
+		clanTag := ""
+		if data.PlayerDetails.ClanTag != "" {
+			clanTag = "[" + data.PlayerDetails.ClanTag + "]"
+		}
+		header, err := makeHeaderCard(prepNewCard(0, 1.0), data.PlayerDetails.Name, clanTag, "Random Battles")
 		if err != nil {
 			return
 		}

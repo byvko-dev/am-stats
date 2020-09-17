@@ -67,7 +67,6 @@ func PlayerVehicleStats(playerID int, realm string) ([]VehicleStats, error) {
 	// Get stats
 	url := domain + wgAPIVehicles + strconv.Itoa(playerID)
 	var rawResponse vehiclesDataToPIDres
-	
 	err = getJSON(url, &rawResponse)
 	if err != nil {
 		return nil, err
@@ -77,8 +76,7 @@ func PlayerVehicleStats(playerID int, realm string) ([]VehicleStats, error) {
 }
 
 // PlayerProfileData - Fetch general account information and all stats for a player
-func PlayerProfileData(playerID int, realm string) (PlayerProfile , error) {
-	var finalResponse PlayerProfile
+func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile , err error) {
 	// Get API domain
 	domain, err := getAPIDomain(realm)
 	if err != nil {
@@ -93,5 +91,14 @@ func PlayerProfileData(playerID int, realm string) (PlayerProfile , error) {
 		return finalResponse, err
 	}
 	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
+	
+	// Get clan data
+	var clanRes playerDataToPIDres
+	url = domain + wgAPIPlayerClan + strconv.Itoa(playerID)
+	err = getJSON(url, &clanRes)
+	if err != nil {
+		return finalResponse, err
+	}
+	finalResponse.playerClanData = clanRes.Data[strconv.Itoa(playerID)].playerClanData
 	return finalResponse, nil
 }
