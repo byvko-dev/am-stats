@@ -94,17 +94,17 @@ func addAllCardsToFrame(finalCards allCards) (*gg.Context, error){
     for _, card := range finalCards.cards {
 		totalCardsHeight += card.context.Height()
 	}
-	totalCardsHeight += ((len(finalCards.cards) + 1) * frameMargin)
+	totalCardsHeight += ((len(finalCards.cards) - 1) * (frameMargin / 2) + (frameMargin * 2))
 	finalCards.frame = prepBgContext(totalCardsHeight)
 	
 	sort.Slice(finalCards.cards, func(i, j int) bool {
 				return finalCards.cards[i].index < finalCards.cards[j].index
 	})
 
-	var lastCardPos int
+	var lastCardPos int = frameMargin / 2
 	for i := 0; i < len(finalCards.cards); i++ {
 		card := finalCards.cards[i]
-		cardMarginH := lastCardPos + frameMargin
+		cardMarginH := lastCardPos + (frameMargin / 2)
 		finalCards.frame.DrawImage(card.image, frameMargin, cardMarginH)
 		lastCardPos = cardMarginH + card.context.Height()
 	}
@@ -281,13 +281,13 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	}
 	ctx.SetColor(color.White)
 	blockWidth 			:= card.context.Width() / 4
-	availableHeight 	:= (ctx.Height() - int(fontSize / 4))
+	availableHeight 	:= (ctx.Height() - int(fontSize / 6))
 	// Blocks will take 75% of the total card heiht
 	blockHeight 	:= int(float64(availableHeight) * 0.75)
 	headerHeigth 	:= availableHeight - blockHeight
 	// Default Block
 	var defaultBlock cardBlock
-	defaultBlock.textSize 		= fontSize
+	defaultBlock.textSize 		= fontSize * 1.30
 	defaultBlock.width	  		= blockWidth
 	defaultBlock.height			= blockHeight
 	defaultBlock.bigTextColor	= color.RGBA{255,255,255,255}
@@ -329,7 +329,6 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	// Bottom Row - Avg Damage, Avg XP, Winrate
 	// Block 1 - Battles
 	battlesBlock := cardBlock(defaultBlock)
-	battlesBlock.textSize 	= fontSize * 1.30
 	battlesBlock.width 		= blockWidth
 	battlesSession			:= strconv.Itoa(session.Battles)
 	battlesLastSession := "-"
@@ -346,7 +345,6 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	ctx.DrawImage(battlesBlock.context.Image(), 0, headerHeigth)
 	// Block 2 - Avg Damage
 	avgDamageBlock := cardBlock(defaultBlock)
-	avgDamageBlock.textSize 	= fontSize * 1.15
 	avgDamageBlock.width 		= blockWidth
 	avgDamageSession			:= strconv.Itoa((session.DamageDealt / session.Battles))
 	avgDamageLastSession := "-"
