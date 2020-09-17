@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-
+	
+	"sync"
 	"image"
 	"image/color"
     "github.com/fogleman/gg"
@@ -28,29 +29,44 @@ var (
 )
 // ImageFromStats - 
 func ImageFromStats(data stats.ExportData) (finalImage image.Image, err error){
-    var finalCards allCards
-    header, err := makeHeaderCard(prepNewCard(0, 1.0), data.PlayerDetails.Name, data.PlayerDetails.ClanTag, "Random Battles")
-    if err != nil {
-		return finalImage, err
-    }
-	finalCards.cards = append(finalCards.cards, header)
-
-	allStats, err := makeAllStatsCard(prepNewCard(1, 1.5), data)
+	var finalCards allCards
+	cardsChan := make(chan cardData, (2 + len(data.SessionStats.Vehicles)))
+	var wg sync.WaitGroup
+	// Work on cards in go routines
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		header, err := makeHeaderCard(prepNewCard(0, 1.0), data.PlayerDetails.Name, data.PlayerDetails.ClanTag, "Random Battles")
+		if err != nil {
+			return
+		}
+		cardsChan <- header
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		allStats, err := makeAllStatsCard(prepNewCard(1, 1.5), data)
+		if err != nil {
+			return
+		}
+		cardsChan <- allStats
+	}()
+	wg.Wait()
+	close(cardsChan)
+	for c := range cardsChan {
+		finalCards.cards = append(finalCards.cards, c)
+	}
+	finalCtx, err := addAllCardsToFrame(finalCards)
 	if err != nil {
-		return finalImage, err
-    }
-	finalCards.cards = append(finalCards.cards, allStats)
-	
-    // Get final context
-	finalCtx := addAllCardsToFrame(finalCards)
-	// Save image locally - Will need to make a cache later
-    // if err := finalCtx.SavePNG("rendercache/out.png"); err != nil {
-    //     return finalImage, err
-	// }
+		return nil, err
+	}
 	return finalCtx.Image(), err
 }
 
-func addAllCardsToFrame(finalCards allCards) (*gg.Context){
+func addAllCardsToFrame(finalCards allCards) (*gg.Context, error){
+	if len(finalCards.cards) == 0 {
+		return nil, fmt.Errorf("no cards to be rendered")
+	}
 	var totalCardsHeight int
     for _, card := range finalCards.cards {
 		totalCardsHeight += card.context.Height()
@@ -63,7 +79,7 @@ func addAllCardsToFrame(finalCards allCards) (*gg.Context){
 		finalCards.frame.DrawImage(card.image, frameMargin, cardMarginH)
 		lastCardPos += cardMarginH + card.context.Height()
     }
-    return finalCards.frame
+    return finalCards.frame, nil
 }
 
 func makeHeaderCard(card cardData, playerName, playerClan, battleType string) (cardData, error) {
