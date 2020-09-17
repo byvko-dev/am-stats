@@ -640,34 +640,34 @@ func tierToRoman(t int) (string) {
 // Sorting of vehicles
 func sortTanks(vehicles []wgapi.VehicleStats, sortKey string) ([]wgapi.VehicleStats) {
 	// Sort based on passed key
-	if sortKey == "+battles" {
+	switch sortKey {
+	case "+battles":
 		sort.Slice(vehicles, func(i, j int) bool {
 			  return vehicles[i].Battles < vehicles[j].Battles
 		})
-	}
-	if sortKey == "-battles" {
+	case "-battles":
 		sort.Slice(vehicles, func(i, j int) bool {
 			  return vehicles[i].Battles > vehicles[j].Battles
 		})
-	}
-	if sortKey == "+wn8" {
-		sort.Slice(vehicles, func(i, j int) bool {
-			  return vehicles[i].TankWN8 < vehicles[j].TankWN8
-		})
-	}
-	if sortKey == "-wn8" {
-		sort.Slice(vehicles, func(i, j int) bool {
-			  return vehicles[i].TankWN8 > vehicles[j].TankWN8
-		})
-	}
-	if sortKey == "+winrate" {
+	case "+winrate":
 		sort.Slice(vehicles, func(i, j int) bool {
 			  return (float64(vehicles[i].Wins) / float64(vehicles[i].Battles)) < (float64(vehicles[j].Wins) / float64(vehicles[j].Battles))
 		})
-	}
-	if sortKey == "-winrate" {
+	case "-winrate":
 		sort.Slice(vehicles, func(i, j int) bool {
 			  return (float64(vehicles[i].Wins) / float64(vehicles[i].Battles)) > (float64(vehicles[j].Wins) / float64(vehicles[j].Battles))
+		})
+	case "+wn8":
+		sort.Slice(vehicles, func(i, j int) bool {
+			  return vehicles[i].TankWN8 < vehicles[j].TankWN8
+		})
+	case "-wn8":
+		sort.Slice(vehicles, func(i, j int) bool {
+			  return vehicles[i].TankWN8 > vehicles[j].TankWN8
+		})
+	default:
+		sort.Slice(vehicles, func(i, j int) bool {
+			  return vehicles[i].LastBattleTime > vehicles[j].LastBattleTime
 		})
 	}
 	return vehicles

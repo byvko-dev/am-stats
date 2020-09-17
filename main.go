@@ -73,9 +73,6 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	if request.TankLimit == 0 {
 		request.TankLimit = 5
 	}
-	if request.Sort == "" {
-		request.Sort = "-battles"
-	}
 
 	// Get bg Image
 	var bgImage image.Image
