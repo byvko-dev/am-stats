@@ -322,11 +322,11 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	// Block 3 - Destruction Ratio
 	destrRatioBlock := cardBlock(avgDamageBlock)
 	destrRatioAll 				:= "-"
-	if data.PlayerDetails.Stats.All.SurvivedBattles > 0 {
+	if data.PlayerDetails.Stats.All.SurvivedBattles > 0 && data.PlayerDetails.Stats.All.Battles != data.PlayerDetails.Stats.All.SurvivedBattles {
 		destrRatioAll			= fmt.Sprintf("%.2f", ((float64(data.PlayerDetails.Stats.All.Frags) / (float64(data.PlayerDetails.Stats.All.Battles) - float64(data.PlayerDetails.Stats.All.SurvivedBattles)))))
 	}
 	destrRatioSession			:= "-"
-	if !badSession && data.SessionStats.StatsAll.SurvivedBattles > 0 {
+	if !badSession && data.SessionStats.StatsAll.SurvivedBattles > 0  && data.SessionStats.StatsAll.Battles != data.SessionStats.StatsAll.SurvivedBattles {
 		destrRatioSession		= fmt.Sprintf("%.2f", ((float64(data.SessionStats.StatsAll.Frags) / (float64(data.SessionStats.StatsAll.Battles) - float64(data.SessionStats.StatsAll.SurvivedBattles)))))
 	}
 	destrRatioBlock.smallText 	= destrRatioAll
