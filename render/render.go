@@ -27,7 +27,7 @@ var (
     frameMargin     = 50
     baseCardWidth   = frameWidth - (2*frameMargin)
     baseCardHeigh   = 150
-    baseCardColor   = color.RGBA{0,0,0,180}
+    baseCardColor   = color.RGBA{0,0,0,150}
 )
 // ImageFromStats - 
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, bgImage image.Image) (finalImage image.Image, err error){
