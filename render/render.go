@@ -162,6 +162,13 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	defaultBlock.smallTextColor	= color.RGBA{255,255,255,200}
 	defaultBlock.altTextColor	= color.RGBA{255,255,255,200}
 	// Top Row - 3 Blocks (Battles, WN8, WR)
+	badSession := true
+	if data.SessionStats.StatsAll.Battles > 0 {
+		badSession = false
+	}
+	if data.PlayerDetails.Stats.All.Battles < 0 {
+		return card, fmt.Errorf("this player has no battles")
+	}
 	// Block 1 - Battles
 	battlesBlock := cardBlock(defaultBlock)
 	battlesBlock.textSize 	= fontSize * 1.25
@@ -184,7 +191,10 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	ratingBlock.height				= blockHeight + int(fontSize)
 	ratingBlock.textSize 			= fontSize * 1.50
 	ratingBlock.smallText 			= strconv.Itoa(data.PlayerDetails.CareerWN8)
-	ratingBlock.bigText 			= strconv.Itoa(data.SessionStats.SessionRating)
+	ratingBlock.bigText				= "-"
+	if !badSession {
+		ratingBlock.bigText 		= strconv.Itoa(data.SessionStats.SessionRating)
+	}
 	ratingBlock.altText 			= "WN8"
 	ratingBlock, err = addBlockCtx(ratingBlock)
 	if err != nil {
@@ -197,8 +207,12 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	oldWins					:= data.PlayerDetails.Stats.All.Wins - data.SessionStats.StatsAll.Wins
 	oldWinrate				:= (float64(oldWins) / float64(oldBattles)) * 100
 	winrateAll				:= ((float64(data.PlayerDetails.Stats.All.Wins) / float64(data.PlayerDetails.Stats.All.Battles)) * 100)
-	winrateSession			:= ((float64(data.SessionStats.StatsAll.Wins) / float64(data.SessionStats.StatsAll.Battles)) * 100)
-	winrateChange 			:= math.Round((winrateAll - oldWinrate)*100)/100
+	winrateSession 			:= 0.0
+	winrateChange 			:= 0.0
+	if !badSession {
+		winrateSession		= ((float64(data.SessionStats.StatsAll.Wins) / float64(data.SessionStats.StatsAll.Battles)) * 100)
+		winrateChange 		= math.Round((winrateAll - oldWinrate)*100)/100
+	}
 	winrateChangeStr := ""
 	if winrateChange > 0.00 {
 		winrateChangeStr	= fmt.Sprintf(" (+%.2f", winrateChange) + "%)"
@@ -207,7 +221,10 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 		winrateChangeStr	= fmt.Sprintf(" (%.2f", winrateChange) + "%)"
 	}
 	winrateAllStr			:= fmt.Sprintf("%.2f", winrateAll) + "%" + winrateChangeStr
-	winrateSessionStr		:= fmt.Sprintf("%.2f", winrateSession) + "%"
+	winrateSessionStr := "-"
+	if !badSession {
+		winrateSessionStr	= fmt.Sprintf("%.2f", winrateSession) + "%"
+	}
 	winrateBlock.smallText 	= winrateAllStr
 	winrateBlock.bigText 	= winrateSessionStr
 	winrateBlock.altText 	= "Winrate"
@@ -223,7 +240,10 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	avgDamageBlock.textSize 	= fontSize * 1.25
 	avgDamageBlock.width 		= bottomBlockWidth
 	avgDamageAll				:= strconv.Itoa((data.PlayerDetails.Stats.All.DamageDealt / data.PlayerDetails.Stats.All.Battles))
-	avgDamageSession			:= strconv.Itoa((data.SessionStats.StatsAll.DamageDealt / data.SessionStats.StatsAll.Battles))
+	avgDamageSession			:= "-"
+	if !badSession {
+		avgDamageSession		= strconv.Itoa((data.SessionStats.StatsAll.DamageDealt / data.SessionStats.StatsAll.Battles))
+	}
 	avgDamageBlock.smallText 	= avgDamageAll
 	avgDamageBlock.bigText 		= avgDamageSession
 	avgDamageBlock.altText 		= "Avg. Damage"
@@ -235,7 +255,10 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	// Block 2 - Damage Ratio
 	damageRatioBlock := cardBlock(avgDamageBlock)
 	damageRatioAll				:= fmt.Sprintf("%.2f", ((float64(data.PlayerDetails.Stats.All.DamageDealt) / float64(data.PlayerDetails.Stats.All.DamageReceived))))
-	damageRatioSession			:= fmt.Sprintf("%.2f", ((float64(data.SessionStats.StatsAll.DamageDealt) / float64(data.SessionStats.StatsAll.DamageReceived))))
+	damageRatioSession			:= "-"
+	if !badSession {
+		damageRatioSession		= fmt.Sprintf("%.2f", ((float64(data.SessionStats.StatsAll.DamageDealt) / float64(data.SessionStats.StatsAll.DamageReceived))))
+	}
 	damageRatioBlock.smallText 	= damageRatioAll
 	damageRatioBlock.bigText 	= damageRatioSession
 	damageRatioBlock.altText 	= "Damage Ratio"
@@ -247,7 +270,10 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	// Block 3 - Destruction Ratio
 	destrRatioBlock := cardBlock(avgDamageBlock)
 	destrRatioAll				:= fmt.Sprintf("%.2f", ((float64(data.PlayerDetails.Stats.All.Frags) / (float64(data.PlayerDetails.Stats.All.Battles) - float64(data.PlayerDetails.Stats.All.SurvivedBattles)))))
-	destrRatioSession			:= fmt.Sprintf("%.2f", ((float64(data.SessionStats.StatsAll.Frags) / (float64(data.SessionStats.StatsAll.Battles) - float64(data.SessionStats.StatsAll.SurvivedBattles)))))
+	destrRatioSession			:= "-"
+	if !badSession {
+		destrRatioSession		= fmt.Sprintf("%.2f", ((float64(data.SessionStats.StatsAll.Frags) / (float64(data.SessionStats.StatsAll.Battles) - float64(data.SessionStats.StatsAll.SurvivedBattles)))))
+	}
 	destrRatioBlock.smallText 	= destrRatioAll
 	destrRatioBlock.bigText 	= destrRatioSession
 	destrRatioBlock.altText 	= "Destruction Ratio"
@@ -259,7 +285,10 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	// Block 4 - Average XP
 	avgXPBlock := cardBlock(avgDamageBlock)
 	avgXPAll				:= strconv.Itoa((data.PlayerDetails.Stats.All.Xp / data.PlayerDetails.Stats.All.Battles))
-	avgXPSession			:= strconv.Itoa((data.SessionStats.StatsAll.Xp / data.SessionStats.StatsAll.Battles))
+	avgXPSession			:= "-"
+	if !badSession {
+		avgXPSession		= strconv.Itoa((data.SessionStats.StatsAll.Xp / data.SessionStats.StatsAll.Battles))
+	}
 	avgXPBlock.smallText 	= avgXPAll
 	avgXPBlock.bigText 		= avgXPSession
 	avgXPBlock.altText 		= "Avg. XP"
