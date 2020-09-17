@@ -96,6 +96,7 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 
 	wg.Wait()
 	close(cardsChan)
+	close(errorsChan)
 
 	// Check for errors in go routines
 	if err := <-errorsChan; err != nil {
