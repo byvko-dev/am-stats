@@ -28,7 +28,7 @@ var (
     defaultBG       = "../am-stats/render/assets/bg_frame.png"
 )
 // ImageFromStats - 
-func ImageFromStats(data stats.ExportData) (finalImage image.Image, err error){
+func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (finalImage image.Image, err error){
 	var finalCards allCards
 	cardsChan := make(chan cardData, (2 + len(data.SessionStats.Vehicles)))
 	var wg sync.WaitGroup
@@ -51,6 +51,9 @@ func ImageFromStats(data stats.ExportData) (finalImage image.Image, err error){
 		}
 		cardsChan <- allStats
 	}()
+	
+	// Render a card per vehicle while under the tankLimit, sort cards by sortKey
+
 	wg.Wait()
 	close(cardsChan)
 	for c := range cardsChan {

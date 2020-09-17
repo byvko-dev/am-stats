@@ -17,6 +17,8 @@ type request struct {
 	PlayerID	int		`json:"player_id"`
 	Realm		string	`json:"realm"`
 	Days		int		`json:"days"`
+	Sort		string	`json:"sort_key"`
+	TankLimit	int		`json:"detailed_limit"`
 }
 
 func handler() {
@@ -61,7 +63,7 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	img, err := render.ImageFromStats(export)
+	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
