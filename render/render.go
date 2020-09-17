@@ -27,7 +27,7 @@ var (
     frameMargin     = 50
     baseCardWidth   = frameWidth - (2*frameMargin)
     baseCardHeigh   = 150
-    baseCardColor   = color.RGBA{0,0,0,100}
+    baseCardColor   = color.RGBA{0,0,0,150}
 )
 // ImageFromStats - 
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, bgImage image.Image) (finalImage image.Image, err error){
@@ -205,7 +205,7 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	defaultBlock.width	  		= blockWidth
 	defaultBlock.height			= blockHeight
 	defaultBlock.bigTextColor	= color.RGBA{255,255,255,255}
-	defaultBlock.smallTextColor	= color.RGBA{255,255,255,200}
+	defaultBlock.smallTextColor	= color.RGBA{255,255,255,235}
 	defaultBlock.altTextColor	= color.RGBA{255,255,255,200}
 	// Top Row - 3 Blocks (Battles, WN8, WR)
 	badSession := true
@@ -380,7 +380,7 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	defaultBlock.width	  		= blockWidth
 	defaultBlock.height			= blockHeight
 	defaultBlock.bigTextColor	= color.RGBA{255,255,255,255}
-	defaultBlock.smallTextColor	= color.RGBA{255,255,255,200}
+	defaultBlock.smallTextColor	= color.RGBA{255,255,255,235}
 	defaultBlock.altTextColor	= color.RGBA{255,255,255,200}
 	// defaultBlock.isColored		= true
 	// defaultBlock.color			= color.RGBA{0,0,0,100}
