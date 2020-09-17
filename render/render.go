@@ -28,7 +28,6 @@ var (
     baseCardWidth   = frameWidth - (2*frameMargin)
     baseCardHeigh   = 150
     baseCardColor   = color.RGBA{0,0,0,100}
-    defaultBG       = "../am-stats/render/assets/bg_frame.png"
 )
 // ImageFromStats - 
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, bgImage image.Image) (finalImage image.Image, err error){
@@ -390,7 +389,7 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	
 	// Draw tank name
 	_, nameH 	:= ctx.MeasureString(session.TankName)
-	ctx.DrawString(session.TankName, float64(frameMargin * 2), float64(headerHeigth))
+	ctx.DrawString(session.TankName, (float64(frameMargin) * 1.5), float64(headerHeigth))
 	
 	// Draw WN8
 	wn8W, wn8H 	:= ctx.MeasureString(strconv.Itoa(session.TankWN8))
@@ -412,7 +411,7 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
         return card, err
 	}
 	tierW, tierH 	:= ctx.MeasureString(tierToRoman(session.TankTier))
-	tierX := float64(frameMargin) + ((float64(frameMargin) - tierW) / 2)
+	tierX := float64(frameMargin / 2) + ((float64(frameMargin) - tierW) / 2)
 	tierY := float64(headerHeigth) - ((float64(nameH) - tierH) / 2)
 	ctx.DrawString(tierToRoman(session.TankTier), tierX, tierY)
 
