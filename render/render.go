@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"math"
 	"strconv"
@@ -30,6 +31,11 @@ var (
 )
 // ImageFromStats - 
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (finalImage image.Image, err error){
+    defer func() {
+        if r := recover(); r != nil {
+			log.Println("Recovered in f", r)
+        }
+    }()
 	var finalCards allCards
 	cardsChan := make(chan cardData, (2 + len(data.SessionStats.Vehicles)))
 	var wg sync.WaitGroup
@@ -239,7 +245,10 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	avgDamageBlock := cardBlock(defaultBlock)
 	avgDamageBlock.textSize 	= fontSize * 1.25
 	avgDamageBlock.width 		= bottomBlockWidth
-	avgDamageAll				:= strconv.Itoa((data.PlayerDetails.Stats.All.DamageDealt / data.PlayerDetails.Stats.All.Battles))
+	avgDamageAll				:= "-"
+	if data.PlayerDetails.Stats.All.Battles > 0 {
+		avgDamageAll			= strconv.Itoa((data.PlayerDetails.Stats.All.DamageDealt / data.PlayerDetails.Stats.All.Battles))
+	}
 	avgDamageSession			:= "-"
 	if !badSession {
 		avgDamageSession		= strconv.Itoa((data.SessionStats.StatsAll.DamageDealt / data.SessionStats.StatsAll.Battles))
@@ -254,9 +263,12 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	ctx.DrawImage(avgDamageBlock.context.Image(), 0, blockHeight)
 	// Block 2 - Damage Ratio
 	damageRatioBlock := cardBlock(avgDamageBlock)
-	damageRatioAll				:= fmt.Sprintf("%.2f", ((float64(data.PlayerDetails.Stats.All.DamageDealt) / float64(data.PlayerDetails.Stats.All.DamageReceived))))
+	damageRatioAll				:= "-"
+	if data.PlayerDetails.Stats.All.DamageReceived > 0 {
+		damageRatioAll			= fmt.Sprintf("%.2f", ((float64(data.PlayerDetails.Stats.All.DamageDealt) / float64(data.PlayerDetails.Stats.All.DamageReceived))))
+	}
 	damageRatioSession			:= "-"
-	if !badSession {
+	if !badSession && data.SessionStats.StatsAll.DamageReceived > 1 {
 		damageRatioSession		= fmt.Sprintf("%.2f", ((float64(data.SessionStats.StatsAll.DamageDealt) / float64(data.SessionStats.StatsAll.DamageReceived))))
 	}
 	damageRatioBlock.smallText 	= damageRatioAll
@@ -269,9 +281,12 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	ctx.DrawImage(damageRatioBlock.context.Image(), bottomBlockWidth, blockHeight)
 	// Block 3 - Destruction Ratio
 	destrRatioBlock := cardBlock(avgDamageBlock)
-	destrRatioAll				:= fmt.Sprintf("%.2f", ((float64(data.PlayerDetails.Stats.All.Frags) / (float64(data.PlayerDetails.Stats.All.Battles) - float64(data.PlayerDetails.Stats.All.SurvivedBattles)))))
+	destrRatioAll 				:= "-"
+	if data.PlayerDetails.Stats.All.SurvivedBattles > 0 {
+		destrRatioAll			= fmt.Sprintf("%.2f", ((float64(data.PlayerDetails.Stats.All.Frags) / (float64(data.PlayerDetails.Stats.All.Battles) - float64(data.PlayerDetails.Stats.All.SurvivedBattles)))))
+	}
 	destrRatioSession			:= "-"
-	if !badSession {
+	if !badSession && data.SessionStats.StatsAll.SurvivedBattles > 0 {
 		destrRatioSession		= fmt.Sprintf("%.2f", ((float64(data.SessionStats.StatsAll.Frags) / (float64(data.SessionStats.StatsAll.Battles) - float64(data.SessionStats.StatsAll.SurvivedBattles)))))
 	}
 	destrRatioBlock.smallText 	= destrRatioAll
@@ -308,6 +323,11 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
     if err := ctx.LoadFontFace(fontPath, (fontSize * 1.25));err != nil {
         return card, err
 	}
+
+	if session.Battles < 1 {
+		return card, fmt.Errorf("sessions battles is < 1")
+	}
+
 	ctx.SetColor(color.White)
 	blockWidth 			:= card.context.Width() / 4
 	availableHeight 	:= (ctx.Height() - int(fontSize / 6))
