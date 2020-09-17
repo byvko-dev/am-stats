@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"image"
 	"image/png"
+    "github.com/fogleman/gg"
 	"github.com/cufee/am-stats/stats"
 	"github.com/cufee/am-stats/render"
 
@@ -19,6 +20,7 @@ type request struct {
 	Days		int		`json:"days"`
 	Sort		string	`json:"sort_key"`
 	TankLimit	int		`json:"detailed_limit"`
+	BgURL		string	`json:"bg_url"`
 }
 
 func handler() {
@@ -74,7 +76,22 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	if request.Sort == "" {
 		request.Sort = "-battles"
 	}
-	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit)
+
+	// Get bg Image
+	var bgImage image.Image
+	if request.BgURL != ""{
+		response, _ := http.Get(request.BgURL);
+		bgImage, _, err = image.Decode(response.Body)
+		defer response.Body.Close()
+	}
+	if err != nil || request.BgURL == "" {
+		bgImage, err = gg.LoadImage("../am-stats/render/assets/bg_frame.png")
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+	}
+
+	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit, bgImage)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return

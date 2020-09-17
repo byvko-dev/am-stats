@@ -31,7 +31,7 @@ var (
     defaultBG       = "../am-stats/render/assets/bg_frame.png"
 )
 // ImageFromStats - 
-func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (finalImage image.Image, err error){
+func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, bgImage image.Image) (finalImage image.Image, err error){
 	errorsChan := make(chan error)
 
 	var finalCards allCards
@@ -108,14 +108,14 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 	for c := range cardsChan {
 		finalCards.cards = append(finalCards.cards, c)
 	}
-	finalCtx, err := addAllCardsToFrame(finalCards, data.SessionStats.Timestamp)
+	finalCtx, err := addAllCardsToFrame(finalCards, data.SessionStats.Timestamp, bgImage)
 	if err != nil {
 		return nil, err
 	}
 	return finalCtx.Image(), err
 }
 
-func addAllCardsToFrame(finalCards allCards, timestamp time.Time) (*gg.Context, error){
+func addAllCardsToFrame(finalCards allCards, timestamp time.Time, bgImage image.Image) (*gg.Context, error){
 	if len(finalCards.cards) == 0 {
 		return nil, fmt.Errorf("no cards to be rendered")
 	}
@@ -126,12 +126,17 @@ func addAllCardsToFrame(finalCards allCards, timestamp time.Time) (*gg.Context, 
 		totalCardsHeight += card.context.Height()
 	}
 	totalCardsHeight += ((len(finalCards.cards) - 1) * (frameMargin / 2) + (frameMargin * 2))
-	finalCards.frame = prepBgContext(totalCardsHeight)
-	
+	// Get frame CTX
+	ctx, err := prepBgContext(totalCardsHeight, bgImage)
+	if err != nil {
+		return finalCards.frame, err
+	}
+	finalCards.frame = ctx
+	// Sort cards
 	sort.Slice(finalCards.cards, func(i, j int) bool {
 				return finalCards.cards[i].index < finalCards.cards[j].index
 	})
-
+	// Render cards
 	var lastCardPos int = frameMargin / 2
 	for i := 0; i < len(finalCards.cards); i++ {
 		card := finalCards.cards[i]
@@ -670,16 +675,12 @@ func sortTanks(vehicles []wgapi.VehicleStats, sortKey string) ([]wgapi.VehicleSt
 }
 
 // Prepare a frame background context
-func prepBgContext(totalHeight int) (*gg.Context) {
-    frameCtx := gg.NewContext(frameWidth, totalHeight)
-    bgImage, err := gg.LoadImage(defaultBG)
-    if err != nil {
-        panic(err)
-    }
+func prepBgContext(totalHeight int, bgImage image.Image) (frameCtx *gg.Context, err error) {
+	frameCtx = gg.NewContext(frameWidth, totalHeight)
 	bgImage = imaging.Fill(bgImage, frameCtx.Width(), frameCtx.Height(), imaging.Center, imaging.NearestNeighbor)
 	bgImage = imaging.Blur(bgImage, 10.0)
     frameCtx.DrawImage(bgImage, 0, 0)
-    return frameCtx
+    return frameCtx, nil
 }
 // Prepare a new cardData struct
 func prepNewCard(index int, heightMod float64) (cardData) {
