@@ -592,7 +592,7 @@ func prepBgContext(totalHeight int) (*gg.Context) {
         panic(err)
     }
 	bgImage = imaging.Fill(bgImage, frameCtx.Width(), frameCtx.Height(), imaging.Center, imaging.NearestNeighbor)
-	bgImage = imaging.Blur(bgImage, 4.0)
+	bgImage = imaging.Blur(bgImage, 10.0)
     frameCtx.DrawImage(bgImage, 0, 0)
     return frameCtx
 }
