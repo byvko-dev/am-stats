@@ -57,7 +57,7 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 	vehicles := sortTanks(data.SessionStats.Vehicles, sortKey)
 	// Create cards for each vehicle in routines
 	for i, tank := range vehicles {
-		if i > tankLimit {
+		if i == tankLimit {
 			break
 		}
 		wg.Add(1)
@@ -102,13 +102,6 @@ func addAllCardsToFrame(finalCards allCards) (*gg.Context, error){
 	})
 
 	var lastCardPos int
-    // for _, card := range finalCards.cards {
-    //     cardMarginH := lastCardPos + frameMargin
-	// 	finalCards.frame.DrawImage(card.image, frameMargin, cardMarginH)
-	// 	lastCardPos += cardMarginH + card.context.Height()
-	// }
-	
-	// for i := 2; i < 3; i++ {
 	for i := 0; i < len(finalCards.cards); i++ {
 		card := finalCards.cards[i]
 		cardMarginH := lastCardPos + frameMargin
