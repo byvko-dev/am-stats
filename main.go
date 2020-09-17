@@ -3,7 +3,10 @@ package main
 import (
 	"log"
 	"strconv"
+	"image"
+	"image/png"
 	"github.com/cufee/am-stats/stats"
+	"github.com/cufee/am-stats/render"
 
 	"net/http"
 	"encoding/json"
@@ -39,6 +42,13 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	log.Println("Request - ", code)
 }
 
+func repondWithImage(w http.ResponseWriter, code int, image image.Image) {
+	w.Header().Set("Content-Type", "image/jpeg")
+	w.WriteHeader(code)
+	png.Encode(w, image)
+	log.Println("Request - ", code)
+}
+
 func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	var request request
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -51,7 +61,12 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	respondWithJSON(w, http.StatusOK, export)
+	img, err := render.ImageFromStats(export)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	repondWithImage(w, http.StatusOK, img)
 }
 
 func main() {
