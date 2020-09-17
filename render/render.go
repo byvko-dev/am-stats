@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"sort"
 	"math"
 	"strconv"
 	
@@ -52,7 +53,24 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int) (final
 		cardsChan <- allStats
 	}()
 	
-	// Render a card per vehicle while under the tankLimit, sort cards by sortKey
+	// Sort vehicles
+	vehicles := sortTanks(data.SessionStats.Vehicles, sortKey)
+	// Create cards for each vehicle in routines
+	for i, tank := range vehicles {
+		if i > tankLimit {
+			break
+		}
+		wg.Add(1)
+		go func(tank wgapi.VehicleStats, i int){
+			defer wg.Done()
+			lastSession := data.LastSession.Vehicles[strconv.Itoa(tank.TankID)]
+			tankCard, err := makeDetailedCard(prepNewCard((i+2), 1.0), tank, lastSession)
+			if err != nil {
+				return
+			}
+			cardsChan <- tankCard
+		}(tank, i)
+	}
 
 	wg.Wait()
 	close(cardsChan)
@@ -70,18 +88,34 @@ func addAllCardsToFrame(finalCards allCards) (*gg.Context, error){
 	if len(finalCards.cards) == 0 {
 		return nil, fmt.Errorf("no cards to be rendered")
 	}
+
+	// Frame height
 	var totalCardsHeight int
     for _, card := range finalCards.cards {
 		totalCardsHeight += card.context.Height()
 	}
 	totalCardsHeight += ((len(finalCards.cards) + 1) * frameMargin)
-    finalCards.frame = prepBgContext(totalCardsHeight)
+	finalCards.frame = prepBgContext(totalCardsHeight)
+	
+	sort.Slice(finalCards.cards, func(i, j int) bool {
+				return finalCards.cards[i].index < finalCards.cards[j].index
+	})
+
 	var lastCardPos int
-    for _, card := range finalCards.cards {
-        cardMarginH := lastCardPos + frameMargin
+    // for _, card := range finalCards.cards {
+    //     cardMarginH := lastCardPos + frameMargin
+	// 	finalCards.frame.DrawImage(card.image, frameMargin, cardMarginH)
+	// 	lastCardPos += cardMarginH + card.context.Height()
+	// }
+	
+	// for i := 2; i < 3; i++ {
+	for i := 0; i < len(finalCards.cards); i++ {
+		card := finalCards.cards[i]
+		cardMarginH := lastCardPos + frameMargin
 		finalCards.frame.DrawImage(card.image, frameMargin, cardMarginH)
-		lastCardPos += cardMarginH + card.context.Height()
-    }
+		lastCardPos = cardMarginH + card.context.Height()
+	}
+
     return finalCards.frame, nil
 }
 
@@ -247,16 +281,18 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
     return card, nil
 }
 // Makes a detailed card for a tank
-func makeDetailedCard(card cardData, tank wgapi.VehicleStats) (cardData, error) {
+func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.VehicleStats) (cardData, error) {
     ctx := *card.context
-    if err := ctx.LoadFontFace(fontPath, fontSize);err != nil {
+    if err := ctx.LoadFontFace(fontPath, (fontSize * 1.25));err != nil {
         return card, err
-    }
-	// Default Block settings
-	blockWidth 			:= card.context.Width() / 3
-	// bottomBlockWidth 	:= card.context.Width() / 4
-	availableHeight 	:= (ctx.Height() - int(fontSize / 2)) / 2
-	blockHeight 		:= availableHeight
+	}
+	ctx.SetColor(color.White)
+	blockWidth 			:= card.context.Width() / 4
+	availableHeight 	:= (ctx.Height() - int(fontSize / 4))
+	// Blocks will take 75% of the total card heiht
+	blockHeight 	:= int(float64(availableHeight) * 0.75)
+	headerHeigth 	:= availableHeight - blockHeight
+	// Default Block
 	var defaultBlock cardBlock
 	defaultBlock.textSize 		= fontSize
 	defaultBlock.width	  		= blockWidth
@@ -264,6 +300,107 @@ func makeDetailedCard(card cardData, tank wgapi.VehicleStats) (cardData, error) 
 	defaultBlock.bigTextColor	= color.RGBA{255,255,255,255}
 	defaultBlock.smallTextColor	= color.RGBA{255,255,255,200}
 	defaultBlock.altTextColor	= color.RGBA{255,255,255,200}
+	// defaultBlock.isColored		= true
+	// defaultBlock.color			= color.RGBA{0,0,0,100}
+	
+	// Top Row - Tank name, WN8
+	
+	// Draw tank name
+	_, nameH 	:= ctx.MeasureString(session.TankName)
+	ctx.DrawString(session.TankName, float64(frameMargin * 2), float64(headerHeigth))
+	
+	// Draw WN8
+	wn8W, wn8H 	:= ctx.MeasureString(strconv.Itoa(session.TankWN8))
+	wn8X := float64(card.context.Width()) - (float64(frameMargin) * 1.5) - wn8W
+	ctx.DrawString(strconv.Itoa(session.TankWN8), wn8X, float64(headerHeigth))
+	// Draw Rating color
+	ctx.SetColor(getRatingColor(session.TankWN8))
+	iR := 10.0
+	iX := wn8X + wn8W + (iR*1.5)
+	iY := float64(headerHeigth) - iR - ((wn8H - (iR*2)) / 2)
+	ctx.DrawCircle(iX, iY, iR)
+	ctx.Fill()
+	ctx.SetColor(color.White)
+
+
+
+	// Draw tank tier
+    if err := ctx.LoadFontFace(fontPath, (fontSize * 0.75));err != nil {
+        return card, err
+	}
+	tierW, tierH 	:= ctx.MeasureString(tierToRoman(session.TankTier))
+	tierX := float64(frameMargin) + ((float64(frameMargin) - tierW) / 2)
+	tierY := float64(headerHeigth) - ((float64(nameH) - tierH) / 2)
+	ctx.DrawString(tierToRoman(session.TankTier), tierX, tierY)
+
+	// Bottom Row - Avg Damage, Avg XP, Winrate
+	// Block 1 - Battles
+	battlesBlock := cardBlock(defaultBlock)
+	battlesBlock.textSize 	= fontSize * 1.30
+	battlesBlock.width 		= blockWidth
+	battlesSession			:= strconv.Itoa(session.Battles)
+	battlesLastSession := "-"
+	if lastSession.Battles > 0 {
+		battlesLastSession		= strconv.Itoa(lastSession.Battles)
+	}
+	battlesBlock.smallText 		= battlesLastSession
+	battlesBlock.bigText 		= battlesSession
+	battlesBlock.altText 		= "Battles"
+	battlesBlock, err := addBlockCtx(battlesBlock)
+	if err != nil {
+		return card, err
+	}
+	ctx.DrawImage(battlesBlock.context.Image(), 0, headerHeigth)
+	// Block 2 - Avg Damage
+	avgDamageBlock := cardBlock(defaultBlock)
+	avgDamageBlock.textSize 	= fontSize * 1.15
+	avgDamageBlock.width 		= blockWidth
+	avgDamageSession			:= strconv.Itoa((session.DamageDealt / session.Battles))
+	avgDamageLastSession := "-"
+	if lastSession.Battles > 0 {
+		avgDamageLastSession		= strconv.Itoa((lastSession.DamageDealt / lastSession.Battles))
+	}
+	avgDamageBlock.smallText 	= avgDamageLastSession
+	avgDamageBlock.bigText 		= avgDamageSession
+	avgDamageBlock.altText 		= "Avg. Damage"
+	avgDamageBlock, err = addBlockCtx(avgDamageBlock)
+	if err != nil {
+		return card, err
+	}
+	ctx.DrawImage(avgDamageBlock.context.Image(), (blockWidth), headerHeigth)
+	// Block 1 - Avg XP
+	avgXPBlock := cardBlock(avgDamageBlock)
+	avgXPSession			:= strconv.Itoa((session.Xp / session.Battles))
+	avgXPLastSession := "-"
+	if lastSession.Battles > 0 {
+		avgXPLastSession		= strconv.Itoa((lastSession.Xp / lastSession.Battles))
+	}
+	avgXPBlock.smallText 	= avgXPLastSession
+	avgXPBlock.bigText 		= avgXPSession
+	avgXPBlock.altText 		= "Avg. XP"
+	avgXPBlock, err = addBlockCtx(avgXPBlock)
+	if err != nil {
+		return card, err
+	}
+	ctx.DrawImage(avgXPBlock.context.Image(), (blockWidth * 2), headerHeigth)
+	// Block 1 - Winrate
+	winrateBlock := cardBlock(avgDamageBlock)
+	winrateSession				:= ((float64(session.Wins) / float64(session.Battles)) * 100)
+	winrateLastSession := "-"
+	if lastSession.Battles > 0 {
+		winrateLastSession		= fmt.Sprintf("%.2f", ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100)) + "%"
+	}
+	winrateBlock.bigText 		= fmt.Sprintf("%.2f", winrateSession) + "%"
+	winrateBlock.smallText 		= winrateLastSession 
+	winrateBlock.altText 		= "Winrate"
+	winrateBlock, err = addBlockCtx(winrateBlock)
+	if err != nil {
+		return card, err
+	}
+	ctx.DrawImage(winrateBlock.context.Image(), (blockWidth * 3), headerHeigth)
+
+	// Render image
+    card.image = ctx.Image()
 	return card, nil
 }
 func addBlockCtx(block cardBlock) (cardBlock, error){
@@ -275,16 +412,19 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
 		ctx.Fill()
 	}
 	// Draw altText
+	var altMargin float64
 	if block.altText != "" {
 		ctx.SetColor(block.altTextColor)
 		if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.5));err != nil {
 			return block, err
 		}
-		aTxtW, _ := ctx.MeasureString(block.altText)
+		aTxtW, aTxtH := ctx.MeasureString(block.altText)
+		altMargin = aTxtH
 		sX := ((float64(block.width) - aTxtW) / 2.0)
-		sY := float64(block.height) - (block.textSize / 4)
+		sY := float64(block.height) - (block.textSize / 2)
 		ctx.DrawString(block.altText, sX, sY)
 	}
+	availHeiht := block.height - int(altMargin)
 	// Draw small text
 	ctx.SetColor(block.smallTextColor)
 	if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.75));err != nil {
@@ -292,7 +432,7 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
     }
 	sTxtW, sTxtH := ctx.MeasureString(block.smallText)
 	sX := ((float64(block.width) - sTxtW) / 2.0)
-	sY := float64(block.height / 2) + sTxtH + (block.textSize / 4)
+	sY := float64(availHeiht / 2) + sTxtH + (block.textSize / 8)
 	ctx.DrawString(block.smallText, sX, sY)
 	// Draw Big text
 	ctx.SetColor(block.bigTextColor)
@@ -301,7 +441,7 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
     }
 	bTxtW, bTxtH := ctx.MeasureString(block.bigText)
 	bX := ((float64(block.width) - bTxtW) / 2.0)
-	bY := float64(block.height / 2) - (block.textSize / 4)
+	bY := float64(availHeiht / 2) - (block.textSize / 8)
 	ctx.DrawString(block.bigText, bX, bY)
 	if block.hasBigIcon == true {
 		ctx.SetColor(block.bigIconColor)
@@ -388,6 +528,69 @@ func getRatingColor(r int) (color.RGBA) {
 		return color.RGBA{142,65,177,180}
 	}
 	return color.RGBA{0,0,0,0}
+}
+// Tank tier to roman numeral
+func tierToRoman(t int) (string) {
+	switch t {
+	case 1:
+		return "I"
+	case 2:
+		return "II"
+	case 3:
+		return "III"
+	case 4:
+		return "IV"
+	case 5:
+		return "V"
+	case 6:
+		return "VI"
+	case 7:
+		return "VII"
+	case 8:
+		return "VIII"
+	case 9:
+		return "IX"
+	case 10:
+		return "X"
+	default:
+		return ""
+	}
+}
+
+// Sorting of vehicles
+func sortTanks(vehicles []wgapi.VehicleStats, sortKey string) ([]wgapi.VehicleStats) {
+	// Sort based on passed key
+	if sortKey == "+battles" {
+		sort.Slice(vehicles, func(i, j int) bool {
+			  return vehicles[i].Battles < vehicles[j].Battles
+		})
+	}
+	if sortKey == "-battles" {
+		sort.Slice(vehicles, func(i, j int) bool {
+			  return vehicles[i].Battles > vehicles[j].Battles
+		})
+	}
+	if sortKey == "+wn8" {
+		sort.Slice(vehicles, func(i, j int) bool {
+			  return vehicles[i].TankWN8 < vehicles[j].TankWN8
+		})
+	}
+	if sortKey == "-wn8" {
+		sort.Slice(vehicles, func(i, j int) bool {
+			  return vehicles[i].TankWN8 > vehicles[j].TankWN8
+		})
+	}
+	if sortKey == "+winrate" {
+		sort.Slice(vehicles, func(i, j int) bool {
+			  return (float64(vehicles[i].Wins) / float64(vehicles[i].Battles)) < (float64(vehicles[j].Wins) / float64(vehicles[j].Battles))
+		})
+	}
+	if sortKey == "-winrate" {
+		sort.Slice(vehicles, func(i, j int) bool {
+			  return (float64(vehicles[i].Wins) / float64(vehicles[i].Battles)) > (float64(vehicles[j].Wins) / float64(vehicles[j].Battles))
+		})
+	}
+	return vehicles
 }
 
 // Prepare a frame background context

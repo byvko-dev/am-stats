@@ -63,6 +63,12 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	if request.TankLimit == 0 {
+		request.TankLimit = 10
+	}
+	if request.Sort == "" {
+		request.Sort = "-battles"
+	}
 	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
