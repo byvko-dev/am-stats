@@ -198,15 +198,15 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	// Default Block settings
 	blockWidth 			:= card.context.Width() / 3
 	bottomBlockWidth 	:= card.context.Width() / 4
-	availableHeight 	:= (ctx.Height() - int(fontSize / 2)) / 2
+	availableHeight 	:= (ctx.Height()) / 2
 	blockHeight 		:= availableHeight
 	var defaultBlock cardBlock
-	defaultBlock.textSize 		= fontSize
+	defaultBlock.textSize 		= fontSize * 1.5
 	defaultBlock.width	  		= blockWidth
 	defaultBlock.height			= blockHeight
 	defaultBlock.bigTextColor	= color.RGBA{255,255,255,255}
 	defaultBlock.smallTextColor	= color.RGBA{255,255,255,245}
-	defaultBlock.altTextColor	= color.RGBA{255,255,255,235}
+	defaultBlock.altTextColor	= color.RGBA{255,255,255,200}
 	// Top Row - 3 Blocks (Battles, WN8, WR)
 	badSession := true
 	if data.SessionStats.StatsAll.Battles > 0 {
@@ -217,7 +217,6 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	}
 	// Block 1 - Battles
 	battlesBlock := cardBlock(defaultBlock)
-	battlesBlock.textSize 	= fontSize * 1.25
 	battlesBlock.smallText 	= strconv.Itoa(data.PlayerDetails.Stats.All.Battles)
 	battlesBlock.bigText 	= strconv.Itoa(data.SessionStats.BattlesAll)
 	battlesBlock.altText 	= "Battles"
@@ -235,7 +234,7 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	ratingBlock.hasSmallIcon		= true
 	ratingBlock.smallIconColor		= getRatingColor(data.PlayerDetails.CareerWN8)
 	ratingBlock.height				= blockHeight + int(fontSize)
-	ratingBlock.textSize 			= fontSize * 1.50
+	ratingBlock.textSize 			= fontSize * 1.75
 	ratingBlock.smallText 			= strconv.Itoa(data.PlayerDetails.CareerWN8)
 	ratingBlock.bigText				= "-"
 	if !badSession {
@@ -283,7 +282,6 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	// Bottom Row - 4 Blocks
 	// Block 1 - Avg Damage
 	avgDamageBlock := cardBlock(defaultBlock)
-	avgDamageBlock.textSize 	= fontSize * 1.25
 	avgDamageBlock.width 		= bottomBlockWidth
 	avgDamageAll				:= "-"
 	if data.PlayerDetails.Stats.All.Battles > 0 {
