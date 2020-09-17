@@ -52,6 +52,11 @@ func repondWithImage(w http.ResponseWriter, code int, image image.Image) {
 }
 
 func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
+    defer func() {
+        if r := recover(); r != nil {
+            log.Println("Recovered in f", r)
+        }
+    }()
 	var request request
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
