@@ -176,7 +176,7 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	if data.SessionStats.StatsAll.Battles > 0 {
 		badSession = false
 	}
-	if data.PlayerDetails.Stats.All.Battles < 0 {
+	if data.PlayerDetails.Stats.All.Battles < 1 {
 		return card, fmt.Errorf("this player has no battles")
 	}
 	// Block 1 - Battles
