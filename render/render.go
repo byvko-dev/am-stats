@@ -656,7 +656,7 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
 // Rating color calculator
 func getRatingColor(r int) (color.RGBA) {
 	if r > 0 && r < 301 {
-		return color.RGBA{0,0,0,0}
+		return color.RGBA{255,0,0,180}
 	}
 	if r > 300 && r < 451 {
 		return color.RGBA{251,83,83,180}
