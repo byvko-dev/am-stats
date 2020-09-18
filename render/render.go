@@ -491,9 +491,10 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	// Draw tank name
 	_, nameH 	:= ctx.MeasureString(session.TankName)
 	tankName 	:= session.TankName
-	if len(session.TankName) > 24 {
+	nameLimit 	:= 22
+	if len(session.TankName) > nameLimit {
 		nameRunes := []rune(session.TankName)
-		tankName  = string(nameRunes[:21]) + "..."
+		tankName  = string(nameRunes[:(nameLimit - 3)]) + "..."
 	}
 	ctx.DrawString(tankName, (float64(frameMargin) * 1.5), (float64(card.context.Height()) - ((float64(card.context.Height()) - nameH) / 2)))
 	// Draw tank tier
