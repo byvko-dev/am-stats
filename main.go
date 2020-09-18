@@ -76,7 +76,7 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if request.TankLimit == 0 {
-		request.TankLimit = 5
+		request.TankLimit = 10
 	}
 
 	// Get bg Image

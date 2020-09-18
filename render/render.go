@@ -81,7 +81,12 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, bgImag
 		go func(tank wgapi.VehicleStats, i int){
 			defer wg.Done()
 			lastSession := data.LastSession.Vehicles[strconv.Itoa(tank.TankID)]
-			tankCard, err := makeDetailedCard(prepNewCard((i+2), 1.0), tank, lastSession)
+			var tankCard cardData
+			if i < 3 {
+				tankCard, err = makeDetailedCard(prepNewCard((i+2), 1.0), tank, lastSession)
+			} else {
+				tankCard, err = makeSlimCard(prepNewCard((i+2), 0.5), tank, lastSession)
+			}
 			if err != nil {
 				select {
 				case errorsChan <- err:
@@ -386,22 +391,6 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	// Draw tank name
 	_, nameH 	:= ctx.MeasureString(session.TankName)
 	ctx.DrawString(session.TankName, (float64(frameMargin) * 1.5), float64(headerHeigth))
-	
-	// Draw WN8
-	wn8W, wn8H 	:= ctx.MeasureString(strconv.Itoa(session.TankWN8))
-	wn8X := float64(card.context.Width()) - (float64(frameMargin) * 1.5) - wn8W
-	ctx.DrawString(strconv.Itoa(session.TankWN8), wn8X, float64(headerHeigth))
-	// Draw Rating color
-	ctx.SetColor(getRatingColor(session.TankWN8))
-	iR := 10.0
-	iX := wn8X + wn8W + (iR*1.5)
-	iY := float64(headerHeigth) - iR - ((wn8H - (iR*2)) / 2)
-	ctx.DrawCircle(iX, iY, iR)
-	ctx.Fill()
-	ctx.SetColor(color.White)
-
-
-
 	// Draw tank tier
     if err := ctx.LoadFontFace(fontPath, (fontSize * 0.75));err != nil {
         return card, err
@@ -444,21 +433,6 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 		return card, err
 	}
 	ctx.DrawImage(avgDamageBlock.context.Image(), (blockWidth), headerHeigth)
-	// Block 1 - Avg XP
-	avgXPBlock := cardBlock(avgDamageBlock)
-	avgXPSession			:= strconv.Itoa((session.Xp / session.Battles))
-	avgXPLastSession := "-"
-	if lastSession.Battles > 0 {
-		avgXPLastSession		= strconv.Itoa((lastSession.Xp / lastSession.Battles))
-	}
-	avgXPBlock.smallText 	= avgXPLastSession
-	avgXPBlock.bigText 		= avgXPSession
-	avgXPBlock.altText 		= "Avg. XP"
-	avgXPBlock, err = addBlockCtx(avgXPBlock)
-	if err != nil {
-		return card, err
-	}
-	ctx.DrawImage(avgXPBlock.context.Image(), (blockWidth * 2), headerHeigth)
 	// Block 1 - Winrate
 	winrateBlock := cardBlock(avgDamageBlock)
 	winrateSession				:= ((float64(session.Wins) / float64(session.Battles)) * 100)
@@ -473,7 +447,113 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	if err != nil {
 		return card, err
 	}
-	ctx.DrawImage(winrateBlock.context.Image(), (blockWidth * 3), headerHeigth)
+	ctx.DrawImage(winrateBlock.context.Image(), (blockWidth * 2), headerHeigth)
+	// Block 4 - Draw WN8
+	ratingBlock := cardBlock(defaultBlock)
+	// Icon
+	ratingBlock.hasBigIcon			= true
+	ratingBlock.bigIconColor		= getRatingColor(session.TankWN8)
+	ratingBlock.bigText				= strconv.Itoa(session.TankWN8)
+	ratingBlock.smallText			= "WN8"
+	ratingBlock, err = addBlockCtx(ratingBlock)
+	if err != nil {
+		return card, err
+	}
+	ctx.DrawImage(ratingBlock.context.Image(), (blockWidth * 3), headerHeigth)
+
+	// Render image
+    card.image = ctx.Image()
+	return card, nil
+}
+// Makes a slim detailed card for a tank
+func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.VehicleStats) (cardData, error) {
+    ctx := *card.context
+    if err := ctx.LoadFontFace(fontPath, (fontSize));err != nil {
+        return card, err
+	}
+
+	if session.Battles < 1 {
+		return card, fmt.Errorf("sessions battles is < 1")
+	}
+
+	ctx.SetColor(color.White)
+	tankNameWidth		:= float64(card.context.Width()) * 0.4
+	tankBlockWidth		:= (float64(card.context.Width()) - tankNameWidth) / 3
+
+	// Default Block
+	var defaultBlock cardBlock
+	defaultBlock.textSize 		= fontSize
+	defaultBlock.width	  		= int(tankBlockWidth)
+	defaultBlock.height			= card.context.Height()
+	defaultBlock.bigTextColor	= color.RGBA{255,255,255,255}
+	defaultBlock.smallTextColor	= color.RGBA{255,255,255,235}
+	
+	// Draw tank name
+	_, nameH 	:= ctx.MeasureString(session.TankName)
+	tankName 	:= session.TankName
+	if len(session.TankName) > 24 {
+		nameRunes := []rune(session.TankName)
+		tankName  = string(nameRunes[:21]) + "..."
+	}
+	ctx.DrawString(tankName, (float64(frameMargin) * 1.5), (float64(card.context.Height()) - ((float64(card.context.Height()) - nameH) / 2)))
+	// Draw tank tier
+    if err := ctx.LoadFontFace(fontPath, (fontSize * 0.75));err != nil {
+        return card, err
+	}
+	tierW, tierH 	:= ctx.MeasureString(tierToRoman(session.TankTier))
+	tierX := float64(frameMargin / 2) + ((float64(frameMargin) - tierW) / 2)
+	tierY := (float64(card.context.Height()) - ((float64(card.context.Height()) - tierH) / 2))
+	ctx.DrawString(tierToRoman(session.TankTier), tierX, tierY)
+
+	// 3 Blocks - DMG / WR / WN8
+	// Block 3 - Draw WN8
+	ratingBlock := cardBlock(defaultBlock)
+	// Icon
+	ratingBlock.hasBigIcon			= true
+	ratingBlock.bigIconColor		= getRatingColor(session.TankWN8)
+	ratingBlock.smallText 			= "WN8"
+	ratingBlock.bigText				= strconv.Itoa(session.TankWN8)
+	ratingBlock, err := addBlockCtx(ratingBlock)
+	if err != nil {
+		return card, err
+	}
+	ctx.DrawImage(ratingBlock.context.Image(), int(tankNameWidth + (tankBlockWidth * 2)), 0)
+
+	// Block 2 - Winrate
+	winrateBlock := cardBlock(defaultBlock)
+	winrateSession					:= ((float64(session.Wins) / float64(session.Battles)) * 100)
+	winrateBlock.bigText 			= fmt.Sprintf("%.2f", winrateSession) + "% (" + strconv.Itoa(session.Battles) +")"
+	winrateBlock.smallText 			= "Winrate"
+	winrateBlock.hasBigIcon		= true
+	if ((float64(session.Wins) / float64(session.Battles)) * 100) > ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100) {
+		winrateBlock.bigArrowDirection	= 1
+	}
+	if ((float64(session.Wins) / float64(session.Battles)) * 100) < ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100) {
+		winrateBlock.bigArrowDirection	= -1
+	}
+	winrateBlock, err = addBlockCtx(winrateBlock)
+	if err != nil {
+		return card, err
+	}
+	ctx.DrawImage(winrateBlock.context.Image(), int(tankNameWidth + (tankBlockWidth * 1)), 0)
+	
+	// Block 1 - Avg Damage
+	avgDamageBlock := cardBlock(defaultBlock)
+	avgDamageSession					:= strconv.Itoa((session.DamageDealt / session.Battles))
+	avgDamageBlock.smallText 			= "Avg. Damage"
+	avgDamageBlock.bigText 				= avgDamageSession
+	avgDamageBlock.hasBigIcon			= true
+	if (session.DamageDealt / session.Battles) > (lastSession.DamageDealt / lastSession.Battles) {
+		avgDamageBlock.bigArrowDirection	= 1
+	}
+	if (session.DamageDealt / session.Battles) < (lastSession.DamageDealt / lastSession.Battles) {
+		avgDamageBlock.bigArrowDirection	= -1
+	}
+	avgDamageBlock, err = addBlockCtx(avgDamageBlock)
+	if err != nil {
+		return card, err
+	}
+	ctx.DrawImage(avgDamageBlock.context.Image(), int(tankNameWidth), 0)
 
 	// Render image
     card.image = ctx.Image()
@@ -503,7 +583,7 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
 	availHeiht := block.height - int(altMargin)
 	// Draw small text
 	ctx.SetColor(block.smallTextColor)
-	if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.75));err != nil {
+	if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.60));err != nil {
         return block, err
     }
 	sTxtW, sTxtH := ctx.MeasureString(block.smallText)
@@ -522,23 +602,25 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
 	if block.hasBigIcon == true {
 		ctx.SetColor(block.bigIconColor)
 		if block.bigArrowDirection == 0 {
-			iR := 10.0
+			iR := 8.0 * (block.textSize / fontSize)
 			iX := bX - (iR*1.5)
 			iY := bY - iR - ((bTxtH - (iR*2)) / 2)
 			ctx.DrawCircle(iX, iY, iR)
 			ctx.Fill()
 		}
 		if block.bigArrowDirection == 1 {
-			iR := 10.0
+			ctx.SetColor(color.RGBA{0,255,0,180})
+			iR := 8.0 * (block.textSize / fontSize)
 			iX := bX - (iR*1.5)
-			iY := bY - iR - ((bTxtH - (iR*2)) / 2)
+			iY := bY - ((bTxtH - (iR)) / 2)
 			ctx.DrawRegularPolygon(3, iX, iY, iR, 0)
 			ctx.Fill()
 		}
 		if block.bigArrowDirection == -1 {
-			iR := 10.0
+			ctx.SetColor(color.RGBA{255,0,0,180})
+			iR := 8.0 * (block.textSize / fontSize)
 			iX := bX - (iR*1.5)
-			iY := bY - iR - ((bTxtH - (iR*2)) / 2)
+			iY := bY - bTxtH + ((bTxtH - (iR)) / 2)
 			ctx.DrawRegularPolygon(3, iX, iY, iR, 1)
 			ctx.Fill()
 		}
@@ -546,21 +628,21 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
 	if block.hasSmallIcon == true {
 		ctx.SetColor(block.smallIconColor)
 		if block.smallArrowDirection == 0 {
-			iR := 10.0 * 0.75
+			iR := 8.0 * 0.75 * (block.textSize / fontSize)
 			iX := sX - (iR*1.5)
 			iY := sY - iR - ((sTxtH - (iR*2)) / 2)
 			ctx.DrawCircle(iX, iY, iR)
 			ctx.Fill()
 		}
 		if block.smallArrowDirection == 1 {
-			iR := 10.0 * 0.75
+			iR := 8.0 * 0.75 * (block.textSize / fontSize)
 			iX := sX - (iR*1.5)
 			iY := sY - iR - ((sTxtH - (iR*2)) / 2)
 			ctx.DrawRegularPolygon(3, iX, iY, iR, 0)
 			ctx.Fill()
 		}
 		if block.smallArrowDirection == -1 {
-			iR := 10.0 * 0.75
+			iR := 8.0 * 0.75 * (block.textSize / fontSize)
 			iX := sX - (iR*1.5)
 			iY := sY - iR - ((sTxtH - (iR*2)) / 2)
 			ctx.DrawRegularPolygon(3, iX, iY, iR, 1)
