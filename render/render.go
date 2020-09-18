@@ -582,24 +582,40 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
 		ctx.DrawString(block.altText, sX, sY)
 	}
 	availHeiht := block.height - int(altMargin)
+	var totalTextHeight float64
 	// Draw small text
 	ctx.SetColor(block.smallTextColor)
 	if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.60));err != nil {
         return block, err
     }
 	sTxtW, sTxtH := ctx.MeasureString(block.smallText)
+	totalTextHeight += sTxtH
 	sX := ((float64(block.width) - sTxtW) / 2.0)
-	sY := float64(availHeiht / 2) + sTxtH + (block.textSize / 8)
-	ctx.DrawString(block.smallText, sX, sY)
 	// Draw Big text
-	ctx.SetColor(block.bigTextColor)
 	if err := ctx.LoadFontFace(fontPath, block.textSize);err != nil {
-        return block, err
+		return block, err
     }
 	bTxtW, bTxtH := ctx.MeasureString(block.bigText)
+	totalTextHeight += bTxtH
 	bX := ((float64(block.width) - bTxtW) / 2.0)
-	bY := float64(availHeiht / 2) - (block.textSize / 8)
+	
+	// Draw text
+	drawTextMargins := (float64(availHeiht) - totalTextHeight) / 3
+	// Big text
+	if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.60));err != nil {
+        return block, err
+    }
+	sY := float64(availHeiht) - (drawTextMargins + (drawTextMargins*0.25))
+	ctx.DrawString(block.smallText, sX, sY)
+	// Small text
+	ctx.SetColor(block.bigTextColor)
+	if err := ctx.LoadFontFace(fontPath, block.textSize);err != nil {
+		return block, err
+    }
+	bY := bTxtH + (drawTextMargins + (drawTextMargins*0.25))
 	ctx.DrawString(block.bigText, bX, bY)
+
+
 	if block.hasBigIcon == true {
 		ctx.SetColor(block.bigIconColor)
 		if block.bigArrowDirection == 0 {
