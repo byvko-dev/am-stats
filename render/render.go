@@ -477,7 +477,7 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	}
 
 	ctx.SetColor(color.White)
-	tankNameWidth		:= float64(card.context.Width()) * 0.40
+	tankNameWidth		:= float64(card.context.Width()) * 0.375
 	tankBlockWidth		:= (float64(card.context.Width()) - tankNameWidth) / 3
 
 	// Default Block
@@ -525,7 +525,7 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	winrateSession					:= ((float64(session.Wins) / float64(session.Battles)) * 100)
 	winrateBlock.bigText 			= fmt.Sprintf("%.1f", winrateSession) + "% (" + strconv.Itoa(session.Battles) +")"
 	winrateBlock.smallText 			= "Winrate"
-	winrateBlock.hasBigIcon		= true
+	winrateBlock.hasBigIcon			= true
 	if lastSession.Battles > 0 && ((float64(session.Wins) / float64(session.Battles)) * 100) > ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100) {
 		winrateBlock.bigArrowDirection	= 1
 	}
