@@ -49,7 +49,7 @@ func getAPIDomain(realm string) (string, error) {
 		return "http://api.wotblitz.ru", nil
 
 	} else if realm == "ASIA" || realm == "AS" {
-		return "http://api.wotblitz.ru", nil
+		return "http://api.wotblitz.asia", nil
 
 	} else {
 		message := fmt.Sprintf("Realm %s not found", realm)

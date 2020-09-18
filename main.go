@@ -30,6 +30,7 @@ func handler() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	// myRouter.HandleFunc("/clans", updateClanActivity)
 	myRouter.HandleFunc("/player", handlePlayerRequest).Methods("GET")
+	myRouter.HandleFunc("/stats", handleStatsRequest).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(hostPORT, myRouter))
 }
@@ -94,6 +95,26 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	repondWithImage(w, http.StatusOK, img)
+}
+
+func handleStatsRequest(w http.ResponseWriter, r *http.Request) {
+    defer func() {
+        if r := recover(); r != nil {
+            log.Println("Recovered in f", r)
+        }
+    }()
+	var request request
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.Realm, request.Days)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, export)
 }
 
 func main() {
