@@ -71,6 +71,10 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	if export.PlayerDetails.Name == "" {
+		respondWithError(w, http.StatusNotFound, err.Error())
+		return
+	}
 	if request.TankLimit == 0 {
 		request.TankLimit = 5
 	}
@@ -112,6 +116,10 @@ func handleStatsRequest(w http.ResponseWriter, r *http.Request) {
 	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.Realm, request.Days)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if export.PlayerDetails.Name == "" {
+		respondWithError(w, http.StatusNotFound, err.Error())
 		return
 	}
 	respondWithJSON(w, http.StatusOK, export)
