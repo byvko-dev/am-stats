@@ -526,10 +526,10 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	winrateBlock.bigText 			= fmt.Sprintf("%.1f", winrateSession) + "% (" + strconv.Itoa(session.Battles) +")"
 	winrateBlock.smallText 			= "Winrate"
 	winrateBlock.hasBigIcon		= true
-	if ((float64(session.Wins) / float64(session.Battles)) * 100) > ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100) {
+	if lastSession.Battles > 0 && ((float64(session.Wins) / float64(session.Battles)) * 100) > ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100) {
 		winrateBlock.bigArrowDirection	= 1
 	}
-	if ((float64(session.Wins) / float64(session.Battles)) * 100) < ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100) {
+	if lastSession.Battles > 0 && ((float64(session.Wins) / float64(session.Battles)) * 100) < ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100) {
 		winrateBlock.bigArrowDirection	= -1
 	}
 	winrateBlock, err = addBlockCtx(winrateBlock)
@@ -544,10 +544,10 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	avgDamageBlock.smallText 			= "Avg. Damage"
 	avgDamageBlock.bigText 				= avgDamageSession
 	avgDamageBlock.hasBigIcon			= true
-	if (session.DamageDealt / session.Battles) > (lastSession.DamageDealt / lastSession.Battles) {
+	if lastSession.Battles > 0 && (session.DamageDealt / session.Battles) > (lastSession.DamageDealt / lastSession.Battles) {
 		avgDamageBlock.bigArrowDirection	= 1
 	}
-	if (session.DamageDealt / session.Battles) < (lastSession.DamageDealt / lastSession.Battles) {
+	if lastSession.Battles > 0 && (session.DamageDealt / session.Battles) < (lastSession.DamageDealt / lastSession.Battles) {
 		avgDamageBlock.bigArrowDirection	= -1
 	}
 	avgDamageBlock, err = addBlockCtx(avgDamageBlock)
