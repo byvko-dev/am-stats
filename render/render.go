@@ -477,7 +477,7 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	}
 
 	ctx.SetColor(color.White)
-	tankNameWidth		:= float64(card.context.Width()) * 0.35
+	tankNameWidth		:= float64(card.context.Width()) * 0.40
 	tankBlockWidth		:= (float64(card.context.Width()) - tankNameWidth) / 3
 
 	// Default Block
