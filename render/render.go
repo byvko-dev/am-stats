@@ -27,7 +27,8 @@ var (
     frameMargin     = 50
     baseCardWidth   = frameWidth - (2*frameMargin)
     baseCardHeigh   = 150
-    baseCardColor   = color.RGBA{80,80,80,225}
+    baseCardColor   = color.RGBA{60,60,60,204}
+    decorLinesColor = color.RGBA{120,120,120,225}
 )
 // ImageFromStats - 
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, bgImage image.Image) (finalImage image.Image, err error){
@@ -358,7 +359,7 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	ctx.DrawImage(avgXPBlock.context.Image(), (bottomBlockWidth * 3), blockHeight)
 
 	// Draw lines
-	ctx.SetColor(color.RGBA{120,120,120,255})
+	ctx.SetColor(decorLinesColor)
 	lineX := float64(frameMargin)
 	lineY := float64(blockHeight)
 	lineHeight := 2.0
@@ -493,7 +494,7 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	ctx.DrawImage(ratingBlock.context.Image(), (blockWidth * 3), headerHeigth)
 
 	// Draw lines
-	ctx.SetColor(color.RGBA{120,120,120,255})
+	ctx.SetColor(decorLinesColor)
 	lineX := float64(frameMargin)
 	lineY := float64(headerHeigth) + (fontSize / 2)
 	lineHeight := 2.0
