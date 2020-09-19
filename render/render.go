@@ -200,6 +200,7 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
         return card, err
     }
 	ctx.SetColor(color.White)
+
 	// Default Block settings
 	blockWidth 			:= card.context.Width() / 3
 	bottomBlockWidth 	:= card.context.Width() / 4
@@ -356,6 +357,16 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	}
 	ctx.DrawImage(avgXPBlock.context.Image(), (bottomBlockWidth * 3), blockHeight)
 
+	// Draw lines
+	ctx.SetColor(color.RGBA{120,120,120,255})
+	lineX := float64(frameMargin)
+	lineY := float64(blockHeight)
+	lineHeight := 2.0
+	lineWidth  := (float64(ctx.Width()) - float64(frameMargin * 2) - 80.0) / 2
+	ctx.DrawRectangle(lineX, lineY, lineWidth, lineHeight)
+	ctx.DrawRectangle((lineX + lineWidth + 80), lineY, lineWidth, lineHeight)
+	ctx.Fill()
+
 	// Render image
     card.image = ctx.Image()
     return card, nil
@@ -481,6 +492,15 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	}
 	ctx.DrawImage(ratingBlock.context.Image(), (blockWidth * 3), headerHeigth)
 
+	// Draw lines
+	ctx.SetColor(color.RGBA{120,120,120,255})
+	lineX := float64(frameMargin)
+	lineY := float64(headerHeigth) + (fontSize / 2)
+	lineHeight := 2.0
+	lineWidth  := (float64(ctx.Width()) - float64(frameMargin * 2))
+	ctx.DrawRectangle(lineX, lineY, lineWidth, lineHeight)
+	ctx.Fill()
+
 	// Render image
     card.image = ctx.Image()
 	return card, nil
@@ -516,7 +536,8 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 		nameRunes := []rune(session.TankName)
 		tankName  = string(nameRunes[:(nameLimit - 3)]) + "..."
 	}
-	ctx.DrawString(tankName, (float64(frameMargin) * 1.5), (float64(card.context.Height()) - ((float64(card.context.Height()) - nameH) / 2)))
+	nameY := (float64(card.context.Height()) - ((float64(card.context.Height()) - nameH) / 2))
+	ctx.DrawString(tankName, (float64(frameMargin) * 1.5), nameY)
 	// Draw tank tier
     if err := ctx.LoadFontFace(fontPath, (fontSize * 0.75));err != nil {
         return card, err
