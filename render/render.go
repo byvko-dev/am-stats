@@ -389,16 +389,22 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	// Top Row - Tank name, WN8
 	
 	// Draw tank name
-	_, nameH 	:= ctx.MeasureString(session.TankName)
-	ctx.DrawString(session.TankName, (float64(frameMargin) * 1.5), float64(headerHeigth))
+	nameW, nameH 	:= ctx.MeasureString(session.TankName)
 	// Draw tank tier
     if err := ctx.LoadFontFace(fontPath, (fontSize * 0.75));err != nil {
-        return card, err
+		return card, err
 	}
 	tierW, tierH 	:= ctx.MeasureString(tierToRoman(session.TankTier))
-	tierX := float64(frameMargin / 2) + ((float64(frameMargin) - tierW) / 2)
 	tierY := float64(headerHeigth) - ((float64(nameH) - tierH) / 2)
+	
+	nameX := (float64(card.context.Width()) - nameW) / 2
+	tierX := nameX - (((float64(frameMargin) - tierW) / 2))
+
 	ctx.DrawString(tierToRoman(session.TankTier), tierX, tierY)
+    if err := ctx.LoadFontFace(fontPath, (fontSize * 1.25));err != nil {
+		return card, err
+	}
+	ctx.DrawString(session.TankName, nameX, float64(headerHeigth))
 
 	// Bottom Row - Avg Damage, Avg XP, Winrate
 	// Block 1 - Battles
