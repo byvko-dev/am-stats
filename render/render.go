@@ -434,6 +434,13 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	avgDamageBlock.smallText 	= avgDamageLastSession
 	avgDamageBlock.bigText 		= avgDamageSession
 	avgDamageBlock.altText 		= "Avg. Damage"
+	avgDamageBlock.hasBigIcon		 = true
+	if avgDamageLastSession < avgDamageSession {
+		avgDamageBlock.bigArrowDirection = 1
+	}
+	if avgDamageLastSession > avgDamageSession {
+		avgDamageBlock.bigArrowDirection = -1
+	}
 	avgDamageBlock, err = addBlockCtx(avgDamageBlock)
 	if err != nil {
 		return card, err
@@ -449,6 +456,13 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	winrateBlock.bigText 		= fmt.Sprintf("%.2f", winrateSession) + "%"
 	winrateBlock.smallText 		= winrateLastSession 
 	winrateBlock.altText 		= "Winrate"
+	winrateBlock.hasBigIcon		 = true
+	if  ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100) < winrateSession {
+		winrateBlock.bigArrowDirection = 1
+	}
+	if  ((float64(lastSession.Wins) / float64(lastSession.Battles)) * 100) > winrateSession {
+		winrateBlock.bigArrowDirection = -1
+	}
 	winrateBlock, err = addBlockCtx(winrateBlock)
 	if err != nil {
 		return card, err
@@ -635,7 +649,7 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
 			ctx.SetColor(color.RGBA{0,255,0,180})
 			iR := 8.0 * (block.textSize / fontSize)
 			iX := bX - (iR*1.5)
-			iY := bY - ((bTxtH - (iR)) / 2)
+			iY := bY - ((bTxtH - (iR)) / 2) - (fontSize / 10)
 			ctx.DrawRegularPolygon(3, iX, iY, iR, 0)
 			ctx.Fill()
 		}
@@ -643,7 +657,7 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
 			ctx.SetColor(color.RGBA{255,0,0,180})
 			iR := 8.0 * (block.textSize / fontSize)
 			iX := bX - (iR*1.5)
-			iY := bY - bTxtH + ((bTxtH - (iR)) / 2)
+			iY := bY - bTxtH + ((bTxtH - (iR)) / 2) + (fontSize / 10)
 			ctx.DrawRegularPolygon(3, iX, iY, iR, 1)
 			ctx.Fill()
 		}
