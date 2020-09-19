@@ -27,7 +27,7 @@ var (
     frameMargin     = 50
     baseCardWidth   = frameWidth - (2*frameMargin)
     baseCardHeigh   = 150
-    baseCardColor   = color.RGBA{0,0,0,150}
+    baseCardColor   = color.RGBA{80,80,80,225}
 )
 // ImageFromStats - 
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, bgImage image.Image) (finalImage image.Image, err error){
@@ -802,7 +802,7 @@ func prepNewCard(index int, heightMod float64) (cardData) {
     cardWidth  := baseCardWidth
     cardCtx := gg.NewContext(cardWidth, cardHeight)
     cardCtx.SetColor(baseCardColor)
-    cardCtx.DrawRectangle(0, 0, float64(cardWidth), float64(cardHeight))
+    cardCtx.DrawRoundedRectangle(0, 0, float64(cardWidth), float64(cardHeight), fontSize)
     cardCtx.Fill()
     var card cardData
     card.context = cardCtx
