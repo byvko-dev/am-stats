@@ -29,6 +29,9 @@ var (
     baseCardHeigh   = 150
     baseCardColor   = color.RGBA{30,30,30,204}
     decorLinesColor = color.RGBA{120,120,120,225}
+	bigTextColor	= color.RGBA{255,255,255,255}
+	smallTextColor	= color.RGBA{204,204,204,255}
+	altTextColor	= color.RGBA{100,100,100,255}
 )
 // ImageFromStats - 
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, bgImage image.Image) (finalImage image.Image, err error){
@@ -211,9 +214,9 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	defaultBlock.textSize 		= fontSize * 1.5
 	defaultBlock.width	  		= blockWidth
 	defaultBlock.height			= blockHeight
-	defaultBlock.bigTextColor	= color.RGBA{255,255,255,255}
-	defaultBlock.smallTextColor	= color.RGBA{255,255,255,245}
-	defaultBlock.altTextColor	= color.RGBA{255,255,255,200}
+	defaultBlock.bigTextColor	= bigTextColor
+	defaultBlock.smallTextColor	= smallTextColor
+	defaultBlock.altTextColor	= altTextColor
 	// Top Row - 3 Blocks (Battles, WN8, WR)
 	badSession := true
 	if data.SessionStats.StatsAll.Battles > 0 {
@@ -391,12 +394,12 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	headerHeigth 	:= availableHeight - blockHeight
 	// Default Block
 	var defaultBlock cardBlock
-	defaultBlock.textSize 		= fontSize * 1.30
+	defaultBlock.textSize 		= fontSize * 1.15
 	defaultBlock.width	  		= blockWidth
 	defaultBlock.height			= blockHeight
-	defaultBlock.bigTextColor	= color.RGBA{255,255,255,255}
-	defaultBlock.smallTextColor	= color.RGBA{255,255,255,245}
-	defaultBlock.altTextColor	= color.RGBA{255,255,255,235}
+	defaultBlock.bigTextColor	= bigTextColor
+	defaultBlock.smallTextColor	= smallTextColor
+	defaultBlock.altTextColor	= altTextColor
 	
 	// Top Row - Tank name, WN8
 	
@@ -487,6 +490,7 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	ratingBlock.bigIconColor		= getRatingColor(session.TankWN8)
 	ratingBlock.bigText				= strconv.Itoa(session.TankWN8)
 	ratingBlock.smallText			= "WN8"
+	ratingBlock.smallTextColor		= altTextColor
 	ratingBlock, err = addBlockCtx(ratingBlock)
 	if err != nil {
 		return card, err
@@ -496,7 +500,7 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	// Draw lines
 	ctx.SetColor(decorLinesColor)
 	lineX := float64(frameMargin)
-	lineY := float64(headerHeigth) + (fontSize / 2)
+	lineY := float64(headerHeigth) + (fontSize / 4)
 	lineHeight := 2.0
 	lineWidth  := (float64(ctx.Width()) - float64(frameMargin * 2))
 	ctx.DrawRectangle(lineX, lineY, lineWidth, lineHeight)
@@ -526,8 +530,8 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	defaultBlock.textSize 		= fontSize
 	defaultBlock.width	  		= int(tankBlockWidth)
 	defaultBlock.height			= card.context.Height()
-	defaultBlock.bigTextColor	= color.RGBA{255,255,255,255}
-	defaultBlock.smallTextColor	= color.RGBA{255,255,255,235}
+	defaultBlock.bigTextColor	= bigTextColor
+	defaultBlock.smallTextColor	= altTextColor
 	
 	// Draw tank name
 	_, nameH 	:= ctx.MeasureString(session.TankName)
@@ -610,54 +614,72 @@ func addBlockCtx(block cardBlock) (cardBlock, error){
 		ctx.DrawRectangle(0,0,float64(block.width),float64(block.height))
 		ctx.Fill()
 	}
-	// Draw altText
-	var altMargin float64
+	// Calc altText
+	var (
+		altMargin float64
+		aTxtW     float64
+		aTxtH 	  float64
+	)
 	if block.altText != "" {
 		ctx.SetColor(block.altTextColor)
 		if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.5));err != nil {
 			return block, err
 		}
-		aTxtW, aTxtH := ctx.MeasureString(block.altText)
+		aTxtW, aTxtH = ctx.MeasureString(block.altText)
 		altMargin = aTxtH
-		sX := ((float64(block.width) - aTxtW) / 2.0)
-		sY := float64(block.height) - (block.textSize / 2)
-		ctx.DrawString(block.altText, sX, sY)
 	}
-	availHeiht := block.height - int(altMargin)
-	var totalTextHeight float64
-	// Draw small text
-	ctx.SetColor(block.smallTextColor)
+	availHeiht := block.height
+	var totalTextHeight float64 = altMargin
+	// Calc small text
 	if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.60));err != nil {
         return block, err
     }
 	sTxtW, sTxtH := ctx.MeasureString(block.smallText)
-	totalTextHeight += sTxtH
+	if sTxtH > 0 {
+		totalTextHeight += sTxtH
+	} 
 	sX := ((float64(block.width) - sTxtW) / 2.0)
-	// Draw Big text
+	// Calc Big text
 	if err := ctx.LoadFontFace(fontPath, block.textSize);err != nil {
 		return block, err
     }
 	bTxtW, bTxtH := ctx.MeasureString(block.bigText)
-	totalTextHeight += bTxtH
+	if bTxtH > 0 {
+		totalTextHeight += bTxtH
+	}
 	bX := ((float64(block.width) - bTxtW) / 2.0)
 	
 	// Draw text
-	drawTextMargins := (float64(availHeiht) - totalTextHeight) / 3
+	var drawTextMargins float64
+	if block.altText != "" {
+		drawTextMargins = (float64(availHeiht) - totalTextHeight) / 4
+	} else {
+		drawTextMargins = (float64(availHeiht) - totalTextHeight) / 3
+	}
 	// Big text
-	if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.60));err != nil {
-        return block, err
-    }
-	sY := float64(availHeiht) - (drawTextMargins + (drawTextMargins*0.25))
-	ctx.DrawString(block.smallText, sX, sY)
-	// Small text
 	ctx.SetColor(block.bigTextColor)
 	if err := ctx.LoadFontFace(fontPath, block.textSize);err != nil {
 		return block, err
     }
-	bY := bTxtH + (drawTextMargins + (drawTextMargins*0.25))
+	bY := bTxtH + drawTextMargins
 	ctx.DrawString(block.bigText, bX, bY)
 
+	// Small text
+	ctx.SetColor(block.smallTextColor)
+	if err := ctx.LoadFontFace(fontPath, (block.textSize * 0.60));err != nil {
+        return block, err
+    }
+	sY := bY + sTxtH + drawTextMargins
+	ctx.DrawString(block.smallText, sX, sY)
 
+	if block.altText != "" {
+		ctx.SetColor(block.altTextColor)
+		aX := ((float64(block.width) - aTxtW) / 2.0)
+		aY := sY + aTxtH + drawTextMargins
+		ctx.DrawString(block.altText, aX, aY)
+	}
+
+	// Draw icons
 	if block.hasBigIcon == true {
 		ctx.SetColor(block.bigIconColor)
 		if block.bigArrowDirection == 0 {
