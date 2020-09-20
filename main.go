@@ -23,6 +23,8 @@ type request struct {
 	BgURL		string	`json:"bg_url"`
 }
 
+const currentBG string = "bg_code_fatal.jpg"
+
 func handler() {
 	log.Println("Starting webserver on", 6969)
 	hostPORT := ":" + strconv.Itoa(6969)
@@ -87,7 +89,7 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		defer response.Body.Close()
 	}
 	if err != nil || request.BgURL == "" {
-		bgImage, err = gg.LoadImage("../am-stats/render/assets/bg_frame.png")
+		bgImage, err = gg.LoadImage("../am-stats/render/assets/" + currentBG)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, err.Error())
 		}
