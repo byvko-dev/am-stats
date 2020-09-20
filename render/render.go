@@ -389,6 +389,9 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	ctx.SetColor(color.White)
 	// Measure tank name
 	nameW, nameH 	:= ctx.MeasureString(session.TankName)
+    if err := ctx.LoadFontFace(fontPath, (fontSize * 0.75));err != nil {
+        return card, err
+	}
 	tierW, tierH 	:= ctx.MeasureString(tierToRoman(session.TankTier))
 	headerHeigth 	:= int(nameH * 2)
 	nameX := (float64(card.context.Width()) - nameW) / 2
@@ -397,9 +400,6 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	tierY := (float64(headerHeigth) - tierH) / 2 + tierH
 
 	// Draw tank tier
-    if err := ctx.LoadFontFace(fontPath, (fontSize * 0.75));err != nil {
-		return card, err
-	}
 	ctx.DrawString(tierToRoman(session.TankTier), tierX, tierY)
 	// Draw tank name
     if err := ctx.LoadFontFace(fontPath, (fontSize * 1.25));err != nil {
