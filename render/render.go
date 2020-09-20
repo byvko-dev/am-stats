@@ -28,7 +28,7 @@ var (
     baseCardWidth   = frameWidth - (2*frameMargin)
     baseCardHeigh   = 150
     baseCardColor   = color.RGBA{30,30,30,204}
-    decorLinesColor = color.RGBA{120,120,120,225}
+    decorLinesColor = color.RGBA{60,60,60,255}
 	bigTextColor	= color.RGBA{255,255,255,255}
 	smallTextColor	= color.RGBA{204,204,204,255}
 	altTextColor	= color.RGBA{100,100,100,255}
