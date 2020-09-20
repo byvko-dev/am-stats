@@ -413,7 +413,7 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	tierY := float64(headerHeigth) - ((float64(nameH) - tierH) / 2)
 	
 	nameX := (float64(card.context.Width()) - nameW) / 2
-	tierX := nameX - (((float64(frameMargin) - tierW) / 2))
+	tierX := nameX - (fontSize / 2) - tierW
 
 	ctx.DrawString(tierToRoman(session.TankTier), tierX, tierY)
     if err := ctx.LoadFontFace(fontPath, (fontSize * 1.25));err != nil {
