@@ -22,6 +22,7 @@ type cardBlock struct{
     smallTextColor  color.RGBA
     altTextColor    color.RGBA
     textSize        float64
+    textCoeff       float64
     // Icon for WN8 and stats change
     hasBigIcon          bool
     bigArrowDirection   int
