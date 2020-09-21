@@ -449,17 +449,18 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	avgDamageLastSession := "-"
 	if lastSession.Battles > 0 {
 		avgDamageLastSession = strconv.Itoa((lastSession.DamageDealt / lastSession.Battles))
+		if (lastSession.DamageDealt / lastSession.Battles) < (session.DamageDealt / session.Battles) {
+			avgDamageBlock.hasBigIcon = true
+			avgDamageBlock.bigArrowDirection = 1
+		}
+		if (lastSession.DamageDealt / lastSession.Battles) > (session.DamageDealt / session.Battles) {
+			avgDamageBlock.hasBigIcon = true
+			avgDamageBlock.bigArrowDirection = -1
+		}
 	}
 	avgDamageBlock.smallText = avgDamageLastSession
 	avgDamageBlock.bigText = avgDamageSession
 	avgDamageBlock.altText = "Avg. Damage"
-	avgDamageBlock.hasBigIcon = true
-	if (lastSession.DamageDealt / lastSession.Battles) < (session.DamageDealt / session.Battles) {
-		avgDamageBlock.bigArrowDirection = 1
-	}
-	if (lastSession.DamageDealt / lastSession.Battles) > (session.DamageDealt / session.Battles) {
-		avgDamageBlock.bigArrowDirection = -1
-	}
 	avgDamageBlock, err = addBlockCtx(avgDamageBlock)
 	if err != nil {
 		return card, err
