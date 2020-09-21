@@ -202,6 +202,12 @@ func makeHeaderCard(card cardData, playerName, playerClan, battleType string) (c
 }
 
 func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
+    defer func() {
+        if r := recover(); r != nil {
+            log.Println("Recovered in f", r)
+        }
+    }()
+
 	ctx := *card.context
 	if err := ctx.LoadFontFace(fontPath, fontSize); err != nil {
 		return card, err
@@ -381,6 +387,12 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 
 // Makes a detailed card for a tank
 func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.VehicleStats) (cardData, error) {
+    defer func() {
+        if r := recover(); r != nil {
+            log.Println("Recovered in f", r)
+        }
+    }()
+
 	ctx := *card.context
 	if err := ctx.LoadFontFace(fontPath, (fontSize * 1.25)); err != nil {
 		return card, err
@@ -447,14 +459,13 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	avgDamageBlock.width = blockWidth
 	avgDamageSession := strconv.Itoa((session.DamageDealt / session.Battles))
 	avgDamageLastSession := "-"
+	avgDamageBlock.hasBigIcon = true
 	if lastSession.Battles > 0 {
 		avgDamageLastSession = strconv.Itoa((lastSession.DamageDealt / lastSession.Battles))
 		if (lastSession.DamageDealt / lastSession.Battles) < (session.DamageDealt / session.Battles) {
-			avgDamageBlock.hasBigIcon = true
 			avgDamageBlock.bigArrowDirection = 1
 		}
 		if (lastSession.DamageDealt / lastSession.Battles) > (session.DamageDealt / session.Battles) {
-			avgDamageBlock.hasBigIcon = true
 			avgDamageBlock.bigArrowDirection = -1
 		}
 	}
@@ -518,6 +529,12 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 
 // Makes a slim detailed card for a tank
 func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.VehicleStats) (cardData, error) {
+    defer func() {
+        if r := recover(); r != nil {
+            log.Println("Recovered in f", r)
+        }
+    }()
+
 	ctx := *card.context
 	if err := ctx.LoadFontFace(fontPath, (fontSize)); err != nil {
 		return card, err
