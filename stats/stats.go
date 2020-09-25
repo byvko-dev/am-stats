@@ -28,7 +28,7 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 		}
 		tank.TankTier = tankInfo.Tier
 		tank.TankName = tankInfo.Name
-		log.Print("no tank avg data, but name and tier found:", err)
+		log.Print("no tank avg data, but name and tier found:")
 		return tank, nil
 	}
 	tank.TankTier = tankAvgData.Tier
