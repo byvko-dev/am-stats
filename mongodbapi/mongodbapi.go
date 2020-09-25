@@ -1,6 +1,5 @@
 package mongodbapi
 
-
 import (
 	"fmt"
 	"log"
@@ -16,11 +15,11 @@ import (
 	"github.com/cufee/am-stats/config"
 )
 
-
 // Collections
 var sessionsCollection *mongo.Collection
 var playersCollection *mongo.Collection
 var tankAveragesCollection *mongo.Collection
+var tankGlossaryCollection *mongo.Collection
 var ctx = context.TODO()
 
 func init() {
@@ -44,8 +43,8 @@ func init() {
 	sessionsCollection = client.Database("stats").Collection("sessions")
 	playersCollection = client.Database("stats").Collection("players")
 	tankAveragesCollection = client.Database("glossary").Collection("tankaverages")
+	tankGlossaryCollection = client.Database("glossary").Collection("tanks")
 }
-
 
 // MakeFilter - Make a BSON filter for mongodb using FilerPairs passed in
 func makeFilter(filters ...FilterPair) (filter interface{}) {
@@ -62,15 +61,15 @@ func makeFilter(filters ...FilterPair) (filter interface{}) {
 	return filter
 }
 
-
 // AddPlayer - Add a new player record to DB
-func AddPlayer(playerData DBPlayerPofile) (error) {
+func AddPlayer(playerData DBPlayerPofile) error {
 	_, err := playersCollection.InsertOne(ctx, playerData)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
 // getPlayer - Get a player record from DB
 func getPlayer(filter interface{}) (result DBPlayerPofile, err error) {
 	err = playersCollection.FindOne(ctx, filter).Decode(&result)
@@ -79,11 +78,13 @@ func getPlayer(filter interface{}) (result DBPlayerPofile, err error) {
 	}
 	return result, nil
 }
+
 // GetPlayerProfile - Get a player record from DB
 func GetPlayerProfile(pid int) (DBPlayerPofile, error) {
 	filter := makeFilter(FilterPair{Key: "_id", Value: pid})
 	return getPlayer(filter)
 }
+
 // UpdatePlayer - Update a player record in DB
 func UpdatePlayer(filter interface{}, playerData DBPlayerPofile) (result string, err error) {
 	resultRaw, err := playersCollection.UpdateOne(ctx, filter, bson.M{"$set": playerData})
@@ -94,7 +95,7 @@ func UpdatePlayer(filter interface{}, playerData DBPlayerPofile) (result string,
 	return result, nil
 }
 
-// GetPlayerSession - 
+// GetPlayerSession -
 func GetPlayerSession(pid int, days int, currentBattles int) (session Session, err error) {
 	// Sorting options
 	queryOptions := options.FindOneOptions{}
@@ -106,19 +107,19 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 	if days > 0 {
 		// Setting days to negative to look back
 		queryOptions.SetSort(bson.M{"timestamp": 1})
-		sessionTime := time.Now().AddDate(0,0,-(days + 1))
+		sessionTime := time.Now().AddDate(0, 0, -(days + 1))
 		filters = append(filters, FilterPair{Key: "timestamp", Value: bson.M{"$gt": sessionTime}})
 	}
 	query := makeFilter(filters...)
 	// Get session
-	var retroSession RetroSession 
+	var retroSession RetroSession
 	err = sessionsCollection.FindOne(ctx, query, &queryOptions).Decode(&retroSession)
 	if err != nil {
 		return session, err
 	}
 	// Comvert to Session
 	var retroConv Convert = retroSession
-	return  retroConv.ToSession(), nil
+	return retroConv.ToSession(), nil
 }
 
 // AddSession - Add a new session to db
@@ -131,23 +132,33 @@ func addSession(session Session) error {
 	}
 	return nil
 }
+
 // GetSession - Get a player session from db using advanced BSON filter
 func getSession(filter interface{}) (session Session, err error) {
-	var retroSession RetroSession 
+	var retroSession RetroSession
 	err = sessionsCollection.FindOne(ctx, filter).Decode(&retroSession)
 	if err != nil {
 		return session, err
 	}
 	// Comvert to Session
 	var retroConv Convert = retroSession
-	return  retroConv.ToSession(), nil
+	return retroConv.ToSession(), nil
 }
-
 
 // GetTankAverages - Get averages data for a tank by ID
 func GetTankAverages(tid int) (averages TankAverages, err error) {
 	filter := bson.M{"tank_id": tid}
 	err = tankAveragesCollection.FindOne(ctx, filter).Decode(&averages)
+	if err != nil {
+		return averages, err
+	}
+	return averages, nil
+}
+
+// GetTankGlossary - Get averages data for a tank by ID
+func GetTankGlossary(tid int) (averages TankAverages, err error) {
+	filter := bson.M{"tank_id": tid}
+	err = tankGlossaryCollection.FindOne(ctx, filter).Decode(&averages)
 	if err != nil {
 		return averages, err
 	}

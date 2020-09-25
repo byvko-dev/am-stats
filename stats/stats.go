@@ -19,10 +19,16 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 	// Get tank averages
 	tankAvgData, err := db.GetTankAverages(tank.TankID)
 	if err != nil {
-		// Need to check in Glossary
-		tank.TankTier = 0
-		tank.TankName = "Unknown"
-		log.Print("no tank avg data:", err)
+		tankInfo, err := db.GetTankGlossary(tank.TankID)
+		if err != nil {
+			log.Print("no tank avg data and no glossary:", err)
+			tank.TankTier = 0
+			tank.TankName = "Unknown"
+			return tank, nil
+		}
+		tank.TankTier = tankInfo.Tier
+		tank.TankName = tankInfo.Name
+		log.Print("no tank avg data, but name and tier found:", err)
 		return tank, nil
 	}
 	tank.TankTier = tankAvgData.Tier
