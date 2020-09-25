@@ -57,23 +57,21 @@ func repondWithImage(w http.ResponseWriter, code int, image image.Image) {
 }
 
 func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
-    defer func() {
-        if r := recover(); r != nil {
-            log.Println("Recovered in f", r)
-        }
-    }()
 	var request request
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
+		log.Println(err)
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.Realm, request.Days)
 	if err != nil {
+		log.Println(err)
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	if export.PlayerDetails.Name == "" {
+		log.Println(err)
 		respondWithError(w, http.StatusNotFound, err.Error())
 		return
 	}
@@ -91,12 +89,14 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	if err != nil || request.BgURL == "" {
 		bgImage, err = gg.LoadImage("../am-stats/render/assets/" + currentBG)
 		if err != nil {
+			log.Println(err)
 			respondWithError(w, http.StatusInternalServerError, err.Error())
 		}
 	}
 
 	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit, bgImage)
 	if err != nil {
+		log.Println(err)
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

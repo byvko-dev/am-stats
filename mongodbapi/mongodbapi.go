@@ -105,8 +105,9 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 	filters = append(filters, FilterPair{Key: "battles_random", Value: bson.M{"$ne": currentBattles}})
 	if days > 0 {
 		// Setting days to negative to look back
-		sessionTime := time.Now().AddDate(0,0,-days)
-		filters = append(filters, FilterPair{Key: "timestamp", Value: bson.M{"$lt": sessionTime}})
+		queryOptions.SetSort(bson.M{"timestamp": 1})
+		sessionTime := time.Now().AddDate(0,0,-(days + 1))
+		filters = append(filters, FilterPair{Key: "timestamp", Value: bson.M{"$gt": sessionTime}})
 	}
 	query := makeFilter(filters...)
 	// Get session
