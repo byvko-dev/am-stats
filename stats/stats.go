@@ -131,7 +131,10 @@ func sessionDiff(oldStats db.Session, liveStats db.Session) (session db.Session)
 	session.BattlesAll = session.StatsAll.Battles
 	session.BattlesRating = session.StatsRating.Battles
 	session.Timestamp = oldStats.Timestamp
-	session.SessionRating = int(totalRawRating) / int(totalRawBattles)
+	session.SessionRating = -1
+	if totalRawBattles > 0 {
+		session.SessionRating = int(totalRawRating) / int(totalRawBattles)
+	}
 
 	return session
 }
