@@ -24,10 +24,12 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 			log.Print("no tank avg data and no glossary:", err)
 			tank.TankTier = 0
 			tank.TankName = "Unknown"
+			tank.TankWN8 = -1
 			return tank, nil
 		}
 		tank.TankTier = tankInfo.Tier
 		tank.TankName = tankInfo.Name
+		tank.TankWN8 = -1
 		log.Print("no tank avg data, but name and tier found:")
 		return tank, nil
 	}
@@ -91,6 +93,7 @@ func sessionDiff(oldStats db.Session, liveStats db.Session) (session db.Session)
 	vahiclesChan := make(chan wgapi.VehicleStats, len(liveStats.Vehicles))
 	var wg sync.WaitGroup
 	var totalRawRating uint64
+	var totalRawBattles uint64
 
 	for _, newData := range liveStats.Vehicles {
 		if newData.Battles == retroSession.Vehicles[strconv.Itoa(newData.TankID)].Battles {
@@ -108,7 +111,10 @@ func sessionDiff(oldStats db.Session, liveStats db.Session) (session db.Session)
 				return
 			}
 			// Add raw WN8 to total
-			atomic.AddUint64(&totalRawRating, uint64(finalVehicle.TankRawWN8))
+			if finalVehicle.TankWN8 > -1 {
+				atomic.AddUint64(&totalRawRating, uint64(finalVehicle.TankRawWN8))
+				atomic.AddUint64(&totalRawBattles, uint64(finalVehicle.Battles))
+			}
 			vahiclesChan <- finalVehicle
 		}(newData)
 	}
@@ -125,7 +131,7 @@ func sessionDiff(oldStats db.Session, liveStats db.Session) (session db.Session)
 	session.BattlesAll = session.StatsAll.Battles
 	session.BattlesRating = session.StatsRating.Battles
 	session.Timestamp = oldStats.Timestamp
-	session.SessionRating = int(totalRawRating) / session.BattlesAll
+	session.SessionRating = int(totalRawRating) / int(totalRawBattles)
 
 	return session
 }

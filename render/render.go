@@ -202,11 +202,11 @@ func makeHeaderCard(card cardData, playerName, playerClan, battleType string) (c
 }
 
 func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
-    defer func() {
-        if r := recover(); r != nil {
-            log.Println("Recovered in f", r)
-        }
-    }()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in f", r)
+		}
+	}()
 
 	ctx := *card.context
 	if err := ctx.LoadFontFace(fontPath, fontSize); err != nil {
@@ -387,11 +387,11 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 
 // Makes a detailed card for a tank
 func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.VehicleStats) (cardData, error) {
-    defer func() {
-        if r := recover(); r != nil {
-            log.Println("Recovered in f", r)
-        }
-    }()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in f", r)
+		}
+	}()
 
 	ctx := *card.context
 	if err := ctx.LoadFontFace(fontPath, (fontSize * 1.25)); err != nil {
@@ -502,10 +502,13 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 	// Block 4 - Draw WN8
 	ratingBlock := cardBlock(defaultBlock)
 	// Icon
-	ratingBlock.hasBigIcon = true
-	ratingBlock.bigIconColor = getRatingColor(session.TankWN8)
-	ratingBlock.bigText = strconv.Itoa(session.TankWN8)
 	ratingBlock.smallText = "WN8"
+	ratingBlock.bigText = "-"
+	if session.TankWN8 > -1 {
+		ratingBlock.hasBigIcon = true
+		ratingBlock.bigIconColor = getRatingColor(session.TankWN8)
+		ratingBlock.bigText = strconv.Itoa(session.TankWN8)
+	}
 	ratingBlock.smallTextColor = altTextColor
 	ratingBlock, err = addBlockCtx(ratingBlock)
 	if err != nil {
@@ -529,11 +532,11 @@ func makeDetailedCard(card cardData, session wgapi.VehicleStats, lastSession wga
 
 // Makes a slim detailed card for a tank
 func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.VehicleStats) (cardData, error) {
-    defer func() {
-        if r := recover(); r != nil {
-            log.Println("Recovered in f", r)
-        }
-    }()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in f", r)
+		}
+	}()
 
 	ctx := *card.context
 	if err := ctx.LoadFontFace(fontPath, (fontSize)); err != nil {
@@ -579,10 +582,13 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	// Block 3 - Draw WN8
 	ratingBlock := cardBlock(defaultBlock)
 	// Icon
-	ratingBlock.hasBigIcon = true
-	ratingBlock.bigIconColor = getRatingColor(session.TankWN8)
 	ratingBlock.smallText = "WN8"
-	ratingBlock.bigText = strconv.Itoa(session.TankWN8)
+	ratingBlock.bigText = "-"
+	if session.TankWN8 > -1 {
+		ratingBlock.hasBigIcon = true
+		ratingBlock.bigIconColor = getRatingColor(session.TankWN8)
+		ratingBlock.bigText = strconv.Itoa(session.TankWN8)
+	}
 	ratingBlock, err := addBlockCtx(ratingBlock)
 	if err != nil {
 		return card, err
