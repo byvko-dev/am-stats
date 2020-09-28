@@ -360,11 +360,11 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	if err != nil {
 		log.Print("failed to get a win streak:", err)
 	}
-	if winStreak > 0 {
+	if winStreak.Streak > 0 {
 		streakBlock := cardBlock(avgDamageBlock)
-		streakBlock.bigText = strconv.Itoa(winStreak)
-		streakBlock.smallText = "Win Streak"
-		streakBlock.altText = ""
+		streakBlock.bigText = strconv.Itoa(winStreak.Streak)
+		streakBlock.smallText = strconv.Itoa(winStreak.BestStreak)
+		streakBlock.altText = "Win Streak"
 		streakBlock.smallTextColor = streakBlock.altTextColor
 		streakBlock, err = addBlockCtx(streakBlock)
 		if err != nil {

@@ -9,45 +9,45 @@ import (
 )
 
 // CheckStreak - Check player streak and update db
-func CheckStreak(pid int, stats wgapi.StatsFrame) (streak int, err error) {
-	streakData, err := db.GetStreak(pid)
+func CheckStreak(pid int, stats wgapi.StatsFrame) (streakData db.PlayerStreak, err error) {
+	streakData, err = db.GetStreak(pid)
 	if err != nil {
 		switch err.Error() {
 		case "mongo: no documents in result":
 			// New user
-			streak = 0
 			streakData.PlayerID = &pid
 			streakData.Battles = &stats.Battles
 			streakData.Losses = &stats.Losses
-			streakData.Streak = &streak
+			streakData.Streak = 0
 			// Update DB
 			err := db.UpdateStreak(streakData)
-			return streak, err
+			return streakData, err
 		default:
 			log.Print(err)
-			return streak, err
+			return streakData, err
 		}
 	}
 	if stats.Battles >= *streakData.Battles && stats.Losses == *streakData.Losses {
 		// Streak increased or did not change
-		newStreak := *streakData.Streak + stats.Battles - *streakData.Battles
-		streak = newStreak
+		newStreak := streakData.Streak + stats.Battles - *streakData.Battles
 		// Update DB
-		streakData.Streak = &newStreak
+		if newStreak > streakData.BestStreak {
+			streakData.BestStreak = newStreak
+		}
+		streakData.Streak = newStreak
 		streakData.Battles = &stats.Battles
 		streakData.Losses = &stats.Losses
 		err := db.UpdateStreak(streakData)
-		return streak, err
+		return streakData, err
 	}
 	if stats.Battles >= *streakData.Battles && stats.Losses > *streakData.Losses {
 		// Streak broken
-		streak = 0
 		// Update DB
-		streakData.Streak = &streak
+		streakData.Streak = 0
 		streakData.Battles = &stats.Battles
 		streakData.Losses = &stats.Losses
 		err := db.UpdateStreak(streakData)
-		return streak, err
+		return streakData, err
 	}
-	return streak, fmt.Errorf("invalid data")
+	return streakData, fmt.Errorf("invalid data")
 }

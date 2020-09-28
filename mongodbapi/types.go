@@ -122,9 +122,10 @@ type TankAverages struct {
 
 // PlayerStreak - Player win streak data from DB
 type PlayerStreak struct {
-	PlayerID  *int      `bson:"_id" json:"_id"`
-	Battles   *int      `bson:"battles" json:"battles"`
-	Losses    *int      `bson:"losses" json:"losses"`
-	Timestamp time.Time `bson:"timestamp" json:"timestamp"`
-	Streak    *int      `bson:"streak" json:"streak"`
+	PlayerID   *int      `bson:"_id" json:"_id"`
+	Battles    *int      `bson:"battles" json:"battles"`
+	Losses     *int      `bson:"losses" json:"losses"`
+	Timestamp  time.Time `bson:"timestamp" json:"timestamp"`
+	Streak     int       `bson:"streak" json:"streak"`
+	BestStreak int       `bson:"best_streak" json:"best_streak"`
 }
