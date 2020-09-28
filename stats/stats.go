@@ -21,7 +21,7 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 	if err != nil {
 		tankInfo, err := db.GetTankGlossary(tank.TankID)
 		if err != nil {
-			log.Print("no tank avg data and no glossary:", err)
+			log.Print("no tank avg data and no glossary (", err, ")")
 			tank.TankTier = 0
 			tank.TankName = "Unknown"
 			tank.TankWN8 = -1

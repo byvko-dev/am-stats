@@ -854,11 +854,15 @@ func sortTanks(vehicles []wgapi.VehicleStats, sortKey string) []wgapi.VehicleSta
 		})
 	case "+wn8":
 		sort.Slice(vehicles, func(i, j int) bool {
-			return vehicles[i].TankWN8 < vehicles[j].TankWN8
+			return vehicles[i].TankRawWN8 < vehicles[j].TankRawWN8
 		})
 	case "-wn8":
 		sort.Slice(vehicles, func(i, j int) bool {
-			return vehicles[i].TankWN8 > vehicles[j].TankWN8
+			return vehicles[i].TankRawWN8 > vehicles[j].TankRawWN8
+		})
+	case "relevance":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return (vehicles[i].TankRawWN8 * vehicles[i].LastBattleTime * vehicles[i].Battles) > (vehicles[j].TankRawWN8 * vehicles[j].LastBattleTime * vehicles[j].Battles)
 		})
 	default:
 		sort.Slice(vehicles, func(i, j int) bool {
