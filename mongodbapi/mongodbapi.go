@@ -18,6 +18,7 @@ import (
 // Collections
 var sessionsCollection *mongo.Collection
 var playersCollection *mongo.Collection
+var streaksCollection *mongo.Collection
 var tankAveragesCollection *mongo.Collection
 var tankGlossaryCollection *mongo.Collection
 var ctx = context.TODO()
@@ -42,6 +43,7 @@ func init() {
 	// Collections
 	sessionsCollection = client.Database("stats").Collection("sessions")
 	playersCollection = client.Database("stats").Collection("players")
+	streaksCollection = client.Database("stats").Collection("streaks")
 	tankAveragesCollection = client.Database("glossary").Collection("tankaverages")
 	tankGlossaryCollection = client.Database("glossary").Collection("tanks")
 }
@@ -163,4 +165,28 @@ func GetTankGlossary(tid int) (averages TankAverages, err error) {
 		return averages, err
 	}
 	return averages, nil
+}
+
+// GetStreak - Get win streak for a player by playerID
+func GetStreak(pid int) (streak PlayerStreak, err error) {
+	filter := bson.M{"_id": pid}
+	err = streaksCollection.FindOne(ctx, filter).Decode(&streak)
+	return streak, err
+}
+
+// UpdateStreak - Update win streak for a player by playerID
+func UpdateStreak(streak PlayerStreak) (err error) {
+	if streak.PlayerID == nil || streak.Battles == nil || streak.Losses == nil {
+		// Streak data is incomplete
+		return fmt.Errorf("invalid streak data passed in")
+	}
+	filter := bson.M{"_id": streak.PlayerID}
+	streak.Timestamp = time.Now()
+	update := bson.M{"$set": streak}
+	opts := options.Update().SetUpsert(true)
+	_, err = streaksCollection.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		return err
+	}
+	return nil
 }

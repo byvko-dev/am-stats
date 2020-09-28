@@ -3,68 +3,71 @@ package mongodbapi
 import (
 	"strconv"
 	"time"
+
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
 
-
 // Session - Will be switching to this format soon
 type Session struct {
-	Vehicles		[]wgapi.VehicleStats	`json:"vehicles" bson:"vehicles"`
-	PlayerID		int						`json:"player_id" bson:"player_id"`
-	Timestamp		time.Time				`json:"timestamp" bson:"timestamp"`
-	LastBattle		time.Time				`json:"last_battle_time" bson:"last_battle_time"`
-	BattlesAll		int						`json:"battles_random" bson:"battles_random"`
-	StatsAll		wgapi.StatsFrame		`json:"stats_random" bson:"stats_random"`
-	BattlesRating	int						`json:"battles_rating" bson:"battles_rating"`
-	StatsRating		wgapi.StatsFrame		`json:"stats_rating" bson:"stats_rating"`
-	SessionRating	int						`json:"session_wn8" bson:"session_wn8"`
-	Convert									`json:"-" bson:"-"`
+	Vehicles      []wgapi.VehicleStats `json:"vehicles" bson:"vehicles"`
+	PlayerID      int                  `json:"player_id" bson:"player_id"`
+	Timestamp     time.Time            `json:"timestamp" bson:"timestamp"`
+	LastBattle    time.Time            `json:"last_battle_time" bson:"last_battle_time"`
+	BattlesAll    int                  `json:"battles_random" bson:"battles_random"`
+	StatsAll      wgapi.StatsFrame     `json:"stats_random" bson:"stats_random"`
+	BattlesRating int                  `json:"battles_rating" bson:"battles_rating"`
+	StatsRating   wgapi.StatsFrame     `json:"stats_rating" bson:"stats_rating"`
+	SessionRating int                  `json:"session_wn8" bson:"session_wn8"`
+	Convert       `json:"-" bson:"-"`
 }
 
 // RetroSession - Session using old data structure
 type RetroSession struct {
-	Vehicles		map[string]wgapi.VehicleStats	`json:"vehicles" bson:"vehicles"`
-	PlayerID		int								`json:"player_id" bson:"player_id"`
-	Timestamp		time.Time						`json:"timestamp" bson:"timestamp"`
-	LastBattle		time.Time						`json:"last_battle_time" bson:"last_battle_time"`
-	BattlesAll		int								`json:"battles_random" bson:"battles_random"`
-	StatsAll		wgapi.StatsFrame				`json:"stats_random" bson:"stats_random"`
-	BattlesRating	int								`json:"battles_rating" bson:"battles_rating"`
-	StatsRating		wgapi.StatsFrame				`json:"stats_rating" bson:"stats_rating"`
-	SessionRating	int								`json:"session_wn8" bson:"session_wn8"`
-	Convert											`json:"-" bson:"-"`
+	Vehicles      map[string]wgapi.VehicleStats `json:"vehicles" bson:"vehicles"`
+	PlayerID      int                           `json:"player_id" bson:"player_id"`
+	Timestamp     time.Time                     `json:"timestamp" bson:"timestamp"`
+	LastBattle    time.Time                     `json:"last_battle_time" bson:"last_battle_time"`
+	BattlesAll    int                           `json:"battles_random" bson:"battles_random"`
+	StatsAll      wgapi.StatsFrame              `json:"stats_random" bson:"stats_random"`
+	BattlesRating int                           `json:"battles_rating" bson:"battles_rating"`
+	StatsRating   wgapi.StatsFrame              `json:"stats_rating" bson:"stats_rating"`
+	SessionRating int                           `json:"session_wn8" bson:"session_wn8"`
+	Convert       `json:"-" bson:"-"`
 }
+
 // Convert - Convert between Session and RetroSession
 type Convert interface {
 	ToSession() Session
-	ToRetro() 	RetroSession
+	ToRetro() RetroSession
 }
+
 // ToSession - Covert RetroSession to Session Struct, Session is easier to work with in Go
 func (s RetroSession) ToSession() (sessionNew Session) {
-	sessionNew.PlayerID			= s.PlayerID
-	sessionNew.Timestamp		= s.Timestamp
-	sessionNew.LastBattle		= s.LastBattle
-	sessionNew.BattlesAll		= s.BattlesAll
-	sessionNew.StatsAll			= s.StatsAll
-	sessionNew.BattlesRating	= s.BattlesRating
-	sessionNew.StatsRating		= s.StatsRating
-	sessionNew.SessionRating	= s.SessionRating
+	sessionNew.PlayerID = s.PlayerID
+	sessionNew.Timestamp = s.Timestamp
+	sessionNew.LastBattle = s.LastBattle
+	sessionNew.BattlesAll = s.BattlesAll
+	sessionNew.StatsAll = s.StatsAll
+	sessionNew.BattlesRating = s.BattlesRating
+	sessionNew.StatsRating = s.StatsRating
+	sessionNew.SessionRating = s.SessionRating
 	// Convert Vehicle Stats
 	for _, v := range s.Vehicles {
 		sessionNew.Vehicles = append(sessionNew.Vehicles, v)
 	}
 	return sessionNew
 }
+
 // ToRetro - Covert RetroSession to Session Struct, RetroSession is the format used by Aftermath rendering script.
 func (s Session) ToRetro() (sessionNew RetroSession) {
-	sessionNew.PlayerID			= s.PlayerID
-	sessionNew.Timestamp		= s.Timestamp
-	sessionNew.LastBattle		= s.LastBattle
-	sessionNew.BattlesAll		= s.BattlesAll
-	sessionNew.StatsAll			= s.StatsAll
-	sessionNew.BattlesRating	= s.BattlesRating
-	sessionNew.StatsRating		= s.StatsRating
-	sessionNew.SessionRating	= s.SessionRating
+	sessionNew.PlayerID = s.PlayerID
+	sessionNew.Timestamp = s.Timestamp
+	sessionNew.LastBattle = s.LastBattle
+	sessionNew.BattlesAll = s.BattlesAll
+	sessionNew.StatsAll = s.StatsAll
+	sessionNew.BattlesRating = s.BattlesRating
+	sessionNew.StatsRating = s.StatsRating
+	sessionNew.SessionRating = s.SessionRating
 	// Convert Vehicle Stats
 	vehicleMap := make(map[string]wgapi.VehicleStats)
 	for _, v := range s.Vehicles {
@@ -74,32 +77,30 @@ func (s Session) ToRetro() (sessionNew RetroSession) {
 	return sessionNew
 }
 
-
 // DBPlayerPofile - Player data db entry struct
 type DBPlayerPofile struct {
-	ID				int			`json:"player_id" bson:"_id"`
-	ClanID			int			`json:"clan_id" bson:"clan_id"`
-	ClanName		string		`json:"clan_name" bson:"clan_name"`
-	ClanRole		string		`json:"clan_role" bson:"clan_role"`
-	ClanTag			string		`json:"clan_tag" bson:"clan_tag"`
-	LastBattle		time.Time	`json:"last_battle_time" bson:"last_battle_time"`
-	Nickname		string		`json:"nickname" bson:"nickname"`
-	CareerWN8		int			`json:"career_wn8" bson:"career_wn8"`
+	ID         int       `json:"player_id" bson:"_id"`
+	ClanID     int       `json:"clan_id" bson:"clan_id"`
+	ClanName   string    `json:"clan_name" bson:"clan_name"`
+	ClanRole   string    `json:"clan_role" bson:"clan_role"`
+	ClanTag    string    `json:"clan_tag" bson:"clan_tag"`
+	LastBattle time.Time `json:"last_battle_time" bson:"last_battle_time"`
+	Nickname   string    `json:"nickname" bson:"nickname"`
+	CareerWN8  int       `json:"career_wn8" bson:"career_wn8"`
 }
 
 // FilterPair - Used to make BSON filters
-type  FilterPair struct {
-	Key 	string
-	Value 	interface{}
+type FilterPair struct {
+	Key   string
+	Value interface{}
 }
-
 
 // TankAverages - Averages data for a tank
 type TankAverages struct {
 	All struct {
 		Battles              float64 `bson:"battles,omitempty"`
 		DroppedCapturePoints float64 `bson:"dropped_capture_points,omitempty"`
-	} 								 `bson:"all"`
+	} `bson:"all"`
 	Special struct {
 		Winrate         float64 `bson:"winrate,omitempty"`
 		DamageRatio     float64 `bson:"damageRatio,omitempty"`
@@ -113,8 +114,17 @@ type TankAverages struct {
 		Kpm             float64 `bson:"kpm,omitempty"`
 		HitRate         float64 `bson:"hitRate,omitempty"`
 		SurvivalRate    float64 `bson:"survivalRate,omitempty"`
-	} 							`bson:"special"`
+	} `bson:"special"`
 	Name   string `bson:"name"`
 	Tier   int    `bson:"tier"`
 	Nation string `bson:"nation"`
+}
+
+// PlayerStreak - Player win streak data from DB
+type PlayerStreak struct {
+	PlayerID  *int      `bson:"_id" json:"_id"`
+	Battles   *int      `bson:"battles" json:"battles"`
+	Losses    *int      `bson:"losses" json:"losses"`
+	Timestamp time.Time `bson:"timestamp" json:"timestamp"`
+	Streak    *int      `bson:"streak" json:"streak"`
 }

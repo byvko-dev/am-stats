@@ -17,6 +17,7 @@ import (
 
 	"github.com/cufee/am-stats/stats"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
+	"github.com/cufee/am-stats/winstreak"
 )
 
 // General settings
@@ -354,22 +355,38 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 		return card, err
 	}
 	ctx.DrawImage(destrRatioBlock.context.Image(), (bottomBlockWidth * 2), blockHeight)
-	// Block 4 - Average XP
-	avgXPBlock := cardBlock(avgDamageBlock)
-	avgXPAll := strconv.Itoa((data.PlayerDetails.Stats.All.Xp / data.PlayerDetails.Stats.All.Battles))
-	avgXPSession := "-"
-	if !badSession {
-		avgXPSession = strconv.Itoa((data.SessionStats.StatsAll.Xp / data.SessionStats.StatsAll.Battles))
-	}
-	avgXPBlock.smallText = avgXPAll
-	avgXPBlock.bigText = avgXPSession
-	avgXPBlock.altText = "Avg. XP"
-	avgXPBlock, err = addBlockCtx(avgXPBlock)
+	// Block 4 - Average XP or Win streak
+	winStreak, err := winstreak.CheckStreak(data.PlayerDetails.ID, data.PlayerDetails.Stats.All)
 	if err != nil {
-		return card, err
+		log.Print("failed to get a win streak:", err)
 	}
-	ctx.DrawImage(avgXPBlock.context.Image(), (bottomBlockWidth * 3), blockHeight)
-
+	if winStreak > 0 {
+		streakBlock := cardBlock(avgDamageBlock)
+		streakBlock.bigText = strconv.Itoa(winStreak)
+		streakBlock.smallText = "Win Streak"
+		streakBlock.altText = ""
+		streakBlock.smallTextColor = streakBlock.altTextColor
+		streakBlock, err = addBlockCtx(streakBlock)
+		if err != nil {
+			return card, err
+		}
+		ctx.DrawImage(streakBlock.context.Image(), (bottomBlockWidth * 3), blockHeight)
+	} else {
+		avgXPBlock := cardBlock(avgDamageBlock)
+		avgXPAll := strconv.Itoa((data.PlayerDetails.Stats.All.Xp / data.PlayerDetails.Stats.All.Battles))
+		avgXPSession := "-"
+		if !badSession {
+			avgXPSession = strconv.Itoa((data.SessionStats.StatsAll.Xp / data.SessionStats.StatsAll.Battles))
+		}
+		avgXPBlock.smallText = avgXPAll
+		avgXPBlock.bigText = avgXPSession
+		avgXPBlock.altText = "Avg. XP"
+		avgXPBlock, err = addBlockCtx(avgXPBlock)
+		if err != nil {
+			return card, err
+		}
+		ctx.DrawImage(avgXPBlock.context.Image(), (bottomBlockWidth * 3), blockHeight)
+	}
 	// Draw lines
 	ctx.SetColor(decorLinesColor)
 	lineX := float64(frameMargin)
