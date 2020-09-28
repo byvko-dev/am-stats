@@ -28,10 +28,6 @@ func CheckStreak(pid int, stats wgapi.StatsFrame) (streak int, err error) {
 			return streak, err
 		}
 	}
-
-	log.Print(stats.Battles, stats.Losses)
-	log.Print(*streakData.Battles, *streakData.Losses)
-
 	if stats.Battles >= *streakData.Battles && stats.Losses == *streakData.Losses {
 		// Streak increased or did not change
 		newStreak := *streakData.Streak + stats.Battles - *streakData.Battles
