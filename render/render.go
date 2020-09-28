@@ -365,7 +365,6 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 		streakBlock.bigText = strconv.Itoa(winStreak.Streak)
 		streakBlock.smallText = strconv.Itoa(winStreak.BestStreak)
 		streakBlock.altText = "Win Streak"
-		streakBlock.smallTextColor = streakBlock.altTextColor
 		streakBlock, err = addBlockCtx(streakBlock)
 		if err != nil {
 			return card, err
