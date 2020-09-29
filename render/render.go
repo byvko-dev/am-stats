@@ -362,7 +362,10 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	}
 	streakBlock := cardBlock(avgDamageBlock)
 	streakBlock.bigText = strconv.Itoa(winStreak.Streak)
-	streakBlock.smallText = strconv.Itoa(winStreak.BestStreak)
+	streakBlock.smallText = "-"
+	if winStreak.BestStreak > 0 {
+		streakBlock.smallText = strconv.Itoa(winStreak.BestStreak)
+	}
 	streakBlock.altText = "Win Streak"
 	streakBlock, err = addBlockCtx(streakBlock)
 	if err != nil {
