@@ -20,7 +20,6 @@ func CheckStreak(pid int, stats wgapi.StatsFrame) (streakData db.PlayerStreak, e
 			streakData.Battles = &stats.Battles
 			streakData.Losses = &stats.Losses
 			streakData.MinStreak = int(math.Ceil(float64(stats.Battles) / (float64(stats.Losses) + 1)))
-			streakData.MaxStreak = stats.Battles - stats.Losses
 			streakData.BestStreak = streakData.MinStreak
 			streakData.Streak = 0
 			// Update DB
@@ -58,7 +57,7 @@ func CheckStreak(pid int, stats wgapi.StatsFrame) (streakData db.PlayerStreak, e
 	}
 	if stats.Battles >= *streakData.Battles && stats.Losses != *streakData.Losses {
 		// Calc minimum possible streak
-		newStreak := int(math.Ceil(float64(stats.Battles-*streakData.Battles) / (float64(stats.Losses-*streakData.Losses) + 1)))
+		newStreak := int(math.Floor(float64(stats.Battles-*streakData.Battles) / (float64(stats.Losses-*streakData.Losses) + 1)))
 		if newStreak > streakData.BestStreak {
 			streakData.BestStreak = newStreak
 		}
