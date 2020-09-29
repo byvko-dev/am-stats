@@ -128,4 +128,6 @@ type PlayerStreak struct {
 	Timestamp  time.Time `bson:"timestamp" json:"timestamp"`
 	Streak     int       `bson:"streak" json:"streak"`
 	BestStreak int       `bson:"best_streak" json:"best_streak"`
+	MinStreak  int       `bson:"min_streak" json:"min_streak"`
+	MaxStreak  int       `bson:"max_streak" json:"max_streak"`
 }
