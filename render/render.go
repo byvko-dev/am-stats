@@ -360,32 +360,15 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	if err != nil {
 		log.Print("failed to get a win streak:", err)
 	}
-	if winStreak.Streak > 0 {
-		streakBlock := cardBlock(avgDamageBlock)
-		streakBlock.bigText = strconv.Itoa(winStreak.Streak)
-		streakBlock.smallText = strconv.Itoa(winStreak.BestStreak)
-		streakBlock.altText = "Win Streak"
-		streakBlock, err = addBlockCtx(streakBlock)
-		if err != nil {
-			return card, err
-		}
-		ctx.DrawImage(streakBlock.context.Image(), (bottomBlockWidth * 3), blockHeight)
-	} else {
-		avgXPBlock := cardBlock(avgDamageBlock)
-		avgXPAll := strconv.Itoa((data.PlayerDetails.Stats.All.Xp / data.PlayerDetails.Stats.All.Battles))
-		avgXPSession := "-"
-		if !badSession {
-			avgXPSession = strconv.Itoa((data.SessionStats.StatsAll.Xp / data.SessionStats.StatsAll.Battles))
-		}
-		avgXPBlock.smallText = avgXPAll
-		avgXPBlock.bigText = avgXPSession
-		avgXPBlock.altText = "Avg. XP"
-		avgXPBlock, err = addBlockCtx(avgXPBlock)
-		if err != nil {
-			return card, err
-		}
-		ctx.DrawImage(avgXPBlock.context.Image(), (bottomBlockWidth * 3), blockHeight)
+	streakBlock := cardBlock(avgDamageBlock)
+	streakBlock.bigText = strconv.Itoa(winStreak.Streak)
+	streakBlock.smallText = strconv.Itoa(winStreak.BestStreak)
+	streakBlock.altText = "Win Streak"
+	streakBlock, err = addBlockCtx(streakBlock)
+	if err != nil {
+		return card, err
 	}
+	ctx.DrawImage(streakBlock.context.Image(), (bottomBlockWidth * 3), blockHeight)
 	// Draw lines
 	ctx.SetColor(decorLinesColor)
 	lineX := float64(frameMargin)
