@@ -23,7 +23,7 @@ type request struct {
 	BgURL		string	`json:"bg_url"`
 }
 
-const currentBG string = "bg_code_fatal.jpg"
+const currentBG string = "bg_event.jpg"
 
 func handler() {
 	log.Println("Starting webserver on", 6969)
