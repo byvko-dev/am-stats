@@ -16,25 +16,26 @@ import (
 
 // CalcVehicleWN8 - Calculate WN8 for a VehicleStats struct
 func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
+	// Get tank info
+	tankInfo, err := db.GetTankGlossary(tank.TankID)
+	tank.TankTier = tankInfo.Tier
+	tank.TankName = tankInfo.Name
+
+	if err != nil || tankInfo.Name == "" {
+		//
+		// This will need to spawn an event to refresh DB automatically.
+		//
+		log.Print("no tank glossary data (", err, ")")
+		tank.TankTier = 0
+		tank.TankName = "Unknown"
+	}
 	// Get tank averages
 	tankAvgData, err := db.GetTankAverages(tank.TankID)
 	if err != nil {
-		tankInfo, err := db.GetTankGlossary(tank.TankID)
-		if err != nil {
-			log.Print("no tank avg data and no glossary (", err, ")")
-			tank.TankTier = 0
-			tank.TankName = "Unknown"
-			tank.TankWN8 = -1
-			return tank, nil
-		}
-		tank.TankTier = tankInfo.Tier
-		tank.TankName = tankInfo.Name
+		log.Print("no tank avg data, but name and tier found")
 		tank.TankWN8 = -1
-		log.Print("no tank avg data, but name and tier found:")
 		return tank, nil
 	}
-	tank.TankTier = tankAvgData.Tier
-	tank.TankName = tankAvgData.Name
 	battles := tank.Battles
 	// Expected values for WN8
 	expDef := tankAvgData.All.DroppedCapturePoints / tankAvgData.All.Battles
