@@ -856,15 +856,15 @@ func sortTanks(vehicles []wgapi.VehicleStats, sortKey string) []wgapi.VehicleSta
 		})
 	case "+wn8":
 		sort.Slice(vehicles, func(i, j int) bool {
-			return vehicles[i].TankRawWN8 < vehicles[j].TankRawWN8
+			return absInt(vehicles[i].TankRawWN8) < absInt(vehicles[j].TankRawWN8)
 		})
 	case "-wn8":
 		sort.Slice(vehicles, func(i, j int) bool {
-			return vehicles[i].TankRawWN8 > vehicles[j].TankRawWN8
+			return absInt(vehicles[i].TankRawWN8) > absInt(vehicles[j].TankRawWN8)
 		})
 	case "relevance":
 		sort.Slice(vehicles, func(i, j int) bool {
-			return (vehicles[i].TankRawWN8 * vehicles[i].LastBattleTime * vehicles[i].Battles) > (vehicles[j].TankRawWN8 * vehicles[j].LastBattleTime * vehicles[j].Battles)
+			return (absInt(vehicles[i].TankRawWN8) * vehicles[i].LastBattleTime * vehicles[i].Battles) > (absInt(vehicles[j].TankRawWN8) * vehicles[j].LastBattleTime * vehicles[j].Battles)
 		})
 	default:
 		sort.Slice(vehicles, func(i, j int) bool {
@@ -872,6 +872,14 @@ func sortTanks(vehicles []wgapi.VehicleStats, sortKey string) []wgapi.VehicleSta
 		})
 	}
 	return vehicles
+}
+
+// absInt - Absolute value of an integer
+func absInt(val int) int {
+	if val >= 0 {
+		return val
+	}
+	return -val
 }
 
 // Prepare a frame background context
