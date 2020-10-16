@@ -1,33 +1,35 @@
 package main
 
 import (
-	"log"
-	"strconv"
 	"image"
 	"image/png"
-    "github.com/fogleman/gg"
-	"github.com/cufee/am-stats/stats"
-	"github.com/cufee/am-stats/render"
+	"log"
+	"strconv"
 
-	"net/http"
+	"github.com/cufee/am-stats/render"
+	"github.com/cufee/am-stats/stats"
+	"github.com/fogleman/gg"
+
 	"encoding/json"
+	"net/http"
+
 	"github.com/gorilla/mux"
 )
 
 type request struct {
-	PlayerID	int		`json:"player_id"`
-	Realm		string	`json:"realm"`
-	Days		int		`json:"days"`
-	Sort		string	`json:"sort_key"`
-	TankLimit	int		`json:"detailed_limit"`
-	BgURL		string	`json:"bg_url"`
+	PlayerID  int    `json:"player_id"`
+	Realm     string `json:"realm"`
+	Days      int    `json:"days"`
+	Sort      string `json:"sort_key"`
+	TankLimit int    `json:"detailed_limit"`
+	BgURL     string `json:"bg_url"`
 }
 
 const currentBG string = "bg_event.jpg"
 
 func handler() {
-	log.Println("Starting webserver on", 6969)
-	hostPORT := ":" + strconv.Itoa(6969)
+	log.Println("Starting webserver on", 4000)
+	hostPORT := ":" + strconv.Itoa(4000)
 
 	myRouter := mux.NewRouter().StrictSlash(true)
 	// myRouter.HandleFunc("/clans", updateClanActivity)
@@ -81,8 +83,8 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Get bg Image
 	var bgImage image.Image
-	if request.BgURL != ""{
-		response, _ := http.Get(request.BgURL);
+	if request.BgURL != "" {
+		response, _ := http.Get(request.BgURL)
 		bgImage, _, err = image.Decode(response.Body)
 		defer response.Body.Close()
 	}
@@ -104,11 +106,11 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleStatsRequest(w http.ResponseWriter, r *http.Request) {
-    defer func() {
-        if r := recover(); r != nil {
-            log.Println("Recovered in f", r)
-        }
-    }()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in f", r)
+		}
+	}()
 	var request request
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
