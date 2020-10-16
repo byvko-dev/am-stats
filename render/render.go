@@ -15,6 +15,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/fogleman/gg"
 
+	"github.com/cufee/am-stats/config"
 	"github.com/cufee/am-stats/stats"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"github.com/cufee/am-stats/winstreak"
@@ -22,7 +23,7 @@ import (
 
 // General settings
 var (
-	fontPath        = "../am-stats/render/assets/font.ttf"
+	fontPath        = (config.AssetsPath + "/font.ttf")
 	fontSizeHeader  = 36.0
 	fontSize        = 24.0
 	textMargin      = fontSize / 2

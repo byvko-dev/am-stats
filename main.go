@@ -6,6 +6,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/cufee/am-stats/config"
 	"github.com/cufee/am-stats/render"
 	"github.com/cufee/am-stats/stats"
 	"github.com/fogleman/gg"
@@ -89,7 +90,7 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		defer response.Body.Close()
 	}
 	if err != nil || request.BgURL == "" {
-		bgImage, err = gg.LoadImage("../am-stats/render/assets/" + currentBG)
+		bgImage, err = gg.LoadImage(config.AssetsPath + currentBG)
 		if err != nil {
 			log.Println(err)
 			respondWithError(w, http.StatusInternalServerError, err.Error())
