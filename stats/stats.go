@@ -2,6 +2,7 @@ package stats
 
 import (
 	"log"
+	"net/http"
 	"strconv"
 
 	"sync"
@@ -10,6 +11,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/cufee/am-stats/config"
 	db "github.com/cufee/am-stats/mongodbapi"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
@@ -22,9 +24,9 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 	tank.TankName = tankInfo.Name
 
 	if err != nil || tankInfo.Name == "" {
-		//
-		// This will need to spawn an event to refresh DB automatically.
-		//
+		// Refresh Glossary cache
+		go refreshGlossary()
+
 		log.Print("no tank glossary data (", err, ")")
 		tank.TankTier = 0
 		tank.TankName = "Unknown"
@@ -185,4 +187,15 @@ func ExportSessionAsStruct(pid int, realm string, days int) (export ExportData, 
 	export.TimeToComplete = time.Now().Sub(timerStart).Seconds()
 
 	return export, nil
+}
+
+func refreshGlossary() error {
+	url := config.CacheSrvDomain + "/glossary/update"
+	// HTTP client
+	var clientHTTP = &http.Client{Timeout: 10 * time.Second}
+	_, err := clientHTTP.Get(url)
+	if err != nil {
+		log.Print("failed to refresh glossary cache. error:", err)
+	}
+	return err
 }

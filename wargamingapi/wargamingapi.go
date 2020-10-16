@@ -1,14 +1,14 @@
 package externalapis
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
-	"time"
-	"net/http"
 	"encoding/json"
+	"net/http"
+	"time"
 
 	"github.com/cufee/am-stats/config"
 )
@@ -18,15 +18,15 @@ import (
 var wgAPIVehicles string = fmt.Sprintf("/wotb/tanks/stats/?application_id=%s&account_id=", config.WgAPIAppID)
 var wgAPIProfileData string = fmt.Sprintf("/wotb/account/info/?application_id=%s&extra=statistics.rating&account_id=", config.WgAPIAppID)
 var wgAPIPlayerClan string = fmt.Sprintf("/wotb/clans/accountinfo/?application_id=%s&extra=clan&account_id=", config.WgAPIAppID)
+
 // Clans
 var wgAPIClanInfo string = fmt.Sprintf("/wotb/clans/list/?application_id=%s&search=", config.WgAPIAppID)
 var wgAPIClanDetails string = fmt.Sprintf("/wotb/clans/info/?application_id=%s&fields=clan_id,name,tag,is_clan_disbanded,members_ids,updated_at,members&extra=members&clan_id=", config.WgAPIAppID)
 
-
 // HTTP client
 var clientHTTP = &http.Client{Timeout: 10 * time.Second}
 
-// getFlatJSON - 
+// getFlatJSON -
 func getJSON(url string, target interface{}) error {
 	res, err := clientHTTP.Get(url)
 	if err != nil || res.StatusCode != http.StatusOK {
@@ -76,7 +76,7 @@ func PlayerVehicleStats(playerID int, realm string) ([]VehicleStats, error) {
 }
 
 // PlayerProfileData - Fetch general account information and all stats for a player
-func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile , err error) {
+func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile, err error) {
 	// Get API domain
 	domain, err := getAPIDomain(realm)
 	if err != nil {
@@ -85,13 +85,13 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile 
 	// Get stats
 	url := domain + wgAPIProfileData + strconv.Itoa(playerID)
 	var rawResponse playerDataToPIDres
-	
+
 	err = getJSON(url, &rawResponse)
 	if err != nil {
 		return finalResponse, err
 	}
 	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
-	
+
 	// Get clan data
 	var clanRes playerDataToPIDres
 	url = domain + wgAPIPlayerClan + strconv.Itoa(playerID)
