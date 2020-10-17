@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy the file from your host to your current location.
 COPY ./build .
-COPY ./render/assets ./am-stats/render/assets
+COPY ./assets ./assets
 
 # Run the command inside your image filesystem.
 RUN chmod +x app
