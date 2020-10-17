@@ -93,7 +93,8 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	var bgImage image.Image
 	if request.BgURL != "" {
 		response, _ := http.Get(request.BgURL)
-		if response != nil && response.Body != nil {
+		if response != nil {
+			log.Print(request.BgURL)
 			bgImage, _, err = image.Decode(response.Body)
 			defer response.Body.Close()
 		} else {
