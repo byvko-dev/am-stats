@@ -61,6 +61,12 @@ func repondWithImage(w http.ResponseWriter, code int, image image.Image) {
 }
 
 func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in f", r)
+		}
+	}()
+
 	var request request
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -87,16 +93,13 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	var bgImage image.Image
 	if request.BgURL != "" {
 		response, _ := http.Get(request.BgURL)
-		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Println("bad bg image for", request.PlayerID)
-				}
-				err = fmt.Errorf("bad bg image, recovered")
-			}()
+		if response != nil {
 			bgImage, _, err = image.Decode(response.Body)
-		}()
-		defer response.Body.Close()
+			defer response.Body.Close()
+		} else {
+			log.Printf("bad bg image for %v", request.PlayerID)
+			err = fmt.Errorf("bad bg image")
+		}
 	}
 	if err != nil || request.BgURL == "" {
 		bgImage, err = gg.LoadImage(config.AssetsPath + currentBG)
