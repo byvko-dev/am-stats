@@ -91,7 +91,6 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Get bg Image
 	var bgImage image.Image
-	log.Print(request.BgURL)
 	if request.BgURL != "" {
 		response, _ := http.Get(request.BgURL)
 		if response != nil {
