@@ -91,10 +91,10 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Get bg Image
 	var bgImage image.Image
+	log.Print(request.BgURL)
 	if request.BgURL != "" {
 		response, _ := http.Get(request.BgURL)
 		if response != nil {
-			log.Print(request.BgURL)
 			bgImage, _, err = image.Decode(response.Body)
 			defer response.Body.Close()
 		} else {
