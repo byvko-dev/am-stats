@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/png"
 	"log"
@@ -86,7 +87,15 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	var bgImage image.Image
 	if request.BgURL != "" {
 		response, _ := http.Get(request.BgURL)
-		bgImage, _, err = image.Decode(response.Body)
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println("bad bg image for", request.PlayerID)
+				}
+				err = fmt.Errorf("bad bg image, recovered")
+			}()
+			bgImage, _, err = image.Decode(response.Body)
+		}()
 		defer response.Body.Close()
 	}
 	if err != nil || request.BgURL == "" {
