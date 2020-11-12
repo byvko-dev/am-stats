@@ -36,7 +36,7 @@ var (
 	altTextColor    = color.RGBA{100, 100, 100, 255}
 
 	premiumColor  = color.RGBA{255, 223, 0, 255}
-	verifiedColor = color.RGBA{127, 215, 253, 255}
+	verifiedColor = color.RGBA{72, 167, 250, 255}
 )
 
 // ImageFromStats -
