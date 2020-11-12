@@ -196,7 +196,7 @@ func makeHeaderCard(card cardData, playerName, playerClan, battleType string, pr
 	// Draw verified icon
 	if verified {
 		// Draw icon
-		radius := (fontSizeHeader / 4)
+		radius := (fontSizeHeader / 3)
 		ctx.SetColor(verifiedColor)
 		iX := psDrawX - radius*2
 		iY := psDrawY - (nameStrH / 2)
