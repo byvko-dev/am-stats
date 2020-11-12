@@ -374,15 +374,22 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	defaultBlock.smallTextColor = altTextColor
 
 	// Draw tank name
-	_, nameH := ctx.MeasureString(session.TankName)
-	tankName := session.TankName
-	nameLimit := 21
-	if len(session.TankName) > nameLimit {
-		nameRunes := []rune(session.TankName)
-		tankName = string(nameRunes[:(nameLimit-3)]) + "..."
+	finalName := ""
+	dotsW, _ := ctx.MeasureString("...")
+
+	for _, r := range []rune(session.TankName) {
+		w, _ := ctx.MeasureString(finalName)
+		if (w + dotsW) > (tankNameWidth - (float64(frameMargin) * 1.5)) {
+			finalName = finalName + "..."
+			break
+		}
+		finalName = finalName + string(r)
 	}
+	_, nameH := ctx.MeasureString(finalName)
+
 	nameY := (float64(card.context.Height()) - ((float64(card.context.Height()) - nameH) / 2))
-	ctx.DrawString(tankName, (float64(frameMargin) * 1.5), nameY)
+	ctx.DrawString(finalName, (float64(frameMargin) * 1.5), nameY)
+
 	// Draw tank tier
 	if err := ctx.LoadFontFace(fontPath, (fontSize * 0.75)); err != nil {
 		return card, err
