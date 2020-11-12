@@ -376,7 +376,7 @@ func makeSlimCard(card cardData, session wgapi.VehicleStats, lastSession wgapi.V
 	// Draw tank name
 	_, nameH := ctx.MeasureString(session.TankName)
 	tankName := session.TankName
-	nameLimit := 22
+	nameLimit := 21
 	if len(session.TankName) > nameLimit {
 		nameRunes := []rune(session.TankName)
 		tankName = string(nameRunes[:(nameLimit-3)]) + "..."
