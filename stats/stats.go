@@ -35,6 +35,7 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 	tankAvgData, err := db.GetTankAverages(tank.TankID)
 	if err != nil {
 		log.Print("no tank avg data, but name and tier found")
+		tank.TankRawWN8 = 0
 		tank.TankWN8 = -1
 		return tank, nil
 	}

@@ -90,6 +90,9 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 	if err != nil {
 		return finalResponse, err
 	}
+	if rawResponse.Status != "ok" {
+		return finalResponse, fmt.Errorf("WG error: %v", rawResponse.Error.Message)
+	}
 	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
 
 	// Get clan data

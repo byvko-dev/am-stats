@@ -20,6 +20,8 @@ import (
 
 type request struct {
 	PlayerID  int    `json:"player_id"`
+	Premium   bool   `json:"premium"`
+	Verified  bool   `json:"verified"`
 	Realm     string `json:"realm"`
 	Days      int    `json:"days"`
 	Sort      string `json:"sort_key"`
@@ -30,8 +32,8 @@ type request struct {
 const currentBG string = "bg_event.jpg"
 
 func handler() {
-	log.Println("Starting webserver on", 4000)
-	hostPORT := ":" + strconv.Itoa(4000)
+	log.Println("Starting webserver on", config.APIport)
+	hostPORT := ":" + strconv.Itoa(config.APIport)
 
 	myRouter := mux.NewRouter().StrictSlash(true)
 	// myRouter.HandleFunc("/clans", updateClanActivity)
@@ -63,7 +65,7 @@ func repondWithImage(w http.ResponseWriter, code int, image image.Image) {
 func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered in f", r)
+			log.Println("Recovered in handlePlayerRequest", r)
 		}
 	}()
 
@@ -81,8 +83,8 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if export.PlayerDetails.Name == "" {
-		log.Println(err)
-		respondWithError(w, http.StatusNotFound, err.Error())
+		log.Printf("%+v", request)
+		respondWithError(w, http.StatusNotFound, "bad player data")
 		return
 	}
 	if request.TankLimit == 0 {
@@ -109,7 +111,7 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit, bgImage)
+	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit, request.Premium, request.Verified, bgImage)
 	if err != nil {
 		log.Println(err)
 		respondWithError(w, http.StatusInternalServerError, err.Error())
