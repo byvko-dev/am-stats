@@ -163,11 +163,10 @@ func makeHeaderCard(card cardData, playerName, playerClan, battleType string, pr
 	if err := ctx.LoadFontFace(fontPath, fontSizeHeader); err != nil {
 		return card, err
 	}
-	playerStr := playerName
+	playerStr := playerName + " "
 	// Calculate text size
-	spaceW, _ := ctx.MeasureString(" ")
 	nameStrW, nameStrH := ctx.MeasureString(playerStr)
-	clanStrW, _ := ctx.MeasureString(playerStr)
+	clanStrW, _ := ctx.MeasureString(playerClan)
 	battleTypeW, battleTypeH := ctx.MeasureString(battleType)
 	totalTextW := nameStrW
 	if nameStrW < battleTypeW {
@@ -187,13 +186,13 @@ func makeHeaderCard(card cardData, playerName, playerClan, battleType string, pr
 	if premium {
 		ctx.SetColor(premiumColor)
 	}
-	psDrawX := ((totalTextW - nameStrW - clanStrW - spaceW) / 2) + xOffset
+	psDrawX := ((totalTextW - nameStrW - clanStrW) / 2) + xOffset
 	psDrawY := totalTextH + yOffset
 	// Draw name
 	ctx.DrawString(playerName, psDrawX, psDrawY)
 	// Draw tag
 	ctx.SetColor(color.White)
-	ctx.DrawString(playerClan, (psDrawX + nameStrW + spaceW), psDrawY)
+	ctx.DrawString(playerClan, (psDrawX + nameStrW), psDrawY)
 	// Draw verified icon
 	if verified {
 		// Draw icon
