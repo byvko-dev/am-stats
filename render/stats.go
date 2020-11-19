@@ -67,7 +67,11 @@ func makeAllStatsCard(card cardData, data stats.ExportData) (cardData, error) {
 	ratingBlock.smallIconColor = getRatingColor(data.PlayerDetails.CareerWN8)
 	ratingBlock.height = blockHeight + int(fontSize)
 	ratingBlock.textSize = fontSize * 1.75
-	ratingBlock.smallText = strconv.Itoa(data.PlayerDetails.CareerWN8)
+	careerWN8str := "-"
+	if data.PlayerDetails.CareerWN8 > 0 {
+		careerWN8str = strconv.Itoa(data.PlayerDetails.CareerWN8)
+	}
+	ratingBlock.smallText = careerWN8str
 	ratingBlock.bigText = "-"
 	if !badSession && data.SessionStats.SessionRating > -1 {
 		ratingBlock.bigText = strconv.Itoa(data.SessionStats.SessionRating)

@@ -182,7 +182,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 		if err.Error() == "mongo: no documents in result" && days == 0 {
 			err = db.AddSession(liveToSession(playerProfile, playerVehicles))
 			if err == nil {
-				err = fmt.Errorf("new player: started tracking")
+				err = fmt.Errorf("stats: new player, started tracking")
 			}
 		}
 		return session, oldSession, playerProfile, err
