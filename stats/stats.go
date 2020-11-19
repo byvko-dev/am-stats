@@ -14,6 +14,7 @@ import (
 	"github.com/cufee/am-stats/config"
 	db "github.com/cufee/am-stats/mongodbapi"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // CalcVehicleWN8 - Calculate WN8 for a VehicleStats struct
@@ -151,7 +152,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 		return session, oldSession, playerProfile, err
 	}
 	// Update profile cache
-	_, err = db.UpdatePlayer(playerProfile.ID, convWGtoDBprofile(playerProfile))
+	_, err = db.UpdatePlayer(bson.M{"_id": playerProfile.ID}, convWGtoDBprofile(playerProfile))
 	if err != nil {
 		log.Printf("Failed to update player profile cache for %v, error: %s", playerProfile.ID, err.Error())
 	}
