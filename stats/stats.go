@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -151,28 +152,41 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	if err != nil {
 		return session, oldSession, playerProfile, err
 	}
+
+	// Get cached profile
+	newCache := convWGtoDBprofile(playerProfile)
+	cachedPlayerProfile, err := db.GetPlayerProfile(pid)
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			err = db.AddPlayer(newCache)
+		}
+		return session, oldSession, playerProfile, err
+	}
+
 	// Update profile cache
-	_, err = db.UpdatePlayer(bson.M{"_id": playerProfile.ID}, convWGtoDBprofile(playerProfile))
+	newCache.CareerWN8 = cachedPlayerProfile.CareerWN8
+	_, err = db.UpdatePlayer(bson.M{"_id": playerProfile.ID}, newCache)
 	if err != nil {
 		log.Printf("Failed to update player profile cache for %v, error: %s", playerProfile.ID, err.Error())
 	}
 
-	// Get cached profile
-	cachedPlayerProfile, err := db.GetPlayerProfile(pid)
-	if err != nil {
-		return session, oldSession, playerProfile, err
-	}
 	playerProfile.CareerWN8 = cachedPlayerProfile.CareerWN8
-	// Get previous session
-	oldSession, err = db.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
-	if err != nil {
-		// No previous session
-		return session, oldSession, playerProfile, err
-	}
 	playerVehicles, err := wgapi.PlayerVehicleStats(pid, realm)
 	if err != nil {
 		return session, oldSession, playerProfile, err
 	}
+	// Get previous session
+	oldSession, err = db.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
+	if err != nil {
+		if err.Error() == "mongo: no documents in result" && days == 0 {
+			err = db.AddSession(liveToSession(playerProfile, playerVehicles))
+			if err == nil {
+				err = fmt.Errorf("new player: started tracking")
+			}
+		}
+		return session, oldSession, playerProfile, err
+	}
+
 	// Calculate session differance and return
 	return sessionDiff(oldSession, liveToSession(playerProfile, playerVehicles)), oldSession, playerProfile, nil
 }

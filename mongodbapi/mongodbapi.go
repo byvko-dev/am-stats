@@ -125,7 +125,7 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 }
 
 // AddSession - Add a new session to db
-func addSession(session Session) error {
+func AddSession(session Session) error {
 	// Concert to RetroSession
 	var sessionConv Convert = session
 	_, err := sessionsCollection.InsertOne(ctx, sessionConv.ToRetro())
