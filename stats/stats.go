@@ -150,6 +150,12 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	if err != nil {
 		return session, oldSession, playerProfile, err
 	}
+	// Update profile cache
+	_, err = db.UpdatePlayer(playerProfile.ID, convWGtoDBprofile(playerProfile))
+	if err != nil {
+		log.Printf("Failed to update player profile cache for %v, error: %s", playerProfile.ID, err.Error())
+	}
+
 	// Get cached profile
 	cachedPlayerProfile, err := db.GetPlayerProfile(pid)
 	if err != nil {
@@ -199,4 +205,14 @@ func refreshGlossary() error {
 		log.Print("failed to refresh glossary cache. error:", err)
 	}
 	return err
+}
+
+func convWGtoDBprofile(wgData wgapi.PlayerProfile) (dbData db.DBPlayerPofile) {
+	dbData.ID = wgData.ID
+	dbData.LastBattle = time.Unix(int64(wgData.LastBattle), 0)
+	dbData.Nickname = wgData.Name
+	dbData.ClanID = wgData.ClanID
+	dbData.ClanName = wgData.ClanName
+	dbData.ClanTag = wgData.ClanTag
+	return dbData
 }

@@ -82,7 +82,6 @@ type DBPlayerPofile struct {
 	ID         int       `json:"player_id" bson:"_id"`
 	ClanID     int       `json:"clan_id" bson:"clan_id"`
 	ClanName   string    `json:"clan_name" bson:"clan_name"`
-	ClanRole   string    `json:"clan_role" bson:"clan_role"`
 	ClanTag    string    `json:"clan_tag" bson:"clan_tag"`
 	LastBattle time.Time `json:"last_battle_time" bson:"last_battle_time"`
 	Nickname   string    `json:"nickname" bson:"nickname"`
