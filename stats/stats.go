@@ -158,6 +158,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	cachedPlayerProfile, err := db.GetPlayerProfile(pid)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
+			newCache.CareerWN8 = -1
 			err = db.AddPlayer(newCache)
 		}
 		return session, oldSession, playerProfile, err
