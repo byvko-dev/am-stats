@@ -26,8 +26,8 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 	tank.TankName = tankInfo.Name
 
 	if err != nil || tankInfo.Name == "" {
-		// Refresh Glossary cache
-		go refreshGlossary()
+		// Refresh Glossary cache -  Disabled, cache updates are done every 24 hours
+		// go refreshGlossary()
 
 		log.Print("no tank glossary data (", err, ")")
 		tank.TankTier = 0
@@ -161,11 +161,16 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 			newCache.CareerWN8 = -1
 			err = db.AddPlayer(newCache)
 		}
-		return session, oldSession, playerProfile, err
+		if err != nil {
+			return session, oldSession, playerProfile, err
+		}
 	}
 
 	// Update profile cache
 	newCache.CareerWN8 = cachedPlayerProfile.CareerWN8
+	if cachedPlayerProfile.CareerWN8 == 0 {
+		newCache.CareerWN8 = -1
+	}
 	_, err = db.UpdatePlayer(bson.M{"_id": playerProfile.ID}, newCache)
 	if err != nil {
 		log.Printf("Failed to update player profile cache for %v, error: %s", playerProfile.ID, err.Error())
