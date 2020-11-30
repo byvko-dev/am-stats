@@ -189,7 +189,9 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 			s, _ := db.GetSession(bson.M{"player_id": pid})
 			// Add a new session if one does not exist
 			if s.PlayerID == 0 {
-				err = db.AddSession(liveToSession(playerProfile, playerVehicles))
+				sessionData := liveToSession(playerProfile, playerVehicles)
+				sessionData.SessionRating = -1
+				err = db.AddSession(sessionData)
 				if err == nil {
 					err = fmt.Errorf("stats: new player, started tracking")
 				}
