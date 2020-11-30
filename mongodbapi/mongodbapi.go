@@ -130,8 +130,7 @@ func AddSession(session Session) error {
 	session.Timestamp = time.Now()
 	// Concert to RetroSession
 	var sessionConv Convert = session
-	r, err := sessionsCollection.InsertOne(ctx, sessionConv.ToRetro())
-	log.Printf("%+v", r)
+	_, err := sessionsCollection.InsertOne(ctx, sessionConv.ToRetro())
 	return err
 }
 
