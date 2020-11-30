@@ -72,6 +72,9 @@ func PlayerVehicleStats(playerID int, realm string) ([]VehicleStats, error) {
 		return nil, err
 	}
 	finalResponse := rawResponse.Data[strconv.Itoa(playerID)]
+	if len(finalResponse) < 1 {
+		return finalResponse, errors.New("no vehicles data available for player")
+	}
 	return finalResponse, nil
 }
 
@@ -92,6 +95,9 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 	}
 	if rawResponse.Status != "ok" {
 		return finalResponse, fmt.Errorf("WG error: %v", rawResponse.Error.Message)
+	}
+	if rawResponse.Data[strconv.Itoa(playerID)].ID != playerID {
+		return finalResponse, errors.New("WG: player not found in response")
 	}
 	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
 
