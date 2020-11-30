@@ -185,9 +185,13 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	oldSession, err = db.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" && days == 0 {
-			err = db.AddSession(liveToSession(playerProfile, playerVehicles))
-			if err == nil {
-				err = fmt.Errorf("stats: new player, started tracking")
+			// Check if session exists
+			s, _ := db.GetSession(bson.M{"player_id": pid})
+			if s.PlayerID == 0 {
+				err = db.AddSession(liveToSession(playerProfile, playerVehicles))
+				if err == nil {
+					err = fmt.Errorf("stats: new player, started tracking")
+				}
 			}
 		}
 		return session, oldSession, playerProfile, err

@@ -136,7 +136,7 @@ func AddSession(session Session) error {
 }
 
 // GetSession - Get a player session from db using advanced BSON filter
-func getSession(filter interface{}) (session Session, err error) {
+func GetSession(filter interface{}) (session Session, err error) {
 	var retroSession RetroSession
 	err = sessionsCollection.FindOne(ctx, filter).Decode(&retroSession)
 	if err != nil {
