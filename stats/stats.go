@@ -187,6 +187,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 		if err.Error() == "mongo: no documents in result" && days == 0 {
 			// Check if session exists
 			s, _ := db.GetSession(bson.M{"player_id": pid})
+			// Add a new session if one does not exist
 			if s.PlayerID == 0 {
 				err = db.AddSession(liveToSession(playerProfile, playerVehicles))
 				if err == nil {
