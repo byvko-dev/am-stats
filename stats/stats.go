@@ -160,6 +160,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			newCache.CareerWN8 = -1
+			newCache.Realm = strings.ToUpper(realm)
 			err = db.AddPlayer(newCache)
 		}
 		if err != nil {
@@ -169,8 +170,6 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 
 	// Update profile cache
 	newCache.CareerWN8 = cachedPlayerProfile.CareerWN8
-	newCache.Realm = strings.ToUpper(realm)
-
 	// Fix WN8
 	if cachedPlayerProfile.CareerWN8 == 0 {
 		newCache.CareerWN8 = -1
