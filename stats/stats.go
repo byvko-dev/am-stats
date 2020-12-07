@@ -170,6 +170,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 
 	// Update profile cache
 	newCache.CareerWN8 = cachedPlayerProfile.CareerWN8
+	newCache.Realm = strings.ToUpper(realm)
 
 	// Fix WN8
 	if cachedPlayerProfile.CareerWN8 == 0 {
