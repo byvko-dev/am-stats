@@ -126,17 +126,16 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 
 // AddSession - Add a new session to db
 func AddSession(session Session) error {
+	// Timestamp
+	session.Timestamp = time.Now()
 	// Concert to RetroSession
 	var sessionConv Convert = session
 	_, err := sessionsCollection.InsertOne(ctx, sessionConv.ToRetro())
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // GetSession - Get a player session from db using advanced BSON filter
-func getSession(filter interface{}) (session Session, err error) {
+func GetSession(filter interface{}) (session Session, err error) {
 	var retroSession RetroSession
 	err = sessionsCollection.FindOne(ctx, filter).Decode(&retroSession)
 	if err != nil {
@@ -151,20 +150,14 @@ func getSession(filter interface{}) (session Session, err error) {
 func GetTankAverages(tid int) (averages TankAverages, err error) {
 	filter := bson.M{"tank_id": tid}
 	err = tankAveragesCollection.FindOne(ctx, filter).Decode(&averages)
-	if err != nil {
-		return averages, err
-	}
-	return averages, nil
+	return averages, err
 }
 
 // GetTankGlossary - Get averages data for a tank by ID
 func GetTankGlossary(tid int) (averages TankAverages, err error) {
 	filter := bson.M{"tank_id": tid}
 	err = tankGlossaryCollection.FindOne(ctx, filter).Decode(&averages)
-	if err != nil {
-		return averages, err
-	}
-	return averages, nil
+	return averages, err
 }
 
 // GetStreak - Get win streak for a player by playerID
@@ -185,8 +178,5 @@ func UpdateStreak(streak PlayerStreak) (err error) {
 	update := bson.M{"$set": streak}
 	opts := options.Update().SetUpsert(true)
 	_, err = streaksCollection.UpdateOne(ctx, filter, update, opts)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

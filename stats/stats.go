@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"sync"
 	"sync/atomic"
@@ -26,8 +27,8 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 	tank.TankName = tankInfo.Name
 
 	if err != nil || tankInfo.Name == "" {
-		// Refresh Glossary cache
-		go refreshGlossary()
+		// Refresh Glossary cache -  Disabled, cache updates are done every 24 hours
+		// go refreshGlossary()
 
 		log.Print("no tank glossary data (", err, ")")
 		tank.TankTier = 0
@@ -159,13 +160,24 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			newCache.CareerWN8 = -1
+			newCache.Realm = strings.ToUpper(realm)
 			err = db.AddPlayer(newCache)
 		}
-		return session, oldSession, playerProfile, err
+		if err != nil {
+			return session, oldSession, playerProfile, err
+		}
 	}
 
 	// Update profile cache
 	newCache.CareerWN8 = cachedPlayerProfile.CareerWN8
+	newCache.Realm = strings.ToUpper(realm)
+
+	// Fix WN8
+	if cachedPlayerProfile.CareerWN8 == 0 {
+		newCache.CareerWN8 = -1
+	}
+
+	// Commit update
 	_, err = db.UpdatePlayer(bson.M{"_id": playerProfile.ID}, newCache)
 	if err != nil {
 		log.Printf("Failed to update player profile cache for %v, error: %s", playerProfile.ID, err.Error())
@@ -180,9 +192,16 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	oldSession, err = db.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" && days == 0 {
-			err = db.AddSession(liveToSession(playerProfile, playerVehicles))
-			if err == nil {
-				err = fmt.Errorf("stats: new player, started tracking")
+			// Check if session exists
+			s, _ := db.GetSession(bson.M{"player_id": pid})
+			// Add a new session if one does not exist
+			if s.PlayerID == 0 {
+				sessionData := liveToSession(playerProfile, playerVehicles)
+				sessionData.SessionRating = -1
+				err = db.AddSession(sessionData)
+				if err == nil {
+					err = fmt.Errorf("stats: new player, started tracking")
+				}
 			}
 		}
 		return session, oldSession, playerProfile, err
