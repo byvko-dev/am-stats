@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/png"
 	"log"
+	"runtime/debug"
 	"strconv"
 
 	"github.com/cufee/am-stats/config"
@@ -67,6 +68,7 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in handlePlayerRequest", r)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
 			respondWithError(w, http.StatusInternalServerError, "something went wrong")
 		}
 	}()
