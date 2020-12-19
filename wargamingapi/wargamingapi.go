@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"encoding/json"
 	"net/http"
@@ -26,17 +27,29 @@ var wgAPIClanDetails string = fmt.Sprintf("/wotb/clans/info/?application_id=%s&f
 // HTTP client
 var clientHTTP = &http.Client{Timeout: 10 * time.Second}
 
-// getFlatJSON -
+// Mutex lock for rps counter
+var waitGroup sync.WaitGroup
+var limiterChan chan int = make(chan int, config.OutRPSlimit)
+
+// getJSON -
 func getJSON(url string, target interface{}) error {
+	// Outgoing rate limiter
+	start := time.Now()
+	limiterChan <- 1
+	defer func() {
+		timer := time.Now().Sub(start)
+		if timer < (time.Second * 1) {
+			time.Sleep((time.Second * 1) - timer)
+		}
+		<-limiterChan
+	}()
+
 	res, err := clientHTTP.Get(url)
 	if res == nil {
-		return fmt.Errorf("no response recieved, url - %v", url)
+		return fmt.Errorf("no response recieved from WG API, error: %v", err)
 	}
-	if err != nil {
+	if err != nil || res.StatusCode != http.StatusOK {
 		return fmt.Errorf("status code: %v. error: %s", res.StatusCode, err)
-	}
-	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("status code: %v", res.StatusCode)
 	}
 	defer res.Body.Close()
 	return json.NewDecoder(res.Body).Decode(target)
