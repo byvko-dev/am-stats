@@ -30,6 +30,7 @@ var clientHTTP = &http.Client{Timeout: 10 * time.Second}
 // getFlatJSON -
 func getJSON(url string, target interface{}) error {
 	res, err := clientHTTP.Get(url)
+	log.Printf("outgoing request - res status: %v, error: %#v", res.Status, err)
 	if err != nil {
 		return fmt.Errorf("status code: %v. error: %s", res.StatusCode, err)
 	}
@@ -94,7 +95,6 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 	var rawResponse playerDataToPIDres
 
 	err = getJSON(url, &rawResponse)
-	log.Printf("WG res status: %v, error: %#v", rawResponse.Status, rawResponse.Error)
 	if err != nil {
 		return finalResponse, err
 	}
