@@ -10,6 +10,7 @@ import (
 	"github.com/cufee/am-stats/config"
 	"github.com/cufee/am-stats/render"
 	"github.com/cufee/am-stats/stats"
+	externalapis "github.com/cufee/am-stats/wargamingapi"
 	"github.com/fogleman/gg"
 
 	"encoding/json"
@@ -82,7 +83,7 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if export.PlayerDetails.Name == "" {
+	if export.PlayerDetails == (externalapis.PlayerProfile{}) || export.PlayerDetails.Name == "" {
 		log.Printf("%+v", request)
 		respondWithError(w, http.StatusNotFound, "bad player data")
 		return
