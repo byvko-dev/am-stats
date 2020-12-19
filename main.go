@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/png"
 	"log"
-	"runtime/debug"
 	"strconv"
 
 	"github.com/cufee/am-stats/config"
@@ -68,7 +67,6 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in handlePlayerRequest", r)
-			fmt.Println("stacktrace from panic: \n" + string(debug.Stack()))
 		}
 	}()
 
@@ -110,7 +108,7 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		bgImage, err = gg.LoadImage(config.AssetsPath + currentBG)
 		if err != nil {
 			log.Println(err)
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("failed to load a background image: %#v", err))
 		}
 	}
 
@@ -127,7 +125,6 @@ func handleStatsRequest(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in handleStatsRequest", r)
-			fmt.Println("stacktrace from panic: \n" + string(debug.Stack()))
 		}
 	}()
 	var request request

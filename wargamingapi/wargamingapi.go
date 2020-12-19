@@ -29,8 +29,11 @@ var clientHTTP = &http.Client{Timeout: 10 * time.Second}
 // getFlatJSON -
 func getJSON(url string, target interface{}) error {
 	res, err := clientHTTP.Get(url)
-	if err != nil || res.StatusCode != http.StatusOK {
+	if err != nil {
 		return fmt.Errorf("status code: %v. error: %s", res.StatusCode, err)
+	}
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("status code: %v", res.StatusCode)
 	}
 	defer res.Body.Close()
 	return json.NewDecoder(res.Body).Decode(target)
