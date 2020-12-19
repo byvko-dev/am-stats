@@ -3,7 +3,6 @@ package externalapis
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -30,7 +29,9 @@ var clientHTTP = &http.Client{Timeout: 10 * time.Second}
 // getFlatJSON -
 func getJSON(url string, target interface{}) error {
 	res, err := clientHTTP.Get(url)
-	log.Printf("outgoing request - res status: %v, error: %#v", res.Status, err)
+	if res == nil {
+		return fmt.Errorf("no response recieved, url - %v", url)
+	}
 	if err != nil {
 		return fmt.Errorf("status code: %v. error: %s", res.StatusCode, err)
 	}
