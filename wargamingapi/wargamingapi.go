@@ -94,7 +94,7 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 	var rawResponse playerDataToPIDres
 
 	err = getJSON(url, &rawResponse)
-	log.Printf("%#v", rawResponse)
+	log.Printf("WG res status: %v, error: %#v", rawResponse.Status, rawResponse.Error)
 	if err != nil {
 		return finalResponse, err
 	}
