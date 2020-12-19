@@ -45,7 +45,6 @@ func getJSON(url string, target interface{}) error {
 	}()
 
 	res, err := clientHTTP.Get(url)
-
 	if res == nil {
 		return fmt.Errorf("no response recieved from WG API, error: %v", err)
 	}

@@ -52,7 +52,7 @@ func handlePlayerRequest(c *fiber.Ctx) error {
 		if r := recover(); r != nil {
 			log.Println("Recovered in handlePlayerRequest", r)
 			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
-			c.JSON(fiber.Map{
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "something did not work",
 			})
 		}
@@ -62,20 +62,20 @@ func handlePlayerRequest(c *fiber.Ctx) error {
 	err := c.BodyParser(&request)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.Realm, request.Days)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 	if export.PlayerDetails == (externalapis.PlayerProfile{}) || export.PlayerDetails.Name == "" {
 		log.Printf("%+v", request)
-		return c.JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "bad player data",
 		})
 	}
@@ -99,7 +99,7 @@ func handlePlayerRequest(c *fiber.Ctx) error {
 		bgImage, err = gg.LoadImage(config.AssetsPath + currentBG)
 		if err != nil {
 			log.Println(err)
-			return c.JSON(fiber.Map{
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": fmt.Sprintf("failed to load a background image: %#v", err),
 			})
 		}
@@ -108,7 +108,7 @@ func handlePlayerRequest(c *fiber.Ctx) error {
 	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit, request.Premium, request.Verified, bgImage)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
@@ -118,7 +118,7 @@ func handlePlayerRequest(c *fiber.Ctx) error {
 	err = png.Encode(buf, img)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
@@ -128,7 +128,7 @@ func handlePlayerRequest(c *fiber.Ctx) error {
 	s, err := ioutil.ReadAll(buf)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
@@ -140,7 +140,7 @@ func handleStatsRequest(c *fiber.Ctx) error {
 		if r := recover(); r != nil {
 			log.Println("Recovered in handlePlayerRequest", r)
 			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
-			c.JSON(fiber.Map{
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "something did not work",
 			})
 		}
@@ -150,20 +150,20 @@ func handleStatsRequest(c *fiber.Ctx) error {
 	err := c.BodyParser(&request)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.Realm, request.Days)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 	if export.PlayerDetails == (externalapis.PlayerProfile{}) || export.PlayerDetails.Name == "" {
 		log.Printf("%+v", request)
-		return c.JSON(fiber.Map{
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "bad player data",
 		})
 	}
