@@ -3,6 +3,7 @@ package externalapis
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -93,6 +94,7 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 	var rawResponse playerDataToPIDres
 
 	err = getJSON(url, &rawResponse)
+	log.Printf("%#v", rawResponse)
 	if err != nil {
 		return finalResponse, err
 	}
