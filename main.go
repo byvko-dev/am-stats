@@ -67,6 +67,7 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in handlePlayerRequest", r)
+			respondWithError(w, http.StatusInternalServerError, "something went wrong")
 		}
 	}()
 
@@ -125,6 +126,7 @@ func handleStatsRequest(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in handleStatsRequest", r)
+			respondWithError(w, http.StatusInternalServerError, "something went wrong")
 		}
 	}()
 	var request request

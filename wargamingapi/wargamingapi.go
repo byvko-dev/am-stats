@@ -99,8 +99,8 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 	if rawResponse.Status != "ok" {
 		return finalResponse, fmt.Errorf("WG error: %v", rawResponse.Error.Message)
 	}
-	if rawResponse.Data[strconv.Itoa(playerID)].ID != playerID {
-		return finalResponse, errors.New("WG: player not found in response")
+	if _, ok := rawResponse.Data[strconv.Itoa(playerID)]; ok == false || rawResponse.Data[strconv.Itoa(playerID)].ID != playerID {
+		return finalResponse, fmt.Errorf("WG: player not found in response. status %v", rawResponse.Status)
 	}
 	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
 
