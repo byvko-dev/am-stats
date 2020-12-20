@@ -3,6 +3,7 @@ package externalapis
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -36,6 +37,7 @@ var limiterChan chan int = make(chan int, config.OutRPSlimit)
 func getJSON(url string, target interface{}) error {
 	// Outgoing rate limiter
 	start := time.Now()
+	log.Printf("limiter chan at %v", len(limiterChan))
 	limiterChan <- 1
 	defer func() {
 		go func() {
