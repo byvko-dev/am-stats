@@ -44,7 +44,9 @@ func getJSON(url string, target interface{}) error {
 		log.Printf("request took %v, limiter chan at %v", timer, len(limiterChan))
 
 		if timer < (time.Second * 1) {
-			time.Sleep((time.Second * 1) - timer)
+			toSleep := (time.Second * 1) - timer
+			log.Printf("Sleeping for %v", toSleep)
+			time.Sleep(toSleep)
 		}
 		<-limiterChan
 	}()
