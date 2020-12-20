@@ -25,7 +25,7 @@ var wgAPIClanInfo string = fmt.Sprintf("/wotb/clans/list/?application_id=%s&sear
 var wgAPIClanDetails string = fmt.Sprintf("/wotb/clans/info/?application_id=%s&fields=clan_id,name,tag,is_clan_disbanded,members_ids,updated_at,members&extra=members&clan_id=", config.WgAPIAppID)
 
 // HTTP client
-var clientHTTP = &http.Client{Timeout: 1 * time.Second}
+var clientHTTP = &http.Client{Timeout: 250 * time.Millisecond}
 
 // Mutex lock for rps counter
 var waitGroup sync.WaitGroup
@@ -46,7 +46,11 @@ func getJSON(url string, target interface{}) error {
 
 	res, err := clientHTTP.Get(url)
 	if res == nil {
-		return fmt.Errorf("no response recieved from WG API, error: %v", err)
+		time.Sleep(time.Millisecond * 250)
+		res, err = clientHTTP.Get(url)
+		if res == nil {
+			return fmt.Errorf("no response recieved from WG API, error: %v", err)
+		}
 	}
 	if err != nil || res.StatusCode != http.StatusOK {
 		return fmt.Errorf("status code: %v. error: %s", res.StatusCode, err)
