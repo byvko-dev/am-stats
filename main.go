@@ -1,22 +1,23 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/png"
+	"io/ioutil"
 	"log"
-	"strconv"
+	"runtime/debug"
 
 	"github.com/cufee/am-stats/config"
 	"github.com/cufee/am-stats/render"
 	"github.com/cufee/am-stats/stats"
 	externalapis "github.com/cufee/am-stats/wargamingapi"
 	"github.com/fogleman/gg"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 
-	"encoding/json"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 type request struct {
@@ -30,63 +31,53 @@ type request struct {
 	BgURL     string `json:"bg_url"`
 }
 
-const currentBG string = "bg_event.jpg"
+const currentBG string = "bg_frame.png"
 
-func handler() {
-	log.Println("Starting webserver on", config.APIport)
-	hostPORT := ":" + strconv.Itoa(config.APIport)
+func main() {
+	// Define routes
+	app := fiber.New()
 
-	myRouter := mux.NewRouter().StrictSlash(true)
-	// myRouter.HandleFunc("/clans", updateClanActivity)
-	myRouter.HandleFunc("/player", handlePlayerRequest).Methods("GET")
-	myRouter.HandleFunc("/stats", handleStatsRequest).Methods("GET")
+	// Logger
+	app.Use(logger.New())
 
-	log.Fatal(http.ListenAndServe(hostPORT, myRouter))
+	// Stats
+	app.Get("/player", handlePlayerRequest)
+	app.Get("/stats", handleStatsRequest)
+
+	log.Print(app.Listen(fmt.Sprintf(":%v", config.APIport)))
 }
 
-func respondWithError(w http.ResponseWriter, code int, message string) {
-	respondWithJSON(w, code, map[string]string{"error": message})
-}
-
-func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	response, _ := json.Marshal(payload)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
-	log.Println("Request - ", code)
-}
-
-func repondWithImage(w http.ResponseWriter, code int, image image.Image) {
-	w.Header().Set("Content-Type", "image/jpeg")
-	w.WriteHeader(code)
-	png.Encode(w, image)
-	log.Println("Request - ", code)
-}
-
-func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
+func handlePlayerRequest(c *fiber.Ctx) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in handlePlayerRequest", r)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "something did not work",
+			})
 		}
 	}()
 
 	var request request
-	err := json.NewDecoder(r.Body).Decode(&request)
+	err := c.BodyParser(&request)
 	if err != nil {
 		log.Println(err)
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.Realm, request.Days)
 	if err != nil {
 		log.Println(err)
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 	if export.PlayerDetails == (externalapis.PlayerProfile{}) || export.PlayerDetails.Name == "" {
 		log.Printf("%+v", request)
-		respondWithError(w, http.StatusNotFound, "bad player data")
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "bad player data",
+		})
 	}
 	if request.TankLimit == 0 {
 		request.TankLimit = 10
@@ -108,43 +99,74 @@ func handlePlayerRequest(w http.ResponseWriter, r *http.Request) {
 		bgImage, err = gg.LoadImage(config.AssetsPath + currentBG)
 		if err != nil {
 			log.Println(err)
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("failed to load a background image: %#v", err),
+			})
 		}
 	}
 
 	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit, request.Premium, request.Verified, bgImage)
 	if err != nil {
 		log.Println(err)
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
-	repondWithImage(w, http.StatusOK, img)
+
+	// Encode image
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, img)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Send image
+	c.Set("Content-Type", "image/png")
+	s, err := ioutil.ReadAll(buf)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.Send(s)
 }
 
-func handleStatsRequest(w http.ResponseWriter, r *http.Request) {
+func handleStatsRequest(c *fiber.Ctx) error {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered in f", r)
+			log.Println("Recovered in handlePlayerRequest", r)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "something did not work",
+			})
 		}
 	}()
+
 	var request request
-	err := json.NewDecoder(r.Body).Decode(&request)
+	err := c.BodyParser(&request)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.Realm, request.Days)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
-	if export.PlayerDetails.Name == "" {
-		respondWithError(w, http.StatusNotFound, err.Error())
-		return
+	if export.PlayerDetails == (externalapis.PlayerProfile{}) || export.PlayerDetails.Name == "" {
+		log.Printf("%+v", request)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "bad player data",
+		})
 	}
-	respondWithJSON(w, http.StatusOK, export)
-}
 
-func main() {
-	handler()
+	return c.JSON(export)
 }

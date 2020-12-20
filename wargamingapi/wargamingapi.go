@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"encoding/json"
 	"net/http"
@@ -24,11 +25,33 @@ var wgAPIClanInfo string = fmt.Sprintf("/wotb/clans/list/?application_id=%s&sear
 var wgAPIClanDetails string = fmt.Sprintf("/wotb/clans/info/?application_id=%s&fields=clan_id,name,tag,is_clan_disbanded,members_ids,updated_at,members&extra=members&clan_id=", config.WgAPIAppID)
 
 // HTTP client
-var clientHTTP = &http.Client{Timeout: 10 * time.Second}
+var clientHTTP = &http.Client{Timeout: 250 * time.Millisecond}
 
-// getFlatJSON -
+// Mutex lock for rps counter
+var waitGroup sync.WaitGroup
+var limiterChan chan int = make(chan int, config.OutRPSlimit)
+
+// getJSON -
 func getJSON(url string, target interface{}) error {
+	// Outgoing rate limiter
+	start := time.Now()
+	limiterChan <- 1
+	defer func() {
+		timer := time.Now().Sub(start)
+		if timer < (time.Second * 1) {
+			time.Sleep((time.Second * 1) - timer)
+		}
+		<-limiterChan
+	}()
+
 	res, err := clientHTTP.Get(url)
+	if res == nil {
+		time.Sleep(time.Millisecond * 250)
+		res, err = clientHTTP.Get(url)
+		if res == nil {
+			return fmt.Errorf("no response recieved from WG API, error: %v", err)
+		}
+	}
 	if err != nil || res.StatusCode != http.StatusOK {
 		return fmt.Errorf("status code: %v. error: %s", res.StatusCode, err)
 	}
@@ -96,8 +119,8 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 	if rawResponse.Status != "ok" {
 		return finalResponse, fmt.Errorf("WG error: %v", rawResponse.Error.Message)
 	}
-	if rawResponse.Data[strconv.Itoa(playerID)].ID != playerID {
-		return finalResponse, errors.New("WG: player not found in response")
+	if _, ok := rawResponse.Data[strconv.Itoa(playerID)]; ok == false || rawResponse.Data[strconv.Itoa(playerID)].ID != playerID {
+		return finalResponse, fmt.Errorf("WG: player not found in response. status %v", rawResponse.Status)
 	}
 	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
 
