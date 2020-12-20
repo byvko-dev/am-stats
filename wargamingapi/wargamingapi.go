@@ -3,6 +3,7 @@ package externalapis
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -39,6 +40,9 @@ func getJSON(url string, target interface{}) error {
 	limiterChan <- 1
 	defer func() {
 		timer := time.Now().Sub(start)
+
+		log.Printf("request took %v, limiter chan at %v", timer, len(limiterChan))
+
 		if timer < (time.Second * 1) {
 			time.Sleep((time.Second * 1) - timer)
 		}
