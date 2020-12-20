@@ -63,16 +63,16 @@ func getJSON(url string, target interface{}) error {
 func getAPIDomain(realm string) (string, error) {
 	realm = strings.ToUpper(realm)
 	if realm == "NA" {
-		return "https://api.wotblitz.com", nil
+		return "http://api.wotblitz.com", nil
 
 	} else if realm == "EU" {
-		return "https://api.wotblitz.eu", nil
+		return "http://api.wotblitz.eu", nil
 
 	} else if realm == "RU" {
-		return "https://api.wotblitz.ru", nil
+		return "http://api.wotblitz.ru", nil
 
 	} else if realm == "ASIA" || realm == "AS" {
-		return "https://api.wotblitz.asia", nil
+		return "http://api.wotblitz.asia", nil
 
 	} else {
 		message := fmt.Sprintf("Realm %s not found", realm)
