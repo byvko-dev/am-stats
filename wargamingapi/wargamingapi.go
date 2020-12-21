@@ -79,6 +79,16 @@ func getJSON(url string, target interface{}) error {
 		if res == nil {
 			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", err)
 		}
+
+		// Parse error
+		var errorData struct {
+			Error string `json:"error"`
+		}
+		json.NewDecoder(res.Body).Decode(&errorData)
+		if errorData.Error != "" {
+			err = fmt.Errorf(errorData.Error)
+		}
+
 	}
 	if err != nil || res.StatusCode != http.StatusOK {
 		return fmt.Errorf("status code: %v. error: %v", res.StatusCode, err)
@@ -109,7 +119,7 @@ func getAPIDomain(realm string) (string, error) {
 }
 
 // PlayerVehicleStats - Fetch stats for player Vehicles, returns a slice of all vehicle stats
-func PlayerVehicleStats(playerID int, realm string) ([]VehicleStats, error) {
+func PlayerVehicleStats(playerID int, realm string) (finalResponse []VehicleStats, err error) {
 	// Get API domain
 	domain, err := getAPIDomain(realm)
 	if err != nil {
@@ -122,7 +132,7 @@ func PlayerVehicleStats(playerID int, realm string) ([]VehicleStats, error) {
 	if err != nil {
 		return nil, err
 	}
-	finalResponse := rawResponse.Data[strconv.Itoa(playerID)]
+	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
 	if len(finalResponse) < 1 {
 		return finalResponse, errors.New("no vehicles data available for player")
 	}

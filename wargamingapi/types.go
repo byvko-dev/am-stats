@@ -22,7 +22,13 @@ type StatsFrame struct {
 // Vehicle Stats
 // dataToPIDres - JSON response from WG API
 type vehiclesDataToPIDres struct {
-	Data map[string][]VehicleStats `json:"data"`
+	Data  map[string][]VehicleStats `json:"data"`
+	Error struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Field   string `json:"field"`
+		Value   string `json:"value"`
+	} `json:"error"`
 }
 
 // VehicleStats - Player Vehicle stats struct, used to return final data
