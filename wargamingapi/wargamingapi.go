@@ -52,7 +52,7 @@ func getJSON(url string, target interface{}) error {
 
 	res, err := clientHTTP.Get(url)
 	if res == nil {
-		var clientHTTPlocal = &http.Client{Timeout: 800 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
+		var clientHTTPlocal = &http.Client{Timeout: 1000 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 		// Marshal a request
 		proxyReq := struct {
 			URL string `json:"url"`
@@ -61,20 +61,20 @@ func getJSON(url string, target interface{}) error {
 		}
 		reqData, err := json.Marshal(proxyReq)
 		if err != nil {
-			return fmt.Errorf("no response recieved from WG API, error: %v", err)
+			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", err)
 		}
 
 		// Make request
 		req, err := http.NewRequest("GET", url, bytes.NewBuffer(reqData))
 		if err != nil {
-			return fmt.Errorf("no response recieved from WG API, error: %v", err)
+			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", err)
 		}
 
 		// Send request
 		req.Header.Set("Content-Type", "application/json")
 		res, err := clientHTTPlocal.Do(req)
 		if res == nil {
-			return fmt.Errorf("no response recieved from WG API, error: %v", err)
+			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", err)
 		}
 	}
 	if err != nil || res.StatusCode != http.StatusOK {
