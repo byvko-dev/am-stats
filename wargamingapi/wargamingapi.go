@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"strings"
 	"sync"
@@ -50,11 +51,10 @@ func getJSON(url string, target interface{}) error {
 		}()
 	}()
 
+	var resData []byte
 	res, err := clientHTTP.Get(url)
-	if res == nil {
-		// Reset Error
-		err = nil
 
+	if res == nil {
 		var clientHTTPlocal = &http.Client{Timeout: 2000 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 		// Marshal a request
 		proxyReq := struct {
@@ -62,29 +62,47 @@ func getJSON(url string, target interface{}) error {
 		}{
 			URL: url,
 		}
-		reqData, err := json.Marshal(proxyReq)
-		if err != nil {
-			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", err)
+		reqData, pErr := json.Marshal(proxyReq)
+		if pErr != nil {
+			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", pErr)
 		}
 
 		// Make request
-		req, err := http.NewRequest("GET", config.WGProxyURL, bytes.NewBuffer(reqData))
-		if err != nil {
-			return fmt.Errorf("failed to make a proxy request, error: %v", err)
+		req, pErr := http.NewRequest("GET", config.WGProxyURL, bytes.NewBuffer(reqData))
+		if pErr != nil {
+			return fmt.Errorf("failed to make a proxy request, error: %v", pErr)
 		}
 		req.Header.Set("Content-Type", "application/json")
 
 		// Send request
-		res, err = clientHTTPlocal.Do(req)
+		res, pErr = clientHTTPlocal.Do(req)
 		if res == nil {
-			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", err)
+			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", pErr)
 		}
+		resData, pErr = ioutil.ReadAll(res.Body)
+
+		// Check for errors
+		var proxyErr struct {
+			Message string `json:"error"`
+		}
+		json.Unmarshal(resData, &proxyErr)
+		if proxyErr.Message != "" {
+			pErr = fmt.Errorf(proxyErr.Message)
+		}
+
+		// Set error to proxy error
+		err = pErr
+	} else {
+		resData, err = ioutil.ReadAll(res.Body)
 	}
-	if err != nil || res.StatusCode != http.StatusOK {
-		return fmt.Errorf("no response recieved, error: %v", err.Error())
+
+	// Check error
+	if err != nil {
+		return err
 	}
+
 	defer res.Body.Close()
-	return json.NewDecoder(res.Body).Decode(target)
+	return json.Unmarshal(resData, target)
 }
 
 // getAPIDomain - Get WG API domain using realm
@@ -122,6 +140,9 @@ func PlayerVehicleStats(playerID int, realm string) (finalResponse []VehicleStat
 	if err != nil {
 		return nil, err
 	}
+	if rawResponse.Error.Message != "" {
+		return finalResponse, fmt.Errorf("WG error: %s", rawResponse.Error.Message)
+	}
 	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
 	if len(finalResponse) < 1 {
 		return finalResponse, errors.New("no vehicles data available for player")
@@ -143,6 +164,9 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 	err = getJSON(url, &rawResponse)
 	if err != nil {
 		return finalResponse, err
+	}
+	if rawResponse.Error.Message != "" {
+		return finalResponse, fmt.Errorf("WG error: %s", rawResponse.Error.Message)
 	}
 	if rawResponse.Status != "ok" {
 		return finalResponse, fmt.Errorf("WG error: %v", rawResponse.Error.Message)
