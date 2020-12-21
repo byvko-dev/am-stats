@@ -51,7 +51,6 @@ func getJSON(url string, target interface{}) error {
 	}()
 
 	res, err := clientHTTP.Get(url)
-	res = nil
 	if res == nil {
 		var clientHTTPlocal = &http.Client{Timeout: 1500 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 		// Marshal a request
