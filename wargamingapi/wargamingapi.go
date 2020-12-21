@@ -52,7 +52,7 @@ func getJSON(url string, target interface{}) error {
 
 	res, err := clientHTTP.Get(url)
 	if res == nil {
-		var clientHTTPlocal = &http.Client{Timeout: 1000 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
+		var clientHTTPlocal = &http.Client{Timeout: 1500 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 		// Marshal a request
 		proxyReq := struct {
 			URL string `json:"url"`
