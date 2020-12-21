@@ -81,7 +81,7 @@ func getJSON(url string, target interface{}) error {
 		}
 	}
 	if err != nil || res.StatusCode != http.StatusOK {
-		return fmt.Errorf("status code: %v. error: %s", res.StatusCode, err)
+		return fmt.Errorf("status code: %v. error: %v", res.StatusCode, err)
 	}
 	defer res.Body.Close()
 	return json.NewDecoder(res.Body).Decode(target)
