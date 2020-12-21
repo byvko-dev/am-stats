@@ -55,7 +55,7 @@ func getJSON(url string, target interface{}) error {
 		// Reset Error
 		err = nil
 
-		var clientHTTPlocal = &http.Client{Timeout: 1500 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
+		var clientHTTPlocal = &http.Client{Timeout: 2000 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 		// Marshal a request
 		proxyReq := struct {
 			URL string `json:"url"`
