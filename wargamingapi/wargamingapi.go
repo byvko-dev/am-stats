@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -51,7 +52,8 @@ func getJSON(url string, target interface{}) error {
 	}()
 
 	res, err := clientHTTP.Get(url)
-	if res == nil || res.Body == nil {
+	log.Print("1", res, err)
+	if res == nil {
 		var clientHTTPlocal = &http.Client{Timeout: 1500 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 		// Marshal a request
 		proxyReq := struct {
@@ -66,6 +68,7 @@ func getJSON(url string, target interface{}) error {
 
 		// Make request
 		req, err := http.NewRequest("GET", config.WGProxyURL, bytes.NewBuffer(reqData))
+		log.Print("2", req, err)
 		if err != nil {
 			return fmt.Errorf("failed to make a proxy request, error: %v", err)
 		}
@@ -73,14 +76,17 @@ func getJSON(url string, target interface{}) error {
 
 		// Send request
 		res, err := clientHTTPlocal.Do(req)
-		if res == nil || res.Body == nil {
+		log.Print("3", res, err)
+		if res == nil {
 			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", err)
 		}
 	}
 	if err != nil || res.StatusCode != http.StatusOK {
 		return fmt.Errorf("status code: %v. error: %s", res.StatusCode, err)
 	}
+	log.Print("4", res, err)
 	defer res.Body.Close()
+	log.Print("5", res, err)
 	return json.NewDecoder(res.Body).Decode(target)
 }
 
