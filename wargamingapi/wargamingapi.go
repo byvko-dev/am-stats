@@ -79,19 +79,9 @@ func getJSON(url string, target interface{}) error {
 		if res == nil {
 			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", err)
 		}
-
-		// Parse error
-		var errorData struct {
-			Error string `json:"error"`
-		}
-		json.NewDecoder(res.Body).Decode(&errorData)
-		if errorData.Error != "" {
-			err = fmt.Errorf(errorData.Error)
-		}
-
 	}
 	if err != nil || res.StatusCode != http.StatusOK {
-		return fmt.Errorf("status code: %v. error: %v", res.StatusCode, err)
+		return fmt.Errorf("no response recieved, error: %v", err.Error())
 	}
 	defer res.Body.Close()
 	return json.NewDecoder(res.Body).Decode(target)
