@@ -38,7 +38,7 @@ func main() {
 	app := fiber.New()
 
 	// Logger
-	app.Use(logger.New())
+	app.Use(logger.New(logger.Config{Format: "${pid} ${locals:requestid} ${status} - ${method} ${path}​\n​${body}\n"}))
 
 	// Stats
 	app.Get("/player", handlePlayerRequest)
