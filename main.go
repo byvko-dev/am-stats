@@ -38,7 +38,7 @@ func main() {
 	app := fiber.New()
 
 	// Logger
-	app.Use(logger.New(logger.Config{Format: "[${time}] ${status} - ${latency} ${method} ${path}\n​"}))
+	app.Use(logger.New())
 
 	// Stats
 	app.Get("/player", handlePlayerRequest)
