@@ -28,7 +28,7 @@ var wgAPIClanInfo string = fmt.Sprintf("/wotb/clans/list/?application_id=%s&sear
 var wgAPIClanDetails string = fmt.Sprintf("/wotb/clans/info/?application_id=%s&fields=clan_id,name,tag,is_clan_disbanded,members_ids,updated_at,members&extra=members&clan_id=", config.WgAPIAppID)
 
 // HTTP client
-var clientHTTP = &http.Client{Timeout: 250 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
+var clientHTTP = &http.Client{Timeout: 750 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 
 // Mutex lock for rps counter
 var waitGroup sync.WaitGroup
