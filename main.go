@@ -38,7 +38,7 @@ func main() {
 	app := fiber.New()
 
 	// Logger
-	app.Use(logger.New(logger.Config{Format: "${pid} ${locals:requestid} ${status} - ${method} ${path}​\n​${body}\n"}))
+	app.Use(logger.New(logger.Config{Format: "[${time}] ${status} - ${latency} ${method} ${path}\n​"}))
 
 	// Stats
 	app.Get("/player", handlePlayerRequest)
@@ -66,6 +66,10 @@ func handlePlayerRequest(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	// Log player ID and realm
+	log.Printf("pid: %v, realm: %v", request.PlayerID, request.Realm)
+
 	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.Realm, request.Days)
 	if err != nil {
 		log.Println(err)
