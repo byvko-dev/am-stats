@@ -55,7 +55,10 @@ func getJSON(url string, target interface{}) error {
 	res, err := clientHTTP.Get(url)
 
 	if res == nil {
-		var clientHTTPlocal = &http.Client{Timeout: 2000 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
+		// Change timeout to account for cold starts
+		clientHTTP.Timeout = 10 * time.Second
+		defer func() { clientHTTP.Timeout = 750 * time.Millisecond }()
+
 		// Marshal a request
 		proxyReq := struct {
 			URL string `json:"url"`
@@ -75,7 +78,7 @@ func getJSON(url string, target interface{}) error {
 		req.Header.Set("Content-Type", "application/json")
 
 		// Send request
-		res, pErr = clientHTTPlocal.Do(req)
+		res, pErr = clientHTTP.Do(req)
 		if res == nil {
 			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", pErr)
 		}
