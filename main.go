@@ -8,9 +8,11 @@ import (
 	"io/ioutil"
 	"log"
 	"runtime/debug"
+	"strconv"
 
 	"github.com/cufee/am-stats/auth"
 	"github.com/cufee/am-stats/config"
+	"github.com/cufee/am-stats/mongodbapi"
 	"github.com/cufee/am-stats/render"
 	"github.com/cufee/am-stats/stats"
 	externalapis "github.com/cufee/am-stats/wargamingapi"
@@ -48,7 +50,43 @@ func main() {
 	app.Get("/player", handlePlayerRequest)
 	app.Get("/stats", handleStatsRequest)
 
+	// Checks
+	app.Get("/player/:id", handlePlayerCheck)
+
 	log.Print(app.Listen(fmt.Sprintf(":%v", config.APIport)))
+}
+
+func handlePlayerCheck(c *fiber.Ctx) error {
+	// Get player ID as int
+	playerID := c.Params("id")
+	pid, err := strconv.Atoi(playerID)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Get realm
+	realm, err := mongodbapi.GetRealmByPID(pid)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Get live player name
+	playerData, err := externalapis.PlayerProfileData(pid, realm)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Return
+	return c.JSON(fiber.Map{
+		"nickname": playerData.Name,
+		"realm":    realm,
+	})
 }
 
 func handlePlayerRequest(c *fiber.Ctx) error {

@@ -87,6 +87,13 @@ func GetPlayerProfile(pid int) (DBPlayerPofile, error) {
 	return getPlayer(filter)
 }
 
+// GetRealmByPID - Get player realm by PID
+func GetRealmByPID(pid int) (realm string, err error) {
+	filter := makeFilter(FilterPair{Key: "_id", Value: pid})
+	profile, err := getPlayer(filter)
+	return profile.Nickname, err
+}
+
 // UpdatePlayer - Update a player record in DB
 func UpdatePlayer(filter interface{}, playerData DBPlayerPofile) (result string, err error) {
 	resultRaw, err := playersCollection.UpdateOne(ctx, filter, bson.M{"$set": playerData})
