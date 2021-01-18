@@ -46,12 +46,12 @@ func main() {
 	// API key validator
 	app.Use(auth.Validator)
 
+	// Checks
+	app.Get("/player/id/:id", handlePlayerCheck)
+
 	// Stats
 	app.Get("/player", handlePlayerRequest)
 	app.Get("/stats", handleStatsRequest)
-
-	// Checks
-	app.Get("/player/:id", handlePlayerCheck)
 
 	log.Print(app.Listen(fmt.Sprintf(":%v", config.APIport)))
 }
