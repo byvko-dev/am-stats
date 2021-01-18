@@ -9,6 +9,7 @@ import (
 	"log"
 	"runtime/debug"
 
+	"github.com/cufee/am-stats/auth"
 	"github.com/cufee/am-stats/config"
 	"github.com/cufee/am-stats/render"
 	"github.com/cufee/am-stats/stats"
@@ -39,6 +40,9 @@ func main() {
 
 	// Logger
 	app.Use(logger.New())
+
+	// API key validator
+	app.Use(auth.Validator)
 
 	// Stats
 	app.Get("/player", handlePlayerRequest)

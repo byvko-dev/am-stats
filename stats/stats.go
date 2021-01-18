@@ -3,7 +3,6 @@ package stats
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -13,7 +12,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/cufee/am-stats/config"
 	db "github.com/cufee/am-stats/mongodbapi"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"go.mongodb.org/mongo-driver/bson"
@@ -229,17 +227,6 @@ func ExportSessionAsStruct(pid int, realm string, days int) (export ExportData, 
 	export.TimeToComplete = time.Now().Sub(timerStart).Seconds()
 
 	return export, nil
-}
-
-func refreshGlossary() error {
-	url := config.CacheSrvDomain + "/glossary/update"
-	// HTTP client
-	var clientHTTP = &http.Client{Timeout: 10 * time.Second}
-	_, err := clientHTTP.Get(url)
-	if err != nil {
-		log.Print("failed to refresh glossary cache. error:", err)
-	}
-	return err
 }
 
 func convWGtoDBprofile(wgData wgapi.PlayerProfile) (dbData db.DBPlayerPofile) {
