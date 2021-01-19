@@ -640,22 +640,37 @@ func makeAllStatsCard(card render.CardData, data stats.ExportData) (render.CardD
 		return card, err
 	}
 	ctx.DrawImage(destrRatioBlock.Context.Image(), (bottomBlockWidth * 2), blockHeight)
-	// Block 4 - Average XP or Win streak
-	winStreak, err := winstreak.CheckStreak(data.PlayerDetails.ID, data.PlayerDetails.Stats.All)
-	if err != nil {
-		log.Print("failed to get a win streak:", err)
-	}
+	// Block 4 - Win streak or Aces count
 	streakBlock := statsBlock(avgDamageBlock)
-	streakBlock.BigText = strconv.Itoa(winStreak.Streak)
-	streakBlock.SmallText = "-"
-	if winStreak.BestStreak > 0 {
-		streakBlock.SmallText = strconv.Itoa(winStreak.BestStreak)
+	switch data.LastSession.Achievements.Achievements.MarkOfMastery > 0 {
+	case true:
+		// Ace data available
+		streakBlock.BigText = "-"
+		if data.SessionStats.Achievements.Achievements.MarkOfMastery > 0 {
+			streakBlock.SmallText = strconv.Itoa(data.SessionStats.Achievements.Achievements.MarkOfMastery)
+		}
+		streakBlock.SmallText = strconv.Itoa(data.LastSession.Achievements.Achievements.MarkOfMastery)
+		streakBlock.AltText = "Ace Tanker"
+	default:
+		// Show win streak instead
+		winStreak, err := winstreak.CheckStreak(data.PlayerDetails.ID, data.PlayerDetails.Stats.All)
+		if err != nil {
+			log.Print("failed to get a win streak:", err)
+		}
+		streakBlock.BigText = strconv.Itoa(winStreak.Streak)
+		streakBlock.SmallText = "-"
+		if winStreak.BestStreak > 0 {
+			streakBlock.SmallText = strconv.Itoa(winStreak.BestStreak)
+		}
+		streakBlock.AltText = "Win Streak"
 	}
-	streakBlock.AltText = "Win Streak"
+
+	// Add block ctx
 	streakBlock, err = addStatsBlockCtx(streakBlock)
 	if err != nil {
 		return card, err
 	}
+
 	ctx.DrawImage(streakBlock.Context.Image(), (bottomBlockWidth * 3), blockHeight)
 	// Draw lines
 	ctx.SetColor(render.DecorLinesColor)
