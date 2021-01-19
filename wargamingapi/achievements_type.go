@@ -162,8 +162,14 @@ type AchievementsFrame struct {
 
 // Diff - Find changes in achievements
 func (new AchievementsFrame) Diff(old AchievementsFrame) (result AchievementsFrame) {
+	// Check if the old data is nil
+	if old == (AchievementsFrame{}) {
+		return AchievementsFrame{}
+	}
+
 	// MaxSeries
 	result.MaxSeries = new.MaxSeries
+
 	// Achievements
 	result.Achievements.ArmorPiercer = new.Achievements.ArmorPiercer - old.Achievements.ArmorPiercer
 	result.Achievements.MedalFadin = new.Achievements.MedalFadin - old.Achievements.MedalFadin

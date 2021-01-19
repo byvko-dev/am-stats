@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"sync"
 
+	stats "github.com/cufee/am-stats/dataprep/stats"
 	"github.com/cufee/am-stats/render"
-	"github.com/cufee/am-stats/stats"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"github.com/cufee/am-stats/winstreak"
 	"github.com/fogleman/gg"

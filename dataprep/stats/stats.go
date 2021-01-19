@@ -1,4 +1,4 @@
-package stats
+package dataprep
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/cufee/am-stats/dataprep"
 	db "github.com/cufee/am-stats/mongodbapi"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"go.mongodb.org/mongo-driver/bson"
@@ -75,19 +76,6 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 	tank.TankWN8 = rawRating / battles
 
 	return tank, nil
-}
-
-// Convert Live data to Session
-func liveToSession(profile wgapi.PlayerProfile, vehicles []wgapi.VehicleStats, achievements wgapi.AchievementsFrame) (liveSession db.Session) {
-	liveSession.Vehicles = vehicles
-	liveSession.Achievements = achievements
-	liveSession.PlayerID = profile.ID
-	liveSession.LastBattle = time.Unix(int64(profile.LastBattle), 0)
-	liveSession.BattlesAll = profile.Stats.All.Battles
-	liveSession.StatsAll = profile.Stats.All
-	liveSession.BattlesRating = profile.Stats.Rating.Battles
-	liveSession.StatsRating = profile.Stats.Rating
-	return liveSession
 }
 
 // SliceDiff - Calculate the difference in two VehicleStats slices
@@ -202,7 +190,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 			s, _ := db.GetSession(bson.M{"player_id": pid})
 			// Add a new session if one does not exist
 			if s.PlayerID == 0 {
-				sessionData := liveToSession(playerProfile, playerVehicles, liveAchievements)
+				sessionData := dataprep.LiveToSession(playerProfile, playerVehicles, liveAchievements)
 				sessionData.SessionRating = -1
 				err = db.AddSession(sessionData)
 				if err == nil {
@@ -214,7 +202,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	}
 
 	// Calculate session differance and return
-	return sessionDiff(oldSession, liveToSession(playerProfile, playerVehicles, liveAchievements)), oldSession, playerProfile, nil
+	return sessionDiff(oldSession, dataprep.LiveToSession(playerProfile, playerVehicles, liveAchievements)), oldSession, playerProfile, nil
 }
 
 // ExportSessionAsStruct - Export a full player session as a struct

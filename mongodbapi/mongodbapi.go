@@ -131,6 +131,33 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 	return retroConv.ToSession(), nil
 }
 
+// GetPlayerAchievements -
+func GetPlayerAchievements(pid int, days int, currentBattles int) (session Session, err error) {
+	// Sorting options
+	queryOptions := options.FindOneOptions{}
+	queryOptions.SetSort(bson.M{"timestamp": -1})
+	// Make a filter
+	var filters []FilterPair
+	filters = append(filters, FilterPair{Key: "player_id", Value: pid})
+	filters = append(filters, FilterPair{Key: "battles_random", Value: bson.M{"$ne": currentBattles}})
+	if days > 0 {
+		// Setting days to negative to look back
+		queryOptions.SetSort(bson.M{"timestamp": 1})
+		sessionTime := time.Now().AddDate(0, 0, -(days + 1))
+		filters = append(filters, FilterPair{Key: "timestamp", Value: bson.M{"$gt": sessionTime}})
+	}
+	query := makeFilter(filters...)
+	// Get session
+	var retroSession RetroSession
+	err = sessionsCollection.FindOne(ctx, query, &queryOptions).Decode(&retroSession)
+	if err != nil {
+		return session, err
+	}
+	// Comvert to Session
+	var retroConv Convert = retroSession
+	return retroConv.ToSession(), nil
+}
+
 // AddSession - Add a new session to db
 func AddSession(session Session) error {
 	// Timestamp
