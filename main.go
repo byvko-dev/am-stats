@@ -25,11 +25,12 @@ func main() {
 	app.Get("/player/id/:id", handlers.HandlePlayerCheck)
 
 	// Stats
-	app.Get("/player", handlers.HandleStatsImageExport)
 	app.Get("/stats", handlers.HandleStatsJSONExport)
+	app.Get("/stats/image", handlers.HandleStatsImageExport)
 
 	// Achievements
 	app.Get("/achievements", handlers.HandleAchievementsJSONExport)
+	app.Get("/achievements/image", handlers.HandleAchievementsJSONExport)
 
 	log.Print(app.Listen(fmt.Sprintf(":%v", config.APIport)))
 }
