@@ -88,6 +88,7 @@ func logEvent(appData appllicationData, c fiber.Ctx) {
 	logData.RequestIP = c.IP()
 	logData.RequestPath = c.Path()
 	logData.RequestTime = time.Now()
+	logData.RequestMethod = c.Method()
 
 	err = addLogEntry(logData)
 	if err != nil {
