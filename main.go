@@ -13,7 +13,7 @@ import (
 	"github.com/cufee/am-stats/auth"
 	"github.com/cufee/am-stats/config"
 	"github.com/cufee/am-stats/mongodbapi"
-	"github.com/cufee/am-stats/render"
+	statsRender "github.com/cufee/am-stats/render/stats"
 	"github.com/cufee/am-stats/stats"
 	externalapis "github.com/cufee/am-stats/wargamingapi"
 	"github.com/fogleman/gg"
@@ -151,7 +151,7 @@ func handlePlayerRequest(c *fiber.Ctx) error {
 		}
 	}
 
-	img, err := render.ImageFromStats(export, request.Sort, request.TankLimit, request.Premium, request.Verified, bgImage)
+	img, err := statsRender.ImageFromStats(export, request.Sort, request.TankLimit, request.Premium, request.Verified, bgImage)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
