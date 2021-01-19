@@ -9,21 +9,23 @@ import (
 
 // Session - Will be switching to this format soon
 type Session struct {
-	Vehicles      []wgapi.VehicleStats `json:"vehicles" bson:"vehicles"`
-	PlayerID      int                  `json:"player_id" bson:"player_id"`
-	Timestamp     time.Time            `json:"timestamp" bson:"timestamp"`
-	LastBattle    time.Time            `json:"last_battle_time" bson:"last_battle_time"`
-	BattlesAll    int                  `json:"battles_random" bson:"battles_random"`
-	StatsAll      wgapi.StatsFrame     `json:"stats_random" bson:"stats_random"`
-	BattlesRating int                  `json:"battles_rating" bson:"battles_rating"`
-	StatsRating   wgapi.StatsFrame     `json:"stats_rating" bson:"stats_rating"`
-	SessionRating int                  `json:"session_wn8" bson:"session_wn8"`
+	Vehicles      []wgapi.VehicleStats    `json:"vehicles" bson:"vehicles"`
+	Achievements  wgapi.AchievementsFrame `json:"achievements" bson:"achievements"`
+	PlayerID      int                     `json:"player_id" bson:"player_id"`
+	Timestamp     time.Time               `json:"timestamp" bson:"timestamp"`
+	LastBattle    time.Time               `json:"last_battle_time" bson:"last_battle_time"`
+	BattlesAll    int                     `json:"battles_random" bson:"battles_random"`
+	StatsAll      wgapi.StatsFrame        `json:"stats_random" bson:"stats_random"`
+	BattlesRating int                     `json:"battles_rating" bson:"battles_rating"`
+	StatsRating   wgapi.StatsFrame        `json:"stats_rating" bson:"stats_rating"`
+	SessionRating int                     `json:"session_wn8" bson:"session_wn8"`
 	Convert       `json:"-" bson:"-"`
 }
 
 // RetroSession - Session using old data structure
 type RetroSession struct {
 	Vehicles      map[string]wgapi.VehicleStats `json:"vehicles" bson:"vehicles"`
+	Achievements  wgapi.AchievementsFrame       `json:"achievements" bson:"achievements"`
 	PlayerID      int                           `json:"player_id" bson:"player_id"`
 	Timestamp     time.Time                     `json:"timestamp" bson:"timestamp"`
 	LastBattle    time.Time                     `json:"last_battle_time" bson:"last_battle_time"`
@@ -43,6 +45,7 @@ type Convert interface {
 
 // ToSession - Covert RetroSession to Session Struct, Session is easier to work with in Go
 func (s RetroSession) ToSession() (sessionNew Session) {
+	sessionNew.Achievements = s.Achievements
 	sessionNew.PlayerID = s.PlayerID
 	sessionNew.Timestamp = s.Timestamp
 	sessionNew.LastBattle = s.LastBattle
@@ -60,6 +63,7 @@ func (s RetroSession) ToSession() (sessionNew Session) {
 
 // ToRetro - Covert RetroSession to Session Struct, RetroSession is the format used by Aftermath rendering script.
 func (s Session) ToRetro() (sessionNew RetroSession) {
+	sessionNew.Achievements = s.Achievements
 	sessionNew.PlayerID = s.PlayerID
 	sessionNew.Timestamp = s.Timestamp
 	sessionNew.LastBattle = s.LastBattle

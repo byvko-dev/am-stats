@@ -22,6 +22,7 @@ import (
 var wgAPIVehicles string = fmt.Sprintf("/wotb/tanks/stats/?application_id=%s&account_id=", config.WgAPIAppID)
 var wgAPIProfileData string = fmt.Sprintf("/wotb/account/info/?application_id=%s&extra=statistics.rating&account_id=", config.WgAPIAppID)
 var wgAPIPlayerClan string = fmt.Sprintf("/wotb/clans/accountinfo/?application_id=%s&extra=clan&account_id=", config.WgAPIAppID)
+var wgAPIPlayerAchievements string = fmt.Sprintf("/wotb/account/achievements/?application_id=%s&account_id=", config.WgAPIAppID)
 
 // Clans
 var wgAPIClanInfo string = fmt.Sprintf("/wotb/clans/list/?application_id=%s&search=", config.WgAPIAppID)
@@ -150,6 +151,30 @@ func PlayerVehicleStats(playerID int, realm string) (finalResponse []VehicleStat
 	if len(finalResponse) < 1 {
 		return finalResponse, errors.New("no vehicles data available for player")
 	}
+	return finalResponse, nil
+}
+
+// PlayerAchievements - Fetch achievements for player, returns a struct of all achievements
+func PlayerAchievements(playerID int, realm string) (AchievementsFrame, error) {
+	// Get API domain
+	domain, err := getAPIDomain(realm)
+	if err != nil {
+		return AchievementsFrame{}, err
+	}
+
+	// Get stats
+	url := domain + wgAPIPlayerAchievements + strconv.Itoa(playerID)
+	var rawResponse vehiclesAchievmentsRes
+	err = getJSON(url, &rawResponse)
+	if err != nil {
+		err = fmt.Errorf("error: " + err.Error() + "\nwg responded with: " + rawResponse.Error.Message)
+		return AchievementsFrame{}, err
+	}
+	if rawResponse.Status != "ok" {
+		err = fmt.Errorf("wg responded with: " + rawResponse.Error.Message)
+		return AchievementsFrame{}, err
+	}
+	finalResponse := rawResponse.Data[strconv.Itoa(playerID)]
 	return finalResponse, nil
 }
 

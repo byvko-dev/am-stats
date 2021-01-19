@@ -78,8 +78,9 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 }
 
 // Convert Live data to Session
-func liveToSession(profile wgapi.PlayerProfile, vehicles []wgapi.VehicleStats) (liveSession db.Session) {
+func liveToSession(profile wgapi.PlayerProfile, vehicles []wgapi.VehicleStats, achievements wgapi.AchievementsFrame) (liveSession db.Session) {
 	liveSession.Vehicles = vehicles
+	liveSession.Achievements = achievements
 	liveSession.PlayerID = profile.ID
 	liveSession.LastBattle = time.Unix(int64(profile.LastBattle), 0)
 	liveSession.BattlesAll = profile.Stats.All.Battles
@@ -129,6 +130,7 @@ func sessionDiff(oldStats db.Session, liveStats db.Session) (session db.Session)
 	for v := range vahiclesChan {
 		session.Vehicles = append(session.Vehicles, v)
 	}
+	session.Achievements = liveStats.Achievements.Diff(oldStats.Achievements)
 	session.PlayerID = liveStats.PlayerID
 	session.LastBattle = liveStats.LastBattle
 	session.StatsAll = wgapi.FrameDiff(oldStats.StatsAll, liveStats.StatsAll)
@@ -148,6 +150,12 @@ func sessionDiff(oldStats db.Session, liveStats db.Session) (session db.Session)
 func calcSession(pid int, realm string, days int) (session db.Session, oldSession db.Session, playerProfile wgapi.PlayerProfile, err error) {
 	// Get live profile
 	playerProfile, err = wgapi.PlayerProfileData(pid, realm)
+	if err != nil {
+		return session, oldSession, playerProfile, err
+	}
+
+	// Get live achievements
+	liveAchievements, err := wgapi.PlayerAchievements(pid, realm)
 	if err != nil {
 		return session, oldSession, playerProfile, err
 	}
@@ -194,7 +202,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 			s, _ := db.GetSession(bson.M{"player_id": pid})
 			// Add a new session if one does not exist
 			if s.PlayerID == 0 {
-				sessionData := liveToSession(playerProfile, playerVehicles)
+				sessionData := liveToSession(playerProfile, playerVehicles, liveAchievements)
 				sessionData.SessionRating = -1
 				err = db.AddSession(sessionData)
 				if err == nil {
@@ -206,7 +214,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	}
 
 	// Calculate session differance and return
-	return sessionDiff(oldSession, liveToSession(playerProfile, playerVehicles)), oldSession, playerProfile, nil
+	return sessionDiff(oldSession, liveToSession(playerProfile, playerVehicles, liveAchievements)), oldSession, playerProfile, nil
 }
 
 // ExportSessionAsStruct - Export a full player session as a struct
