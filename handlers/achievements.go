@@ -67,7 +67,7 @@ func HandleAchievementsLbJSONExport(c *fiber.Ctx) error {
 		})
 	}
 
-	medals := []achievements.MedalWeight{{"MarkOfMastery", 4}, {"MarkOfMasteryI", 3}, {"MarkOfMasteryII", 2}, {"MarkOfMasteryIII", 1}}
+	medals := []achievements.MedalWeight{{Name: "MarkOfMastery", Weight: 4}, {Name: "MarkOfMasteryI", Weight: 3}, {Name: "MarkOfMasteryII", Weight: 2}, {Name: "MarkOfMasteryIII", Weight: 1}}
 	limit := 15
 
 	// Get data
