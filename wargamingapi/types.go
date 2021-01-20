@@ -112,3 +112,34 @@ type playerClanData struct {
 	ClanName string `json:"name,omitempty"`
 	ClanID   int    `json:"clan_id,omitempty"`
 }
+
+type clanSearchRes struct {
+	Status string `json:"status"`
+	Error  struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Field   string `json:"field"`
+		Value   string `json:"value"`
+	} `json:"error"`
+	Data []ClanProfile `json:"data"`
+}
+
+type clanDetailsRes struct {
+	Status string `json:"status"`
+	Error  struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Field   string `json:"field"`
+		Value   string `json:"value"`
+	} `json:"error"`
+	Data map[string]ClanProfile `json:"data"`
+}
+
+// ClanProfile -
+type ClanProfile struct {
+	Tag          string `json:"tag"`
+	Name         string `json:"name"`
+	ClanID       int    `json:"clan_id"`
+	MembersIds   []int  `json:"members_ids"`
+	MembersCount int    `json:"members_count"`
+}

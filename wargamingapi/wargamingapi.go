@@ -25,8 +25,8 @@ var wgAPIPlayerClan string = fmt.Sprintf("/wotb/clans/accountinfo/?application_i
 var wgAPIPlayerAchievements string = fmt.Sprintf("/wotb/account/achievements/?application_id=%s&account_id=", config.WgAPIAppID)
 
 // Clans
-var wgAPIClanInfo string = fmt.Sprintf("/wotb/clans/list/?application_id=%s&search=", config.WgAPIAppID)
-var wgAPIClanDetails string = fmt.Sprintf("/wotb/clans/info/?application_id=%s&fields=clan_id,name,tag,is_clan_disbanded,members_ids,updated_at,members&extra=members&clan_id=", config.WgAPIAppID)
+var wgAPIClanSearch string = fmt.Sprintf("/wotb/clans/list/?application_id=%s&search=", config.WgAPIAppID)
+var wgAPIClanDetails string = fmt.Sprintf("/wotb/clans/info/?application_id=%s&fields=clan_id,name,tag,members_ids,members_count&clan_id=", config.WgAPIAppID)
 
 // HTTP client
 var clientHTTP = &http.Client{Timeout: 500 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
@@ -213,4 +213,65 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 	}
 	finalResponse.playerClanData = clanRes.Data[strconv.Itoa(playerID)].playerClanData
 	return finalResponse, nil
+}
+
+// ClanDataByID - Fetch clan profile by clan ID and realm
+func ClanDataByID(clanID int, realm string) (data ClanProfile, err error) {
+	// Get API domain
+	domain, err := getAPIDomain(realm)
+	if err != nil {
+		return data, err
+	}
+
+	// Get clan Profile
+	url := domain + wgAPIClanDetails + fmt.Sprint(clanID)
+	var rawResponse clanDetailsRes
+	err = getJSON(url, &rawResponse)
+	if err != nil {
+		err = fmt.Errorf("error: " + err.Error() + "\nwg responded with: " + rawResponse.Error.Message)
+		return data, err
+	}
+	if rawResponse.Status != "ok" {
+		err = fmt.Errorf("wg responded with: " + rawResponse.Error.Message)
+		return data, err
+	}
+
+	return rawResponse.Data[fmt.Sprint(clanID)], err
+}
+
+// ClanDataByTag - Fetch clan profile by clan tag and realm
+func ClanDataByTag(clanTag string, realm string) (data ClanProfile, err error) {
+	// Get API domain
+	domain, err := getAPIDomain(realm)
+	if err != nil {
+		return data, err
+	}
+
+	// Search clan by tag
+	url := domain + wgAPIClanSearch + clanTag
+	var rawResponse clanSearchRes
+	err = getJSON(url, &rawResponse)
+	if err != nil {
+		err = fmt.Errorf("error: " + err.Error() + "\nwg responded with: " + rawResponse.Error.Message)
+		return data, err
+	}
+	if rawResponse.Status != "ok" {
+		err = fmt.Errorf("wg responded with: " + rawResponse.Error.Message)
+		return data, err
+	}
+
+	// Look for tag
+	var matchID int
+	for _, cl := range rawResponse.Data {
+		if cl.Tag == strings.ToUpper(clanTag) {
+			matchID = cl.ClanID
+			break
+		}
+	}
+	if matchID == 0 {
+		return data, fmt.Errorf("clan not found on realm")
+	}
+
+	// Get profile
+	return ClanDataByID(matchID, realm)
 }

@@ -73,6 +73,22 @@ func GetRealmByPID(pid int) (realm string, err error) {
 	return profile.Nickname, err
 }
 
+// GetRealmPlayers - Get players by realm
+func GetRealmPlayers(realm string) (pidSlice []int, err error) {
+	// Find
+	rawSlice, err := playersCollection.Distinct(ctx, "_id", bson.M{"realm": realm})
+	if err != nil {
+		return pidSlice, err
+	}
+
+	// Make a slice
+	for _, pid := range rawSlice {
+		pidSlice = append(pidSlice, int(pid.(int32)))
+	}
+
+	return pidSlice, err
+}
+
 // UpdatePlayer - Update a player record in DB
 func UpdatePlayer(filter interface{}, playerData DBPlayerPofile) (result string, err error) {
 	resultRaw, err := playersCollection.UpdateOne(ctx, filter, bson.M{"$set": playerData})

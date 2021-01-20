@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/cufee/am-stats/config"
@@ -70,22 +71,84 @@ func GetPlayerAchievementsLb(realm string, fields ...string) (data []Achievement
 	return data, err
 }
 
-// GetPlayerAchievementsCache - Get last cached achievements data for player by ID
-func GetPlayerAchievementsCache(pid int) (data AchievementsPlayerData, err error) {
-	filter := bson.M{"_id": pid}
-	err = achievementsPlayersCollection.FindOne(ctx, filter).Decode(&data)
+// GetPlayerAchievementsByPIDs - Get last cached players achievements from player IDs slice
+func GetPlayerAchievementsByPIDs(pidSLice []int, fields ...string) (data []AchievementsPlayerData, err error) {
+	opts := options.FindOne()
+	// Generate projection
+	if len(fields) > 0 {
+		var project bson.D
+		// Loop over field, compile project and sort
+		for _, f := range fields {
+			project = append(project, bson.E{Key: fmt.Sprintf("data.achievements.%s", f), Value: 1}) // Show field
+		}
+		project = append(project, bson.E{Key: "_id", Value: 1}) // Always show player ID
+		opts.Projection = project
+	}
+
+	// Make channel and WG
+	dataChan := make(chan AchievementsPlayerData, len(pidSLice))
+	var wg sync.WaitGroup
+
+	for _, pid := range pidSLice {
+		wg.Add(1)
+		go func(pid int) {
+			defer wg.Done()
+
+			// Find Player
+			var playerData AchievementsPlayerData
+			err := achievementsPlayersCollection.FindOne(ctx, bson.M{"_id": pid}, opts).Decode(&playerData)
+			if err != nil {
+				return
+			}
+			dataChan <- playerData
+		}(pid)
+	}
+	wg.Wait()
+	close(dataChan)
+
+	// Make a slice
+	for d := range dataChan {
+		data = append(data, d)
+	}
+
+	// Check slice length
+	if len(data) == 0 {
+		return data, fmt.Errorf("no suitable data")
+	}
 	return data, err
 }
 
-// GetClanAchievementsCache - Get last cached achievements data for clan by ID
-func GetClanAchievementsCache(clanID int) (data ClanAchievements, err error) {
-	filter := bson.M{"_id": clanID}
-	err = achievementsClansCollection.FindOne(ctx, filter).Decode(&data)
+// GetClanAchievementsCache - Get last cached clans achievements leaderboard
+func GetClanAchievementsCache(clanID int, fields ...string) (data []AchievementsPlayerData, err error) {
+	opts := options.Find()
+	// Generate projection
+	if len(fields) > 0 {
+		var project bson.D
+		// Loop over field, compile project and sort
+		for _, f := range fields {
+			project = append(project, bson.E{Key: fmt.Sprintf("data.achievements.%s", f), Value: 1}) // Show field
+		}
+		project = append(project, bson.E{Key: "_id", Value: 1})      // Always show Clan ID
+		project = append(project, bson.E{Key: "clan_tag", Value: 1}) // Always show clan tag
+		project = append(project, bson.E{Key: "members", Value: 1})  // Always show members
+		opts.Projection = project
+	}
+
+	// Find
+	cur, err := achievementsClansCollection.Find(ctx, bson.M{"_id": clanID}, opts)
+	if err != nil {
+		return data, err
+	}
+
+	// Decode and return
+	if err = cur.All(ctx, &data); err != nil {
+		return data, err
+	}
 	return data, err
 }
 
-// SearchClanAchievementsCache - Get last cached achievements data for clan tag and realm
-func SearchClanAchievementsCache(tag string, realm string) (data ClanAchievements, err error) {
+// SearchClanAchievementsLb - Get last cached achievements data for clan tag and realm
+func SearchClanAchievementsLb(tag string, realm string) (data ClanAchievements, err error) {
 	filter := bson.M{"clan_tag": tag, "realm": realm}
 	err = achievementsClansCollection.FindOne(ctx, filter).Decode(&data)
 	return data, err

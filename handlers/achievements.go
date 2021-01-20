@@ -9,8 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// HandleAchievementsJSONExport - Get achievements as JSON
-func HandleAchievementsJSONExport(c *fiber.Ctx) error {
+// HandleSessionAchievementsExport - Get achievements as JSON
+func HandleSessionAchievementsExport(c *fiber.Ctx) error {
 	// Recover on panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -44,8 +44,8 @@ func HandleAchievementsJSONExport(c *fiber.Ctx) error {
 	return c.JSON(export)
 }
 
-// HandleAchievementsLbJSONExport - Get achievements Leaderboard as JSON
-func HandleAchievementsLbJSONExport(c *fiber.Ctx) error {
+// HandleClanAchievementsExport - Get achievements Leaderboard as JSON
+func HandleClanAchievementsExport(c *fiber.Ctx) error {
 	// Recover on panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -58,7 +58,7 @@ func HandleAchievementsLbJSONExport(c *fiber.Ctx) error {
 	}()
 
 	// Parse request data
-	var request StatsRequest
+	var request AchievementsRequest
 	err := c.BodyParser(&request)
 	if err != nil {
 		log.Println(err)
@@ -67,11 +67,99 @@ func HandleAchievementsLbJSONExport(c *fiber.Ctx) error {
 		})
 	}
 
-	medals := []achievements.MedalWeight{{Name: "MarkOfMastery", Weight: 4}, {Name: "MarkOfMasteryI", Weight: 3}, {Name: "MarkOfMasteryII", Weight: 2}, {Name: "MarkOfMasteryIII", Weight: 1}}
-	limit := 15
+	// Check request
+	if request.ClanTag == "" && request.Realm == "" {
+		return fiber.ErrBadRequest
+	}
+	if len(request.Medals) < 1 {
+		return fiber.ErrBadRequest
+	}
+
+	log.Print(request.ClanTag, request.Realm, request.Medals)
 
 	// Get data
-	export, position, err := achievements.ExportAchievementsLeaderboard(request.Realm, limit, 1042244078, medals...)
+	export, total, err := achievements.ExportClanAchievementsByTag(request.ClanTag, request.Realm, request.Days, request.Medals...)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"leaderboard": export,
+		"total_score": total,
+	})
+}
+
+// HandleClanAchievementsExport - Get achievements Leaderboard as JSON
+func HandleClanAchievementsLbExport(c *fiber.Ctx) error {
+	// Recover on panic
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in handlePlayerRequest", r)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "something did not work",
+			})
+		}
+	}()
+
+	// Parse request data
+	var request AchievementsRequest
+	err := c.BodyParser(&request)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Check request
+	if request.ClanTag == "" && request.Realm == "" {
+		return fiber.ErrBadRequest
+	}
+	if len(request.Medals) < 1 {
+		return fiber.ErrBadRequest
+	}
+
+	// Get data
+	export, err := achievements.ExportClanAchievementsLbByTag(request.Realm, request.Days, request.Limit, request.Medals...)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"leaderboard": export,
+	})
+}
+
+// HandlePlayersAchievementsLbExport - Get achievements Leaderboard as JSON
+func HandlePlayersAchievementsLbExport(c *fiber.Ctx) error {
+	// Recover on panic
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in handlePlayerRequest", r)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "something did not work",
+			})
+		}
+	}()
+
+	// Parse request data
+	var request AchievementsRequest
+	err := c.BodyParser(&request)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Get data
+	export, position, err := achievements.ExportAchievementsLeaderboard(request.Realm, request.Days, request.Limit, request.PlayerID, request.Medals...)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{

@@ -29,10 +29,17 @@ func main() {
 	app.Get("/stats/image", handlers.HandleStatsImageExport)
 
 	// Achievements
-	app.Get("/achievements", handlers.HandleAchievementsJSONExport)
-	app.Get("/achievements/image", handlers.HandleAchievementsJSONExport)
-	app.Get("/achievements/leaderboard", handlers.HandleAchievementsLbJSONExport)
-	app.Get("/achievements/leaderboard/image", handlers.HandleAchievementsJSONExport)
+	// Session
+	app.Get("/achievements", handlers.HandleSessionAchievementsExport)
+	app.Get("/achievements/image", handlers.HandleSessionAchievementsExport)
+	// Clan
+	app.Get("/achievements/clan", handlers.HandleClanAchievementsExport)
+	app.Get("/achievements/clan/image", handlers.HandleClanAchievementsExport)
+	// Players Leaderboard
+	app.Get("/achievements/leaderboard/clans", handlers.HandleClanAchievementsLbExport)
+	app.Get("/achievements/leaderboard/clans/image", handlers.HandleClanAchievementsLbExport)
+	app.Get("/achievements/leaderboard/players", handlers.HandlePlayersAchievementsLbExport)
+	app.Get("/achievements/leaderboard/players/image", handlers.HandlePlayersAchievementsLbExport)
 
 	log.Print(app.Listen(fmt.Sprintf(":%v", config.APIport)))
 }
