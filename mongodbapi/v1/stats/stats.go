@@ -100,46 +100,12 @@ func GetPlayerSessionAchievements(pid int, days int, fields ...string) (data wga
 	query := mgo.MakeFilter(filters...)
 
 	// Get session
-	var session RetroSession
+	var session Session
 	err = sessionsCollection.FindOne(ctx, query, &queryOptions).Decode(&session)
 	if err != nil {
 		return data, err
 	}
 	return session.Achievements, nil
-}
-
-// GetPlayerAchievementsExp - Get last cached players achievements leaderboard
-func GetPlayerAchievementsExp(pid int, fields ...string) (data wgapi.AchievementsFrame, err error) {
-	opts := options.Find()
-	opts.SetLimit(1)
-	// Generate projection
-	if len(fields) > 0 {
-		var project bson.D
-		// Loop over field, compile project and sort
-		for _, f := range fields {
-			project = append(project, bson.E{Key: fmt.Sprintf("achievements.achievements.%s", f), Value: 1}) // Show field
-		}
-		opts.Projection = project
-	}
-
-	// Find
-	cur, err := sessionsCollection.Find(ctx, bson.M{"player_id": int32(pid)}, opts)
-	if err != nil {
-		return data, err
-	}
-
-	log.Printf("%#v", cur.Current)
-
-	var sessions []RetroSession
-	// Decode and return
-	if err = cur.All(ctx, &sessions); err != nil {
-		return data, err
-	}
-
-	if len(sessions) > 0 {
-		data = sessions[0].Achievements
-	}
-	return data, err
 }
 
 // AddSession - Add a new session to db

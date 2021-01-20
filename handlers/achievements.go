@@ -67,14 +67,19 @@ func HandleAchievementsLbJSONExport(c *fiber.Ctx) error {
 		})
 	}
 
+	medals := []achievements.MedalWeight{{"MarkOfMastery", 4}, {"MarkOfMasteryI", 3}, {"MarkOfMasteryII", 2}, {"MarkOfMasteryIII", 1}}
+	limit := 15
+
 	// Get data
-	export, err := achievements.ExportAchievementsLeaderboard(request.Realm)
+	export, position, err := achievements.ExportAchievementsLeaderboard(request.Realm, limit, 1042244078, medals...)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-
-	return c.JSON(export)
+	return c.JSON(fiber.Map{
+		"leaderboard":     export,
+		"player_position": position,
+	})
 }

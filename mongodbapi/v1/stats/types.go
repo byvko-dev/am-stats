@@ -5,6 +5,7 @@ import (
 	"time"
 
 	wgapi "github.com/cufee/am-stats/wargamingapi"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // PlayerStreak - Player win streak data from DB
@@ -36,6 +37,7 @@ type Session struct {
 
 // RetroSession - Session using old data structure
 type RetroSession struct {
+	ID            primitive.ObjectID            `json:"_id" bson:"_id"`
 	Vehicles      map[string]wgapi.VehicleStats `json:"vehicles" bson:"vehicles"`
 	Achievements  wgapi.AchievementsFrame       `json:"achievements" bson:"achievements"`
 	PlayerID      int                           `json:"player_id" bson:"player_id"`
