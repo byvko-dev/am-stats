@@ -12,164 +12,145 @@ type vehiclesAchievmentsRes struct {
 	} `json:"error"`
 }
 
-// AchievementsFrame - Frame for achievements on vehicle
+// Achievements - Frame for achievements on vehicle
+type Achievements struct {
+	ArmorPiercer                int `json:"armorPiercer,omitempty" bson:"armorPiercer,omitempty"`
+	MedalFadin                  int `json:"medalFadin,omitempty" bson:"medalFadin,omitempty"`
+	MedalCarius                 int `json:"medalCarius,omitempty" bson:"medalCarius,omitempty"`
+	MedalEkins                  int `json:"medalEkins,omitempty" bson:"medalEkins,omitempty"`
+	CollectorGuP                int `json:"collectorGuP,omitempty" bson:"collectorGuP,omitempty"`
+	MedalHalonen                int `json:"medalHalonen,omitempty" bson:"medalHalonen,omitempty"`
+	HeroesOfRassenay            int `json:"heroesOfRassenay,omitempty" bson:"heroesOfRassenay,omitempty"`
+	FirstVictory                int `json:"firstVictory,omitempty" bson:"firstVictory,omitempty"`
+	Defender                    int `json:"defender,omitempty" bson:"defender,omitempty"`
+	Creative                    int `json:"creative,omitempty" bson:"creative,omitempty"`
+	ESportFinal                 int `json:"eSportFinal,omitempty" bson:"eSportFinal,omitempty"`
+	Supporter                   int `json:"supporter,omitempty" bson:"supporter,omitempty"`
+	GoldClanRibbonSEA           int `json:"goldClanRibbonSEA,omitempty" bson:"goldClanRibbonSEA,omitempty"`
+	PlatinumTwisterMedalSEA     int `json:"platinumTwisterMedalSEA,omitempty" bson:"platinumTwisterMedalSEA,omitempty"`
+	MedalLehvaslaiho            int `json:"medalLehvaslaiho,omitempty" bson:"medalLehvaslaiho,omitempty"`
+	TankExpert                  int `json:"tankExpert,omitempty" bson:"tankExpert,omitempty"`
+	ESportQualification         int `json:"eSportQualification,omitempty" bson:"eSportQualification,omitempty"`
+	MarkI                       int `json:"MarkI,omitempty" bson:"MarkI,omitempty"`
+	MedalSupremacy              int `json:"medalSupremacy,omitempty" bson:"medalSupremacy,omitempty"`
+	ParticipantofWGFest2017     int `json:"participantofWGFest2017,omitempty" bson:"participantofWGFest2017,omitempty"`
+	MedalTournamentOffseason1   int `json:"medalTournamentOffseason1,omitempty" bson:"medalTournamentOffseason1,omitempty"`
+	JointVictory                int `json:"jointVictory,omitempty" bson:"jointVictory,omitempty"`
+	MedalTournamentOffseason2   int `json:"medalTournamentOffseason2,omitempty" bson:"medalTournamentOffseason2,omitempty"`
+	MedalTournamentOffseason4   int `json:"medalTournamentOffseason4,omitempty" bson:"medalTournamentOffseason4,omitempty"`
+	Sniper                      int `json:"sniper,omitempty" bson:"sniper,omitempty"`
+	TitleSniper                 int `json:"titleSniper,omitempty" bson:"titleSniper,omitempty"`
+	MedalCrucialContribution    int `json:"medalCrucialContribution,omitempty" bson:"medalCrucialContribution,omitempty"`
+	Scout                       int `json:"scout,omitempty" bson:"scout,omitempty"`
+	GoldTwisterMedalRU          int `json:"goldTwisterMedalRU,omitempty" bson:"goldTwisterMedalRU,omitempty"`
+	TankExpert3                 int `json:"tankExpert3,omitempty" bson:"tankExpert3,omitempty"`
+	TankExpert2                 int `json:"tankExpert2,omitempty" bson:"tankExpert2,omitempty"`
+	TankExpert1                 int `json:"tankExpert1,omitempty" bson:"tankExpert1,omitempty"`
+	TankExpert0                 int `json:"tankExpert0,omitempty" bson:"tankExpert0,omitempty"`
+	MarkOfMastery               int `json:"markOfMastery,omitempty" bson:"markOfMastery,omitempty"`
+	TankExpert6                 int `json:"tankExpert6,omitempty" bson:"tankExpert6,omitempty"`
+	TankExpert5                 int `json:"tankExpert5,omitempty" bson:"tankExpert5,omitempty"`
+	TankExpert4                 int `json:"tankExpert4,omitempty" bson:"tankExpert4,omitempty"`
+	GoldTwisterMedalEU          int `json:"goldTwisterMedalEU,omitempty" bson:"goldTwisterMedalEU,omitempty"`
+	ChristmasTreeLevelUpNY2019  int `json:"ChristmasTreeLevelUpNY2019,omitempty" bson:"ChristmasTreeLevelUpNY2019,omitempty"`
+	MedalLavrinenko             int `json:"medalLavrinenko,omitempty" bson:"medalLavrinenko,omitempty"`
+	MedalKolobanov              int `json:"medalKolobanov,omitempty" bson:"medalKolobanov,omitempty"`
+	MedalLafayettePool          int `json:"medalLafayettePool,omitempty" bson:"medalLafayettePool,omitempty"`
+	GoldClanRibbonEU            int `json:"goldClanRibbonEU,omitempty" bson:"goldClanRibbonEU,omitempty"`
+	OlimpicGolden               int `json:"olimpicGolden,omitempty" bson:"olimpicGolden,omitempty"`
+	MedalKnispel                int `json:"medalKnispel,omitempty" bson:"medalKnispel,omitempty"`
+	Invader                     int `json:"invader,omitempty" bson:"invader,omitempty"`
+	GoldTwisterMedalNA          int `json:"goldTwisterMedalNA,omitempty" bson:"goldTwisterMedalNA,omitempty"`
+	MechanicEngineer            int `json:"mechanicEngineer,omitempty" bson:"mechanicEngineer,omitempty"`
+	MarkOfMasteryII             int `json:"markOfMasteryII,omitempty" bson:"markOfMasteryII,omitempty"`
+	FirstBlood                  int `json:"firstBlood,omitempty" bson:"firstBlood,omitempty"`
+	MedalKay                    int `json:"medalKay,omitempty" bson:"medalKay,omitempty"`
+	MedalOrlik                  int `json:"medalOrlik,omitempty" bson:"medalOrlik,omitempty"`
+	MedalBrothersInArms         int `json:"medalBrothersInArms,omitempty" bson:"medalBrothersInArms,omitempty"`
+	MedalAbrams                 int `json:"medalAbrams,omitempty" bson:"medalAbrams,omitempty"`
+	MedalAtgm                   int `json:"medalAtgm,omitempty" bson:"medalAtgm,omitempty"`
+	MainGun                     int `json:"mainGun,omitempty" bson:"mainGun,omitempty"`
+	IronMan                     int `json:"ironMan,omitempty" bson:"ironMan,omitempty"`
+	PlatinumClanRibbonEU        int `json:"platinumClanRibbonEU,omitempty" bson:"platinumClanRibbonEU,omitempty"`
+	PlatinumClanRibbonSEA       int `json:"platinumClanRibbonSEA,omitempty" bson:"platinumClanRibbonSEA,omitempty"`
+	Warrior                     int `json:"warrior,omitempty" bson:"warrior,omitempty"`
+	GoldClanRibbonRU            int `json:"goldClanRibbonRU,omitempty" bson:"goldClanRibbonRU,omitempty"`
+	MedalRadleyWalters          int `json:"medalRadleyWalters,omitempty" bson:"medalRadleyWalters,omitempty"`
+	Raider                      int `json:"raider,omitempty" bson:"raider,omitempty"`
+	ParticipantofNewStart       int `json:"participantofNewStart,omitempty" bson:"participantofNewStart,omitempty"`
+	DiamondClanRibbon           int `json:"diamondClanRibbon,omitempty" bson:"diamondClanRibbon,omitempty"`
+	MedalBillotte               int `json:"medalBillotte,omitempty" bson:"medalBillotte,omitempty"`
+	PlatinumTwisterMedalEU      int `json:"platinumTwisterMedalEU,omitempty" bson:"platinumTwisterMedalEU,omitempty"`
+	Diehard                     int `json:"diehard,omitempty" bson:"diehard,omitempty"`
+	MasterofContinents          int `json:"masterofContinents,omitempty" bson:"masterofContinents,omitempty"`
+	Evileye                     int `json:"evileye,omitempty" bson:"evileye,omitempty"`
+	Cadet                       int `json:"cadet,omitempty" bson:"cadet,omitempty"`
+	SupremacyHunter             int `json:"supremacyHunter,omitempty" bson:"supremacyHunter,omitempty"`
+	ContinentalContender        int `json:"continentalContender,omitempty" bson:"continentalContender,omitempty"`
+	Steelwall                   int `json:"steelwall,omitempty" bson:"steelwall,omitempty"`
+	SupremacyLegend             int `json:"supremacyLegend,omitempty" bson:"supremacyLegend,omitempty"`
+	Punisher                    int `json:"punisher,omitempty" bson:"punisher,omitempty"`
+	ESport                      int `json:"eSport,omitempty" bson:"eSport,omitempty"`
+	PlatinumTwisterMark         int `json:"platinumTwisterMark,omitempty" bson:"platinumTwisterMark,omitempty"`
+	GoldClanRibbonNA            int `json:"goldClanRibbonNA,omitempty" bson:"goldClanRibbonNA,omitempty"`
+	MedalPoppel                 int `json:"medalPoppel,omitempty" bson:"medalPoppel,omitempty"`
+	MechanicEngineer6           int `json:"mechanicEngineer6,omitempty" bson:"mechanicEngineer6,omitempty"`
+	MechanicEngineer4           int `json:"mechanicEngineer4,omitempty" bson:"mechanicEngineer4,omitempty"`
+	GoldTwisterMedalSEA         int `json:"goldTwisterMedalSEA,omitempty" bson:"goldTwisterMedalSEA,omitempty"`
+	MechanicEngineer2           int `json:"mechanicEngineer2,omitempty" bson:"mechanicEngineer2,omitempty"`
+	MechanicEngineer3           int `json:"mechanicEngineer3,omitempty" bson:"mechanicEngineer3,omitempty"`
+	MechanicEngineer0           int `json:"mechanicEngineer0,omitempty" bson:"mechanicEngineer0,omitempty"`
+	MechanicEngineer1           int `json:"mechanicEngineer1,omitempty" bson:"mechanicEngineer1,omitempty"`
+	MechanicEngineer5           int `json:"mechanicEngineer5,omitempty" bson:"mechanicEngineer5,omitempty"`
+	MedalTarczay                int `json:"medalTarczay,omitempty" bson:"medalTarczay,omitempty"`
+	Sinai                       int `json:"sinai,omitempty" bson:"sinai,omitempty"`
+	PattonValley                int `json:"pattonValley,omitempty" bson:"pattonValley,omitempty"`
+	MedalDeLanglade             int `json:"medalDeLanglade,omitempty" bson:"medalDeLanglade,omitempty"`
+	DiamondTwisterMedal         int `json:"diamondTwisterMedal,omitempty" bson:"diamondTwisterMedal,omitempty"`
+	Beasthunter                 int `json:"beasthunter,omitempty" bson:"beasthunter,omitempty"`
+	SupremacyVeteran            int `json:"supremacyVeteran,omitempty" bson:"supremacyVeteran,omitempty"`
+	Kamikaze                    int `json:"kamikaze,omitempty" bson:"kamikaze,omitempty"`
+	OlimpicBronze               int `json:"olimpicBronze,omitempty" bson:"olimpicBronze,omitempty"`
+	MedalTournamentOffseason3   int `json:"medalTournamentOffseason3,omitempty" bson:"medalTournamentOffseason3,omitempty"`
+	PlatinumClanRibbonRU        int `json:"platinumClanRibbonRU,omitempty" bson:"platinumClanRibbonRU,omitempty"`
+	MedalOskin                  int `json:"medalOskin,omitempty" bson:"medalOskin,omitempty"`
+	Invincible                  int `json:"invincible,omitempty" bson:"invincible,omitempty"`
+	PlatinumClanRibbonNA        int `json:"platinumClanRibbonNA,omitempty" bson:"platinumClanRibbonNA,omitempty"`
+	PlatinumTwisterMedalRU      int `json:"platinumTwisterMedalRU,omitempty" bson:"platinumTwisterMedalRU,omitempty"`
+	ContinentalViceChampion     int `json:"continentalViceChampion,omitempty" bson:"continentalViceChampion,omitempty"`
+	OlimpicSilver               int `json:"olimpicSilver,omitempty" bson:"olimpicSilver,omitempty"`
+	MarkOfMasteryI              int `json:"markOfMasteryI,omitempty" bson:"markOfMasteryI,omitempty"`
+	ContinentalCompetitor       int `json:"continentalCompetitor,omitempty" bson:"continentalCompetitor,omitempty"`
+	MedalTournamentSummerSeason int `json:"medalTournamentSummerSeason,omitempty" bson:"medalTournamentSummerSeason,omitempty"`
+	Mousebane                   int `json:"mousebane,omitempty" bson:"mousebane,omitempty"`
+	MedalBrunoPietro            int `json:"medalBrunoPietro,omitempty" bson:"medalBrunoPietro,omitempty"`
+	MedalTournamentSpringSeason int `json:"medalTournamentSpringSeason,omitempty" bson:"medalTournamentSpringSeason,omitempty"`
+	GoldTwisterMark             int `json:"goldTwisterMark,omitempty" bson:"goldTwisterMark,omitempty"`
+	CollectorWarhammer          int `json:"collectorWarhammer,omitempty" bson:"collectorWarhammer,omitempty"`
+	MarkOfMasteryIII            int `json:"markOfMasteryIII,omitempty" bson:"markOfMasteryIII,omitempty"`
+	MedalLeClerc                int `json:"medalLeClerc,omitempty" bson:"medalLeClerc,omitempty"`
+	MedalTournamentProfessional int `json:"medalTournamentProfessional,omitempty" bson:"medalTournamentProfessional,omitempty"`
+	MedalCommunityChampion      int `json:"medalCommunityChampion,omitempty" bson:"medalCommunityChampion,omitempty"`
+	DiamondTwisterMark          int `json:"diamondTwisterMark,omitempty" bson:"diamondTwisterMark,omitempty"`
+	PlatinumTwisterMedalNA      int `json:"platinumTwisterMedalNA,omitempty" bson:"platinumTwisterMedalNA,omitempty"`
+	HandOfDeath                 int `json:"handOfDeath,omitempty" bson:"handOfDeath,omitempty"`
+	Huntsman                    int `json:"huntsman,omitempty" bson:"huntsman,omitempty"`
+	Camper                      int `json:"camper,omitempty" bson:"camper,omitempty"`
+	MedalNikolas                int `json:"medalNikolas,omitempty" bson:"medalNikolas,omitempty"`
+	AndroidTest                 int `json:"androidTest,omitempty" bson:"androidTest,omitempty"`
+	Sturdy                      int `json:"sturdy,omitempty" bson:"sturdy,omitempty"`
+	MedalTwitch                 int `json:"medalTwitch,omitempty" bson:"medalTwitch,omitempty"`
+	MedalWGfestTicket           int `json:"medalWGfestTicket,omitempty" bson:"medalWGfestTicket,omitempty"`
+	ChampionofNewStart          int `json:"championofNewStart,omitempty" bson:"championofNewStart,omitempty"`
+}
+
+// AchievementsFrame -
 type AchievementsFrame struct {
-	Achievements struct {
-		ArmorPiercer                int `json:"armorPiercer"`
-		MedalFadin                  int `json:"medalFadin"`
-		MedalCarius                 int `json:"medalCarius"`
-		MedalEkins                  int `json:"medalEkins"`
-		CollectorGuP                int `json:"collectorGuP"`
-		MedalHalonen                int `json:"medalHalonen"`
-		HeroesOfRassenay            int `json:"heroesOfRassenay"`
-		FirstVictory                int `json:"firstVictory"`
-		Defender                    int `json:"defender"`
-		Creative                    int `json:"creative"`
-		ESportFinal                 int `json:"eSportFinal"`
-		Supporter                   int `json:"supporter"`
-		GoldClanRibbonSEA           int `json:"goldClanRibbonSEA"`
-		PlatinumTwisterMedalSEA     int `json:"platinumTwisterMedalSEA"`
-		MedalLehvaslaiho            int `json:"medalLehvaslaiho"`
-		TankExpert                  int `json:"tankExpert"`
-		ESportQualification         int `json:"eSportQualification"`
-		MarkI                       int `json:"MarkI"`
-		MedalSupremacy              int `json:"medalSupremacy"`
-		ParticipantofWGFest2017     int `json:"participantofWGFest2017"`
-		MedalTournamentOffseason1   int `json:"medalTournamentOffseason1"`
-		JointVictory                int `json:"jointVictory"`
-		MedalTournamentOffseason2   int `json:"medalTournamentOffseason2"`
-		MedalTournamentOffseason4   int `json:"medalTournamentOffseason4"`
-		Sniper                      int `json:"sniper"`
-		TitleSniper                 int `json:"titleSniper"`
-		MedalCrucialContribution    int `json:"medalCrucialContribution"`
-		Scout                       int `json:"scout"`
-		GoldTwisterMedalRU          int `json:"goldTwisterMedalRU"`
-		TankExpert3                 int `json:"tankExpert3"`
-		TankExpert2                 int `json:"tankExpert2"`
-		TankExpert1                 int `json:"tankExpert1"`
-		TankExpert0                 int `json:"tankExpert0"`
-		MarkOfMastery               int `json:"markOfMastery"`
-		TankExpert6                 int `json:"tankExpert6"`
-		TankExpert5                 int `json:"tankExpert5"`
-		TankExpert4                 int `json:"tankExpert4"`
-		GoldTwisterMedalEU          int `json:"goldTwisterMedalEU"`
-		ChristmasTreeLevelUpNY2019  int `json:"ChristmasTreeLevelUpNY2019"`
-		MedalLavrinenko             int `json:"medalLavrinenko"`
-		MedalKolobanov              int `json:"medalKolobanov"`
-		MedalLafayettePool          int `json:"medalLafayettePool"`
-		GoldClanRibbonEU            int `json:"goldClanRibbonEU"`
-		OlimpicGolden               int `json:"olimpicGolden"`
-		MedalKnispel                int `json:"medalKnispel"`
-		Invader                     int `json:"invader"`
-		GoldTwisterMedalNA          int `json:"goldTwisterMedalNA"`
-		MechanicEngineer            int `json:"mechanicEngineer"`
-		MarkOfMasteryII             int `json:"markOfMasteryII"`
-		FirstBlood                  int `json:"firstBlood"`
-		MedalKay                    int `json:"medalKay"`
-		MedalOrlik                  int `json:"medalOrlik"`
-		MedalBrothersInArms         int `json:"medalBrothersInArms"`
-		MedalAbrams                 int `json:"medalAbrams"`
-		MedalAtgm                   int `json:"medalAtgm"`
-		MainGun                     int `json:"mainGun"`
-		IronMan                     int `json:"ironMan"`
-		PlatinumClanRibbonEU        int `json:"platinumClanRibbonEU"`
-		PlatinumClanRibbonSEA       int `json:"platinumClanRibbonSEA"`
-		Warrior                     int `json:"warrior"`
-		GoldClanRibbonRU            int `json:"goldClanRibbonRU"`
-		MedalRadleyWalters          int `json:"medalRadleyWalters"`
-		Raider                      int `json:"raider"`
-		ParticipantofNewStart       int `json:"participantofNewStart"`
-		DiamondClanRibbon           int `json:"diamondClanRibbon"`
-		MedalBillotte               int `json:"medalBillotte"`
-		PlatinumTwisterMedalEU      int `json:"platinumTwisterMedalEU"`
-		Diehard                     int `json:"diehard"`
-		MasterofContinents          int `json:"masterofContinents"`
-		Evileye                     int `json:"evileye"`
-		Cadet                       int `json:"cadet"`
-		SupremacyHunter             int `json:"supremacyHunter"`
-		ContinentalContender        int `json:"continentalContender"`
-		Steelwall                   int `json:"steelwall"`
-		SupremacyLegend             int `json:"supremacyLegend"`
-		Punisher                    int `json:"punisher"`
-		ESport                      int `json:"eSport"`
-		PlatinumTwisterMark         int `json:"platinumTwisterMark"`
-		GoldClanRibbonNA            int `json:"goldClanRibbonNA"`
-		MedalPoppel                 int `json:"medalPoppel"`
-		MechanicEngineer6           int `json:"mechanicEngineer6"`
-		MechanicEngineer4           int `json:"mechanicEngineer4"`
-		GoldTwisterMedalSEA         int `json:"goldTwisterMedalSEA"`
-		MechanicEngineer2           int `json:"mechanicEngineer2"`
-		MechanicEngineer3           int `json:"mechanicEngineer3"`
-		MechanicEngineer0           int `json:"mechanicEngineer0"`
-		MechanicEngineer1           int `json:"mechanicEngineer1"`
-		MechanicEngineer5           int `json:"mechanicEngineer5"`
-		MedalTarczay                int `json:"medalTarczay"`
-		Sinai                       int `json:"sinai"`
-		PattonValley                int `json:"pattonValley"`
-		MedalDeLanglade             int `json:"medalDeLanglade"`
-		DiamondTwisterMedal         int `json:"diamondTwisterMedal"`
-		Beasthunter                 int `json:"beasthunter"`
-		SupremacyVeteran            int `json:"supremacyVeteran"`
-		Kamikaze                    int `json:"kamikaze"`
-		OlimpicBronze               int `json:"olimpicBronze"`
-		MedalTournamentOffseason3   int `json:"medalTournamentOffseason3"`
-		PlatinumClanRibbonRU        int `json:"platinumClanRibbonRU"`
-		MedalOskin                  int `json:"medalOskin"`
-		Invincible                  int `json:"invincible"`
-		PlatinumClanRibbonNA        int `json:"platinumClanRibbonNA"`
-		PlatinumTwisterMedalRU      int `json:"platinumTwisterMedalRU"`
-		ContinentalViceChampion     int `json:"continentalViceChampion"`
-		OlimpicSilver               int `json:"olimpicSilver"`
-		MarkOfMasteryI              int `json:"markOfMasteryI"`
-		ContinentalCompetitor       int `json:"continentalCompetitor"`
-		MedalTournamentSummerSeason int `json:"medalTournamentSummerSeason"`
-		Mousebane                   int `json:"mousebane"`
-		MedalBrunoPietro            int `json:"medalBrunoPietro"`
-		MedalTournamentSpringSeason int `json:"medalTournamentSpringSeason"`
-		GoldTwisterMark             int `json:"goldTwisterMark"`
-		CollectorWarhammer          int `json:"collectorWarhammer"`
-		MarkOfMasteryIII            int `json:"markOfMasteryIII"`
-		MedalLeClerc                int `json:"medalLeClerc"`
-		MedalTournamentProfessional int `json:"medalTournamentProfessional"`
-		MedalCommunityChampion      int `json:"medalCommunityChampion"`
-		DiamondTwisterMark          int `json:"diamondTwisterMark"`
-		PlatinumTwisterMedalNA      int `json:"platinumTwisterMedalNA"`
-		HandOfDeath                 int `json:"handOfDeath"`
-		Huntsman                    int `json:"huntsman"`
-		Camper                      int `json:"camper"`
-		MedalNikolas                int `json:"medalNikolas"`
-		AndroidTest                 int `json:"androidTest"`
-		Sturdy                      int `json:"sturdy"`
-		MedalTwitch                 int `json:"medalTwitch"`
-		MedalWGfestTicket           int `json:"medalWGfestTicket"`
-		ChampionofNewStart          int `json:"championofNewStart"`
-	} `json:"achievements"`
-	MaxSeries struct {
-		ArmorPiercer int `json:"armorPiercer"`
-		Punisher     int `json:"punisher"`
-		TitleSniper  int `json:"titleSniper"`
-		Invincible   int `json:"invincible"`
-		TankExpert   int `json:"tankExpert"`
-		MedalKay     int `json:"medalKay"`
-		Diehard      int `json:"diehard"`
-		Beasthunter  int `json:"beasthunter"`
-		HandOfDeath  int `json:"handOfDeath"`
-		JointVictory int `json:"jointVictory"`
-		Sinai        int `json:"sinai"`
-		PattonValley int `json:"pattonValley"`
-	} `json:"max_series"`
+	Achievements Achievements `json:"achievements"`
 }
 
 // Diff - Find changes in achievements
 func (new AchievementsFrame) Diff(old AchievementsFrame) (result AchievementsFrame) {
-	// Check if the old data is nil
-	if old == (AchievementsFrame{}) {
-		return AchievementsFrame{}
-	}
-
-	// MaxSeries
-	result.MaxSeries = new.MaxSeries
-
 	// Achievements
 	result.Achievements.ArmorPiercer = new.Achievements.ArmorPiercer - old.Achievements.ArmorPiercer
 	result.Achievements.MedalFadin = new.Achievements.MedalFadin - old.Achievements.MedalFadin

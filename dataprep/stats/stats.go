@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/cufee/am-stats/dataprep"
-	db "github.com/cufee/am-stats/mongodbapi"
+	dbGlossary "github.com/cufee/am-stats/mongodbapi/v1/glossary"
+	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
+	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -21,7 +23,7 @@ import (
 // CalcVehicleWN8 - Calculate WN8 for a VehicleStats struct
 func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 	// Get tank info
-	tankInfo, err := db.GetTankGlossary(tank.TankID)
+	tankInfo, err := dbGlossary.GetTankGlossary(tank.TankID)
 	tank.TankTier = tankInfo.Tier
 	tank.TankName = tankInfo.Name
 
@@ -34,7 +36,7 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 		tank.TankName = "Unknown"
 	}
 	// Get tank averages
-	tankAvgData, err := db.GetTankAverages(tank.TankID)
+	tankAvgData, err := dbGlossary.GetTankAverages(tank.TankID)
 	if err != nil {
 		log.Print("no tank avg data, but name and tier found")
 		tank.TankRawWN8 = 0
@@ -79,9 +81,9 @@ func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 }
 
 // SliceDiff - Calculate the difference in two VehicleStats slices
-func sessionDiff(oldStats db.Session, liveStats db.Session) (session db.Session) {
+func sessionDiff(oldStats dbStats.Session, liveStats dbStats.Session) (session dbStats.Session) {
 	// Convert to RetroSession
-	var sessionConv db.Convert = oldStats
+	var sessionConv dbStats.Convert = oldStats
 	retroSession := sessionConv.ToRetro()
 
 	vahiclesChan := make(chan wgapi.VehicleStats, len(liveStats.Vehicles))
@@ -135,7 +137,7 @@ func sessionDiff(oldStats db.Session, liveStats db.Session) (session db.Session)
 }
 
 // CalcSession - Calculate a new session
-func calcSession(pid int, realm string, days int) (session db.Session, oldSession db.Session, playerProfile wgapi.PlayerProfile, err error) {
+func calcSession(pid int, realm string, days int) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, err error) {
 	// Get live profile
 	playerProfile, err = wgapi.PlayerProfileData(pid, realm)
 	if err != nil {
@@ -150,12 +152,12 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 
 	// Get cached profile
 	newCache := convWGtoDBprofile(playerProfile)
-	cachedPlayerProfile, err := db.GetPlayerProfile(pid)
+	cachedPlayerProfile, err := dbPlayers.GetPlayerProfile(pid)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			newCache.CareerWN8 = -1
 			newCache.Realm = strings.ToUpper(realm)
-			err = db.AddPlayer(newCache)
+			err = dbPlayers.AddPlayer(newCache)
 		}
 		if err != nil {
 			return session, oldSession, playerProfile, err
@@ -172,7 +174,7 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 	}
 
 	// Commit update
-	_, err = db.UpdatePlayer(bson.M{"_id": playerProfile.ID}, newCache)
+	_, err = dbPlayers.UpdatePlayer(bson.M{"_id": playerProfile.ID}, newCache)
 	if err != nil {
 		log.Printf("Failed to update player profile cache for %v, error: %s", playerProfile.ID, err.Error())
 	}
@@ -183,16 +185,16 @@ func calcSession(pid int, realm string, days int) (session db.Session, oldSessio
 		return session, oldSession, playerProfile, err
 	}
 	// Get previous session
-	oldSession, err = db.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
+	oldSession, err = dbStats.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" && days == 0 {
 			// Check if session exists
-			s, _ := db.GetSession(bson.M{"player_id": pid})
+			s, _ := dbStats.GetSession(bson.M{"player_id": pid})
 			// Add a new session if one does not exist
 			if s.PlayerID == 0 {
 				sessionData := dataprep.LiveToSession(playerProfile, playerVehicles, liveAchievements)
 				sessionData.SessionRating = -1
-				err = db.AddSession(sessionData)
+				err = dbStats.AddSession(sessionData)
 				if err == nil {
 					err = fmt.Errorf("stats: new player, started tracking")
 				}
@@ -225,7 +227,7 @@ func ExportSessionAsStruct(pid int, realm string, days int) (export ExportData, 
 	return export, nil
 }
 
-func convWGtoDBprofile(wgData wgapi.PlayerProfile) (dbData db.DBPlayerPofile) {
+func convWGtoDBprofile(wgData wgapi.PlayerProfile) (dbData dbPlayers.DBPlayerPofile) {
 	dbData.ID = wgData.ID
 	dbData.LastBattle = time.Unix(int64(wgData.LastBattle), 0)
 	dbData.Nickname = wgData.Name

@@ -5,13 +5,13 @@ import (
 	"log"
 	"math"
 
-	db "github.com/cufee/am-stats/mongodbapi"
+	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
 
 // CheckStreak - Check player streak and update db
-func CheckStreak(pid int, stats wgapi.StatsFrame) (streakData db.PlayerStreak, err error) {
-	streakData, err = db.GetStreak(pid)
+func CheckStreak(pid int, stats wgapi.StatsFrame) (streakData dbStats.PlayerStreak, err error) {
+	streakData, err = dbStats.GetStreak(pid)
 	if err != nil {
 		switch err.Error() {
 		case "mongo: no documents in result":
@@ -23,7 +23,7 @@ func CheckStreak(pid int, stats wgapi.StatsFrame) (streakData db.PlayerStreak, e
 			streakData.BestStreak = streakData.MinStreak
 			streakData.Streak = 0
 			// Update DB
-			err := db.UpdateStreak(streakData)
+			err := dbStats.UpdateStreak(streakData)
 			return streakData, err
 		default:
 			log.Print(err)
@@ -39,7 +39,7 @@ func CheckStreak(pid int, stats wgapi.StatsFrame) (streakData db.PlayerStreak, e
 		streakData.Battles = &stats.Battles
 		streakData.Losses = &stats.Losses
 		streakData.Streak = 0
-		err := db.UpdateStreak(streakData)
+		err := dbStats.UpdateStreak(streakData)
 		return streakData, err
 	}
 	if stats.Battles >= *streakData.Battles && stats.Losses == *streakData.Losses {
@@ -52,7 +52,7 @@ func CheckStreak(pid int, stats wgapi.StatsFrame) (streakData db.PlayerStreak, e
 		streakData.Streak = newStreak
 		streakData.Battles = &stats.Battles
 		streakData.Losses = &stats.Losses
-		err := db.UpdateStreak(streakData)
+		err := dbStats.UpdateStreak(streakData)
 		return streakData, err
 	}
 	if stats.Battles >= *streakData.Battles && stats.Losses != *streakData.Losses {
@@ -65,7 +65,7 @@ func CheckStreak(pid int, stats wgapi.StatsFrame) (streakData db.PlayerStreak, e
 		streakData.Streak = newStreak
 		streakData.Battles = &stats.Battles
 		streakData.Losses = &stats.Losses
-		err := db.UpdateStreak(streakData)
+		err := dbStats.UpdateStreak(streakData)
 		return streakData, err
 	}
 	return streakData, fmt.Errorf("invalid data")

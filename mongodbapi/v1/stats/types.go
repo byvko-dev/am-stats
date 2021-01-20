@@ -7,6 +7,18 @@ import (
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
 
+// PlayerStreak - Player win streak data from DB
+type PlayerStreak struct {
+	PlayerID   *int      `bson:"_id" json:"_id"`
+	Battles    *int      `bson:"battles" json:"battles"`
+	Losses     *int      `bson:"losses" json:"losses"`
+	Timestamp  time.Time `bson:"timestamp" json:"timestamp"`
+	Streak     int       `bson:"streak" json:"streak"`
+	BestStreak int       `bson:"best_streak" json:"best_streak"`
+	MinStreak  int       `bson:"min_streak" json:"min_streak"`
+	MaxStreak  int       `bson:"max_streak" json:"max_streak"`
+}
+
 // Session - Will be switching to this format soon
 type Session struct {
 	Vehicles      []wgapi.VehicleStats    `json:"vehicles" bson:"vehicles"`
@@ -79,59 +91,4 @@ func (s Session) ToRetro() (sessionNew RetroSession) {
 	}
 	sessionNew.Vehicles = vehicleMap
 	return sessionNew
-}
-
-// DBPlayerPofile - Player data db entry struct
-type DBPlayerPofile struct {
-	ID         int       `json:"player_id" bson:"_id,omitempty"`
-	ClanID     int       `json:"clan_id" bson:"clan_id,omitempty"`
-	ClanName   string    `json:"clan_name" bson:"clan_name,omitempty"`
-	ClanTag    string    `json:"clan_tag" bson:"clan_tag,omitempty"`
-	LastBattle time.Time `json:"last_battle_time" bson:"last_battle_time,omitempty"`
-	Nickname   string    `json:"nickname" bson:"nickname,omitempty"`
-	Realm      string    `json:"realm" bson:"realm,omitempty"`
-	CareerWN8  int       `json:"career_wn8" bson:"career_wn8,omitempty"`
-}
-
-// FilterPair - Used to make BSON filters
-type FilterPair struct {
-	Key   string
-	Value interface{}
-}
-
-// TankAverages - Averages data for a tank
-type TankAverages struct {
-	All struct {
-		Battles              float64 `bson:"battles,omitempty"`
-		DroppedCapturePoints float64 `bson:"dropped_capture_points,omitempty"`
-	} `bson:"all"`
-	Special struct {
-		Winrate         float64 `bson:"winrate,omitempty"`
-		DamageRatio     float64 `bson:"damageRatio,omitempty"`
-		Kdr             float64 `bson:"kdr,omitempty"`
-		DamagePerBattle float64 `bson:"damagePerBattle,omitempty"`
-		KillsPerBattle  float64 `bson:"killsPerBattle,omitempty"`
-		HitsPerBattle   float64 `bson:"hitsPerBattle,omitempty"`
-		SpotsPerBattle  float64 `bson:"spotsPerBattle,omitempty"`
-		Wpm             float64 `bson:"wpm,omitempty"`
-		Dpm             float64 `bson:"dpm,omitempty"`
-		Kpm             float64 `bson:"kpm,omitempty"`
-		HitRate         float64 `bson:"hitRate,omitempty"`
-		SurvivalRate    float64 `bson:"survivalRate,omitempty"`
-	} `bson:"special"`
-	Name   string `bson:"name"`
-	Tier   int    `bson:"tier"`
-	Nation string `bson:"nation"`
-}
-
-// PlayerStreak - Player win streak data from DB
-type PlayerStreak struct {
-	PlayerID   *int      `bson:"_id" json:"_id"`
-	Battles    *int      `bson:"battles" json:"battles"`
-	Losses     *int      `bson:"losses" json:"losses"`
-	Timestamp  time.Time `bson:"timestamp" json:"timestamp"`
-	Streak     int       `bson:"streak" json:"streak"`
-	BestStreak int       `bson:"best_streak" json:"best_streak"`
-	MinStreak  int       `bson:"min_streak" json:"min_streak"`
-	MaxStreak  int       `bson:"max_streak" json:"max_streak"`
 }

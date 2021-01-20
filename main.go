@@ -31,7 +31,7 @@ func main() {
 	// Achievements
 	app.Get("/achievements", handlers.HandleAchievementsJSONExport)
 	app.Get("/achievements/image", handlers.HandleAchievementsJSONExport)
-	app.Get("/achievements/leaderboard", handlers.HandleAchievementsJSONExport)
+	app.Get("/achievements/leaderboard", handlers.HandleAchievementsLbJSONExport)
 	app.Get("/achievements/leaderboard/image", handlers.HandleAchievementsJSONExport)
 
 	log.Print(app.Listen(fmt.Sprintf(":%v", config.APIport)))

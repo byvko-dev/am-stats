@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cufee/am-stats/mongodbapi"
+	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
 	externalapis "github.com/cufee/am-stats/wargamingapi"
 	"github.com/gofiber/fiber/v2"
 )
@@ -21,7 +21,7 @@ func HandlePlayerCheck(c *fiber.Ctx) error {
 	}
 
 	// Get realm
-	realm, err := mongodbapi.GetRealmByPID(pid)
+	realm, err := dbPlayers.GetRealmByPID(pid)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),

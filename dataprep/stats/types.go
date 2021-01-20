@@ -1,15 +1,15 @@
 package dataprep
 
 import (
-	db "github.com/cufee/am-stats/mongodbapi"
+	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
 
 // ExportData - Struct to export final data for use in Python bot
 type ExportData struct {
-	PlayerDetails wgapi.PlayerProfile `json:"player_details"`
-	SessionStats  db.Session          `json:"session"`
-	LastSession   db.RetroSession     `json:"last_session"`
+	PlayerDetails wgapi.PlayerProfile  `json:"player_details"`
+	SessionStats  dbStats.Session      `json:"session"`
+	LastSession   dbStats.RetroSession `json:"last_session"`
 	Analytics     `json:"analytics"`
 }
 

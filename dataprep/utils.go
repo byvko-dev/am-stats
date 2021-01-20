@@ -3,7 +3,7 @@ package dataprep
 import (
 	"time"
 
-	db "github.com/cufee/am-stats/mongodbapi"
+	db "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
 
