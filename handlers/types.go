@@ -16,13 +16,14 @@ type StatsRequest struct {
 
 // AchievementsRequest - Request for achievements data
 type AchievementsRequest struct {
-	BgURL    string                 `json:"bg_url"`
-	Premium  bool                   `json:"premium"`
-	Verified bool                   `json:"verified"`
-	ClanTag  string                 `json:"clan_tag"`
-	PlayerID int                    `json:"player_id"`
-	Days     int                    `json:"days"`
-	Limit    int                    `json:"limit"`
-	Realm    string                 `json:"realm"`
-	Medals   []dataprep.MedalWeight `json:"medals"`
+	BgURL     string                 `json:"bg_url"`
+	Premium   bool                   `json:"premium"`
+	Verified  bool                   `json:"verified"`
+	ClanTag   string                 `json:"clan_tag"`
+	PlayerID  int                    `json:"player_id"`
+	Days      int                    `json:"days"`
+	Limit     int                    `json:"limit"`
+	Highlight bool                   `json:"highlight"`
+	Realm     string                 `json:"realm"`
+	Medals    []dataprep.MedalWeight `json:"medals"`
 }

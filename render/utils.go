@@ -3,7 +3,6 @@ package render
 import (
 	"fmt"
 	"sort"
-	"time"
 
 	"image"
 	"image/color"
@@ -32,10 +31,16 @@ var (
 
 	PremiumColor  = color.RGBA{255, 223, 0, 255}
 	VerifiedColor = color.RGBA{72, 167, 250, 255}
+
+	// DEBUG
+
+	DebugColorRed  = color.RGBA{255, 0, 0, 255}
+	DebugColorPink = color.RGBA{255, 192, 203, 255}
+	BebugIconURL   = "https://images.vexels.com/media/users/3/141120/isolated/preview/a5ff757d7423e6c757795e7b60183180-rocket-round-icon-by-vexels.png"
 )
 
 // AddAllCardsToFrame - Render all cards to frame
-func AddAllCardsToFrame(finalCards AllCards, timestamp time.Time, timestampText string, bgImage image.Image) (*gg.Context, error) {
+func AddAllCardsToFrame(finalCards AllCards, header string, bgImage image.Image) (*gg.Context, error) {
 	if len(finalCards.Cards) == 0 {
 		return nil, fmt.Errorf("no cards to be rendered")
 	}
@@ -70,11 +75,10 @@ func AddAllCardsToFrame(finalCards AllCards, timestamp time.Time, timestampText 
 		return finalCards.Frame, err
 	}
 	finalCards.Frame.SetColor(color.RGBA{100, 100, 100, 100})
-	time := timestamp.Format(fmt.Sprintf("%s Jan 2", timestampText))
-	timeW, timeH := finalCards.Frame.MeasureString(time)
-	timeX := (float64(finalCards.Frame.Width()) - timeW) / 2
-	timeY := (float64(FrameMargin)-timeH)/2 + timeH
-	finalCards.Frame.DrawString(time, timeX, timeY)
+	headerW, headerH := finalCards.Frame.MeasureString(header)
+	headerX := (float64(finalCards.Frame.Width()) - headerW) / 2
+	headerY := (float64(FrameMargin)-headerH)/2 + headerH
+	finalCards.Frame.DrawString(header, headerX, headerY)
 
 	return finalCards.Frame, nil
 }

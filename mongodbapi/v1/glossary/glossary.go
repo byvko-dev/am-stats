@@ -3,6 +3,7 @@ package mongodbapi
 import (
 	"context"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/cufee/am-stats/config"
@@ -14,6 +15,7 @@ import (
 
 var tankAveragesCollection *mongo.Collection
 var tankGlossaryCollection *mongo.Collection
+var achievementsGlossaryCollection *mongo.Collection
 
 // Ctx - Context for MongoDB connection
 var ctx context.Context
@@ -40,6 +42,7 @@ func init() {
 
 	tankAveragesCollection = client.Database("glossary").Collection("tankaverages")
 	tankGlossaryCollection = client.Database("glossary").Collection("tanks")
+	achievementsGlossaryCollection = client.Database("glossary").Collection("achievements")
 }
 
 // GetTankAverages - Get averages data for a tank by ID
@@ -47,6 +50,16 @@ func GetTankAverages(tid int) (averages TankAverages, err error) {
 	filter := bson.M{"tank_id": tid}
 	err = tankAveragesCollection.FindOne(ctx, filter).Decode(&averages)
 	return averages, err
+}
+
+// GetAchievementIcon - Get an icon for achievement
+func GetAchievementIcon(aid string) (url string, err error) {
+	filter := bson.M{"_id": strings.ToLower(aid)}
+	result, err := achievementsGlossaryCollection.Distinct(ctx, "image", filter)
+	if len(result) > 0 {
+		return result[0].(string), err
+	}
+	return url, err
 }
 
 // GetTankGlossary - Get averages data for a tank by ID

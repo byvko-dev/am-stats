@@ -39,7 +39,7 @@ func main() {
 	app.Get("/achievements/leaderboard/clans", handlers.HandleClanAchievementsLbExport)
 	app.Get("/achievements/leaderboard/clans/image", handlers.HandleClanAchievementsLbExport)
 	app.Get("/achievements/leaderboard/players", handlers.HandlePlayersAchievementsLbExport)
-	app.Get("/achievements/leaderboard/players/image", handlers.HandlePlayersAchievementsLbExport)
+	app.Get("/achievements/leaderboard/players/image", handlers.HandlerPlayersLeaderboardImage)
 
 	log.Print(app.Listen(fmt.Sprintf(":%v", config.APIport)))
 }

@@ -85,7 +85,9 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 	for c := range cardsChan {
 		finalCards.Cards = append(finalCards.Cards, c)
 	}
-	finalCtx, err := render.AddAllCardsToFrame(finalCards, data.SessionStats.Timestamp, "Session from", bgImage)
+
+	header := data.SessionStats.Timestamp.Format(fmt.Sprintf("%s Jan 2", "Session from"))
+	finalCtx, err := render.AddAllCardsToFrame(finalCards, header, bgImage)
 	if err != nil {
 		return nil, err
 	}
