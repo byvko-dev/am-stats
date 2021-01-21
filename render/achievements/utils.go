@@ -1,13 +1,10 @@
 package render
 
 import (
-	"fmt"
 	"image"
 	"image/color"
-	"log"
 	"net/http"
 	"reflect"
-	"runtime/debug"
 	"strings"
 
 	"github.com/cufee/am-stats/render"
@@ -28,21 +25,21 @@ func renderBlock(block *cardBlockData) (err error) {
 
 	// Margins
 	if block.IconURL != "" {
-		block.TotalTextHeight = float64(block.IconSize)
+		block.TotalTextHeight = block.IconSize
 		block.TotalTextLines++
 	}
-	_, altTextH, altTextDrwX := getTextParams(ctx, block, (block.BlockTextSize * block.TextCoeff * block.TextCoeff), block.AltText)
-	_, smlTextH, smlTextDrwX := getTextParams(ctx, block, (block.BlockTextSize * block.TextCoeff), block.SmallText)
-	_, bigTextH, bigTextDrwX := getTextParams(ctx, block, (block.BlockTextSize), block.BigText)
+	_, altTextH, altTextDrwX := getTextParams(ctx, block, resieFont(block.BlockTextSize, block.TextCoeff*block.TextCoeff, 100), block.AltText)
+	_, smlTextH, smlTextDrwX := getTextParams(ctx, block, resieFont(block.BlockTextSize, block.TextCoeff, 10), block.SmallText)
+	_, bigTextH, bigTextDrwX := getTextParams(ctx, block, float64(block.BlockTextSize), block.BigText)
 
 	// Draw text
 	var drawTextMargins float64
 	var lastY float64
-	drawTextMargins = (float64(block.Height) - block.TotalTextHeight) / float64(block.TotalTextLines+1)
+	drawTextMargins = float64(((block.Height) - block.TotalTextHeight) / (block.TotalTextLines + 1))
 
 	// Icon and Alt text
 	if block.IconURL != "" {
-		if err := ctx.LoadFontFace(render.FontPath, (block.BlockTextSize * block.TextCoeff * block.BlockTextSize)); err != nil {
+		if err := ctx.LoadFontFace(render.FontPath, resieFont(block.BlockTextSize, block.TextCoeff*block.TextCoeff, 100)); err != nil {
 			return err
 		}
 
@@ -68,7 +65,7 @@ func renderBlock(block *cardBlockData) (err error) {
 
 	// Big text
 	if block.BigText != "" && block.IconURL == "" {
-		if err := ctx.LoadFontFace(render.FontPath, block.BlockTextSize); err != nil {
+		if err := ctx.LoadFontFace(render.FontPath, float64(block.BlockTextSize)); err != nil {
 			return err
 		}
 		ctx.SetColor(block.BigTextColor)
@@ -78,7 +75,7 @@ func renderBlock(block *cardBlockData) (err error) {
 
 	// Small text
 	if block.SmallText != "" {
-		if err := ctx.LoadFontFace(render.FontPath, (block.BlockTextSize * block.TextCoeff)); err != nil {
+		if err := ctx.LoadFontFace(render.FontPath, (resieFont(block.BlockTextSize, block.TextCoeff, 10))); err != nil {
 			return err
 		}
 		ctx.SetColor(block.SmallTextColor)
@@ -88,7 +85,7 @@ func renderBlock(block *cardBlockData) (err error) {
 	}
 
 	block.Context = ctx
-	return nil
+	return err
 }
 
 func loadIcon(url string) (img image.Image, err error) {
@@ -105,6 +102,10 @@ func loadIcon(url string) (img image.Image, err error) {
 	return img, err
 }
 
+func resieFont(font int, coeff int, div int) float64 {
+	return float64(font * coeff / div)
+}
+
 func getTextParams(ctx *gg.Context, block *cardBlockData, size float64, value string) (width float64, height float64, drawX float64) {
 	// Return 0
 	if value == "" {
@@ -117,18 +118,9 @@ func getTextParams(ctx *gg.Context, block *cardBlockData, size float64, value st
 	}
 	width, height = ctx.MeasureString(value)
 	drawX = ((float64(block.Width) - width) / 2.0)
-	block.TotalTextHeight += height
+	block.TotalTextHeight += int(height)
 	block.TotalTextLines++
 	return width, height, drawX
-}
-
-// Recover from panic
-func recoverPanic(err error, funcName string) {
-	if r := recover(); r != nil {
-		message := fmt.Sprintf("recovered from panic in %s\nlast error: %v", funcName, err)
-		log.Print(message)
-		debug.PrintStack()
-	}
 }
 
 // getField - Get field value by name

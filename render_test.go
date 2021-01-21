@@ -6,9 +6,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/cufee/am-stats/config"
 	dataprep "github.com/cufee/am-stats/dataprep/achievements"
 	"github.com/cufee/am-stats/handlers"
 	render "github.com/cufee/am-stats/render/achievements"
+	"github.com/fogleman/gg"
 )
 
 func TestPlayerAchievementsLbImage(t *testing.T) {
@@ -33,8 +35,16 @@ func TestPlayerAchievementsLbImage(t *testing.T) {
 		return
 	}
 
+	// Get BG
+	bgImage, err := gg.LoadImage(config.AssetsPath + config.DefaultBG)
+	if err != nil {
+		log.Print(err)
+		t.FailNow()
+		return
+	}
+
 	// Render image
-	image, err := render.PlayerAchievementsLbImage(data, request.Medals)
+	image, err := render.PlayerAchievementsLbImage(data, bgImage, request.Medals)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()

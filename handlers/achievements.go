@@ -2,15 +2,19 @@ package handlers
 
 import (
 	"bytes"
+	"fmt"
+	"image"
 	"image/png"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"runtime/debug"
 
+	"github.com/cufee/am-stats/config"
 	achievements "github.com/cufee/am-stats/dataprep/achievements"
 	dataprep "github.com/cufee/am-stats/dataprep/achievements"
 	render "github.com/cufee/am-stats/render/achievements"
+	"github.com/fogleman/gg"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -200,6 +204,28 @@ func HandlerPlayersLeaderboardImage(c *fiber.Ctx) error {
 		})
 	}
 
+	// Get bg Image
+	var bgImage image.Image
+	if request.BgURL != "" {
+		response, _ := http.Get(request.BgURL)
+		if response != nil {
+			bgImage, _, err = image.Decode(response.Body)
+			defer response.Body.Close()
+		} else {
+			log.Printf("bad bg image for %v", request.PlayerID)
+			err = fmt.Errorf("bad bg image")
+		}
+	}
+	if err != nil || request.BgURL == "" {
+		bgImage, err = gg.LoadImage(config.AssetsPath + config.DefaultBG)
+		if err != nil {
+			log.Println(err)
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("failed to load a background image: %#v", err),
+			})
+		}
+	}
+
 	// Get data
 	data, _, err := dataprep.ExportAchievementsLeaderboard(request.Realm, request.Days, request.Limit, request.PlayerID, request.Medals...)
 	if err != nil {
@@ -210,13 +236,15 @@ func HandlerPlayersLeaderboardImage(c *fiber.Ctx) error {
 	}
 
 	// Render image
-	image, err := render.PlayerAchievementsLbImage(data, request.Medals)
+	image, err := render.PlayerAchievementsLbImage(data, bgImage, request.Medals)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
+
+	// debug.FreeOSMemory()
 
 	// Encode image
 	buf := new(bytes.Buffer)
@@ -237,5 +265,6 @@ func HandlerPlayersLeaderboardImage(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
 	return c.Send(s)
 }

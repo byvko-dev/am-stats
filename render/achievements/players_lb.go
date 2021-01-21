@@ -6,39 +6,14 @@ import (
 	"log"
 	"sync"
 
-	"github.com/cufee/am-stats/config"
 	dataprep "github.com/cufee/am-stats/dataprep/achievements"
 	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	dbGloss "github.com/cufee/am-stats/mongodbapi/v1/glossary"
 	"github.com/cufee/am-stats/render"
-	"github.com/fogleman/gg"
 )
 
-var slimBlockBP cardBlockData
-var largeBlockBP cardBlockData
-
-func init() {
-	// Blueprint for small blocks
-	slimBlockBP.IconSize = 50
-	slimBlockBP.TextCoeff = 0.6
-	slimBlockBP.NameMarginCoef = 0.5
-	slimBlockBP.BlockTextSize = render.FontSize * 1.25
-	slimBlockBP.TextSize = render.FontSize
-	slimBlockBP.BigTextColor = render.BigTextColor
-	slimBlockBP.AltTextColor = render.AltTextColor
-	slimBlockBP.SmallTextColor = render.SmallTextColor
-
-	// Blueprint for large blocks
-	largeBlockBP = cardBlockData(slimBlockBP)
-	largeBlockBP.BlockTextSize = render.FontSize * 1.75
-	largeBlockBP.TextCoeff = 0.45
-	largeBlockBP.IconSize = 75
-}
-
 // PlayerAchievementsLbImage -
-func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, medals []dataprep.MedalWeight) (finalImage image.Image, err error) {
-	defer recoverPanic(err, "PlayerAchievementsLbImage")
-
+func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, bgImage image.Image, medals []dataprep.MedalWeight) (finalImage image.Image, err error) {
 	// Get icon URLs
 	for i, m := range medals {
 		m.IconURL, err = dbGloss.GetAchievementIcon(m.Name)
@@ -49,6 +24,9 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, medals []dat
 	var finalCards render.AllCards
 	cardsChan := make(chan render.CardData, (2 + len(data)))
 	var wg sync.WaitGroup
+
+	var slimBlockBP cardBlockData
+	slimBlockBP.DefaultSlim()
 
 	// Work on cards in go routines
 	for i, player := range data {
@@ -66,6 +44,7 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, medals []dat
 			}
 
 			cardsChan <- card
+			return
 		}(player, i)
 	}
 	wg.Wait()
@@ -73,13 +52,6 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, medals []dat
 
 	for c := range cardsChan {
 		finalCards.Cards = append(finalCards.Cards, c)
-	}
-
-	// Get BG
-	var bgImage image.Image
-	bgImage, err = gg.LoadImage(config.AssetsPath + config.DefaultBG)
-	if err != nil {
-		return nil, err
 	}
 
 	finalCtx, err := render.AddAllCardsToFrame(finalCards, "Achievements Leaderboard", bgImage)
@@ -91,14 +63,11 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, medals []dat
 
 // Make large player card
 func makeLargePlayerCard(card render.CardData, blueprint cardBlockData, player dbAch.AchievementsPlayerData, position int, medals []dataprep.MedalWeight) (_ render.CardData, err error) {
-	defer recoverPanic(err, "makeLargePlayerCard")
 	return makeSlimPlayerCard(card, blueprint, player, position, medals)
 }
 
 // Make slim player card
 func makeSlimPlayerCard(card render.CardData, blueprint cardBlockData, player dbAch.AchievementsPlayerData, position int, medals []dataprep.MedalWeight) (_ render.CardData, err error) {
-	defer recoverPanic(err, "makeSlimPlayerCard")
-
 	ctx := *card.Context
 	if err := ctx.LoadFontFace(render.FontPath, (render.FontSize)); err != nil {
 		return card, err
