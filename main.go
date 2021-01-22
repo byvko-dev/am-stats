@@ -37,7 +37,7 @@ func main() {
 	app.Get("/achievements/clan/image", handlers.HandleClanAchievementsExport)
 	// Players Leaderboard
 	app.Get("/achievements/leaderboard/clans", handlers.HandleClanAchievementsLbExport)
-	app.Get("/achievements/leaderboard/clans/image", handlers.HandleClanAchievementsLbExport)
+	app.Get("/achievements/leaderboard/clans/image", handlers.HandlerClansLeaderboardImage)
 	app.Get("/achievements/leaderboard/players", handlers.HandlePlayersAchievementsLbExport)
 	app.Get("/achievements/leaderboard/players/image", handlers.HandlerPlayersLeaderboardImage)
 

@@ -268,3 +268,97 @@ func HandlerPlayersLeaderboardImage(c *fiber.Ctx) error {
 
 	return c.Send(s)
 }
+
+// HandlerClansLeaderboardImage -
+func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
+	// Recover on panic
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in handlePlayerRequest", r)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "something did not work",
+			})
+		}
+	}()
+
+	// Parse request data
+	var request AchievementsRequest
+	err := c.BodyParser(&request)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Get bg Image
+	var bgImage image.Image
+	if request.BgURL != "" {
+		response, _ := http.Get(request.BgURL)
+		if response != nil {
+			bgImage, _, err = image.Decode(response.Body)
+			defer response.Body.Close()
+		} else {
+			log.Printf("bad bg image for %v", request.PlayerID)
+			err = fmt.Errorf("bad bg image")
+		}
+	}
+	if err != nil || request.BgURL == "" {
+		bgImage, err = gg.LoadImage(config.AssetsPath + config.DefaultBG)
+		if err != nil {
+			log.Println(err)
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": fmt.Sprintf("failed to load a background image: %#v", err),
+			})
+		}
+	}
+
+	// Check request
+	if request.ClanTag == "" && request.Realm == "" {
+		return fiber.ErrBadRequest
+	}
+	if len(request.Medals) < 1 {
+		return fiber.ErrBadRequest
+	}
+
+	// Get data
+	data, err := achievements.ExportClanAchievementsLbByRealm(request.Realm, request.Days, request.Limit, request.Medals...)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Render image
+	image, err := render.ClanAchievementsLbImage(data, bgImage, request.Medals)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Encode image
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, image)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Send image
+	c.Set("Content-Type", "image/png")
+	s, err := ioutil.ReadAll(buf)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Send(s)
+}

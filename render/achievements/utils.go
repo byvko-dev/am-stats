@@ -1,12 +1,14 @@
 package render
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"net/http"
 	"reflect"
 	"strings"
 
+	mongodbapi "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	"github.com/cufee/am-stats/render"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"github.com/disintegration/imaging"
@@ -139,4 +141,36 @@ func getField(data wgapi.AchievementsFrame, field string) int {
 		return 0
 	}
 	return int(f.Int())
+}
+
+func addScoreAndMedals(card *render.CardData, blueprint cardBlockData, score int, position int, medals []mongodbapi.MedalWeight) error {
+	// Score Block
+	scoreBlock := cardBlockData(blueprint)
+	scoreBlock.BigText = fmt.Sprint(score)
+	scoreBlock.Width = int(blueprint.SpecialBlockWidth)
+	scoreBlock.SmallText = "Score"
+
+	if err := renderBlock(&scoreBlock); err != nil {
+		return err
+	}
+	card.Context.DrawImage(scoreBlock.Context.Image(), card.LastXOffs, 0)
+	card.LastXOffs += scoreBlock.Width
+
+	//  Medal Blocks
+	for _, m := range medals {
+		medalBlock := cardBlockData(blueprint)
+		medalBlock.AltText = fmt.Sprint(m.Score)
+		medalBlock.AltTextColor = blueprint.SmallTextColor
+		medalBlock.IconURL = m.IconURL
+
+		if err := renderBlock(&medalBlock); err != nil {
+			return err
+		}
+		card.Context.DrawImage(medalBlock.Context.Image(), card.LastXOffs, 0)
+		card.LastXOffs += int(card.BlockWidth)
+	}
+
+	// Render image
+	card.Image = card.Context.Image()
+	return nil
 }

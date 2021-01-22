@@ -7,6 +7,11 @@ import (
 	"github.com/fogleman/gg"
 )
 
+// specialBlockData
+type specialBlockData struct {
+	BlockWidth float64
+}
+
 // cardBlockData -
 type cardBlockData struct {
 	//
