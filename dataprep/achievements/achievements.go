@@ -122,7 +122,6 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 		return export[:limit], checkPos, err
 	}
 	return export, checkPos, err
-
 }
 
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs

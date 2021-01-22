@@ -28,44 +28,44 @@ func renderBlock(block *cardBlockData) (err error) {
 		block.TotalTextHeight = block.IconSize
 		block.TotalTextLines++
 	}
-	_, altTextH, altTextDrwX := getTextParams(ctx, block, resieFont(block.BlockTextSize, block.TextCoeff*block.TextCoeff, 100), block.AltText)
-	_, smlTextH, smlTextDrwX := getTextParams(ctx, block, resieFont(block.BlockTextSize, block.TextCoeff, 10), block.SmallText)
-	_, bigTextH, bigTextDrwX := getTextParams(ctx, block, float64(block.BlockTextSize), block.BigText)
+	_, altTextH, altTextDrwX := getTextParams(ctx, block, (block.AltTextSize), block.AltText)
+	_, smlTextH, smlTextDrwX := getTextParams(ctx, block, (block.SmallTextSize), block.SmallText)
+	_, bigTextH, bigTextDrwX := getTextParams(ctx, block, (block.BigTextSize), block.BigText)
 
 	// Draw text
-	var drawTextMargins float64
 	var lastY float64
+	var drawTextMargins float64
 	drawTextMargins = float64(((block.Height) - block.TotalTextHeight) / (block.TotalTextLines + 1))
 
 	// Icon and Alt text
 	if block.IconURL != "" {
-		if err := ctx.LoadFontFace(render.FontPath, resieFont(block.BlockTextSize, block.TextCoeff*block.TextCoeff, 100)); err != nil {
-			return err
-		}
-
 		// Load Icon
 		var icon image.Image
 		if icon, err = loadIcon(block.IconURL); err != nil {
 			return err
 		}
+
 		// Resize
-		icon = imaging.Fill(icon, block.IconSize, block.IconSize, imaging.Center, imaging.NearestNeighbor)
+		icon = imaging.Fill(icon, block.IconSize, block.IconSize, imaging.Center, imaging.Box)
 
 		// Paste Icon
 		drawX := (((block.Width) - (block.IconSize)) / 2.0)
-		ctx.DrawImage(icon, drawX, int(lastY+drawTextMargins))
+		ctx.DrawImage(icon, drawX, int(lastY))
 		lastY += (drawTextMargins / 2) + float64(block.IconSize)
 
 		if block.AltText != "" {
+			if err := ctx.LoadFontFace(render.FontPath, block.AltTextSize); err != nil {
+				return err
+			}
 			ctx.SetColor(block.AltTextColor)
-			lastY := lastY + drawTextMargins + altTextH
+			lastY := lastY + altTextH
 			ctx.DrawString(block.AltText, altTextDrwX, lastY)
 		}
 	}
 
 	// Big text
 	if block.BigText != "" && block.IconURL == "" {
-		if err := ctx.LoadFontFace(render.FontPath, float64(block.BlockTextSize)); err != nil {
+		if err := ctx.LoadFontFace(render.FontPath, block.BigTextSize); err != nil {
 			return err
 		}
 		ctx.SetColor(block.BigTextColor)
@@ -75,7 +75,7 @@ func renderBlock(block *cardBlockData) (err error) {
 
 	// Small text
 	if block.SmallText != "" {
-		if err := ctx.LoadFontFace(render.FontPath, (resieFont(block.BlockTextSize, block.TextCoeff, 10))); err != nil {
+		if err := ctx.LoadFontFace(render.FontPath, (block.SmallTextSize)); err != nil {
 			return err
 		}
 		ctx.SetColor(block.SmallTextColor)
@@ -86,6 +86,18 @@ func renderBlock(block *cardBlockData) (err error) {
 
 	block.Context = ctx
 	return err
+}
+
+func getAlignedX(alignment int, fieldW float64, elemW float64) float64 {
+	switch alignment {
+	case -1:
+		return 0
+	case 1:
+		return (fieldW - elemW)
+	default:
+		return ((fieldW - elemW) / 2.0)
+	}
+
 }
 
 func loadIcon(url string) (img image.Image, err error) {
@@ -102,10 +114,6 @@ func loadIcon(url string) (img image.Image, err error) {
 	return img, err
 }
 
-func resieFont(font int, coeff int, div int) float64 {
-	return float64(font * coeff / div)
-}
-
 func getTextParams(ctx *gg.Context, block *cardBlockData, size float64, value string) (width float64, height float64, drawX float64) {
 	// Return 0
 	if value == "" {
@@ -117,7 +125,7 @@ func getTextParams(ctx *gg.Context, block *cardBlockData, size float64, value st
 		return width, height, drawX
 	}
 	width, height = ctx.MeasureString(value)
-	drawX = ((float64(block.Width) - width) / 2.0)
+	drawX = getAlignedX(block.TextAlign, float64(block.Width), width)
 	block.TotalTextHeight += int(height)
 	block.TotalTextLines++
 	return width, height, drawX

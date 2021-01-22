@@ -35,7 +35,7 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 
 		// Make Header card
 		headerHeight := 1.0
-		header, err := makeStatsHeaderCard(render.PrepNewCard(0, headerHeight), data.PlayerDetails.Name, clanTag, "Random Battles", premium, verified)
+		header, err := makeStatsHeaderCard(render.PrepNewCard(0, headerHeight, 0), data.PlayerDetails.Name, clanTag, "Random Battles", premium, verified)
 		if err != nil {
 			log.Println(err)
 			return
@@ -46,7 +46,7 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		allStats, err := makeAllStatsCard(render.PrepNewCard(1, 1.5), data)
+		allStats, err := makeAllStatsCard(render.PrepNewCard(1, 1.5, 0), data)
 		if err != nil {
 			log.Println(err)
 			return
@@ -67,9 +67,9 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 			lastSession := data.LastSession.Vehicles[strconv.Itoa(tank.TankID)]
 			var tankCard render.CardData
 			if i < 3 {
-				tankCard, err = makeDetailedCard(render.PrepNewCard((i+2), 1.0), tank, lastSession)
+				tankCard, err = makeDetailedCard(render.PrepNewCard((i+2), 1.0, 0), tank, lastSession)
 			} else {
-				tankCard, err = makeSlimCard(render.PrepNewCard((i+2), 0.5), tank, lastSession)
+				tankCard, err = makeSlimCard(render.PrepNewCard((i+2), 0.5, 0), tank, lastSession)
 			}
 			if err != nil {
 				log.Println(err)

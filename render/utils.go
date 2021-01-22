@@ -34,9 +34,10 @@ var (
 
 	// DEBUG
 
-	DebugColorRed  = color.RGBA{255, 0, 0, 255}
-	DebugColorPink = color.RGBA{255, 192, 203, 255}
-	BebugIconURL   = "https://images.vexels.com/media/users/3/141120/isolated/preview/a5ff757d7423e6c757795e7b60183180-rocket-round-icon-by-vexels.png"
+	DebugColorRed   = color.RGBA{255, 0, 0, 255}
+	DebugColorPink  = color.RGBA{255, 192, 203, 255}
+	DebugColorGreen = color.RGBA{20, 160, 20, 255}
+	BebugIconURL    = "https://images.vexels.com/media/users/3/141120/isolated/preview/a5ff757d7423e6c757795e7b60183180-rocket-round-icon-by-vexels.png"
 )
 
 // AddAllCardsToFrame - Render all cards to frame
@@ -47,12 +48,16 @@ func AddAllCardsToFrame(finalCards AllCards, header string, bgImage image.Image)
 
 	// Frame height
 	var totalCardsHeight int
+	var maxWidth int
 	for _, card := range finalCards.Cards {
 		totalCardsHeight += card.Context.Height()
+		if card.Context.Width() > maxWidth {
+			maxWidth = card.Context.Width()
+		}
 	}
 	totalCardsHeight += ((len(finalCards.Cards)-1)*(FrameMargin/2) + (FrameMargin * 2))
 	// Get frame CTX
-	ctx, err := prepBgContext(totalCardsHeight, bgImage)
+	ctx, err := prepBgContext(totalCardsHeight, maxWidth, bgImage)
 	if err != nil {
 		return finalCards.Frame, err
 	}
@@ -84,8 +89,9 @@ func AddAllCardsToFrame(finalCards AllCards, header string, bgImage image.Image)
 }
 
 // Prepare a frame background context
-func prepBgContext(totalHeight int, bgImage image.Image) (frameCtx *gg.Context, err error) {
-	frameCtx = gg.NewContext(FrameWidth, totalHeight)
+func prepBgContext(totalHeight int, width int, bgImage image.Image) (frameCtx *gg.Context, err error) {
+	frameWidth := width + (2 * FrameMargin)
+	frameCtx = gg.NewContext(frameWidth, totalHeight)
 	bgImage = imaging.Fill(bgImage, frameCtx.Width(), frameCtx.Height(), imaging.Center, imaging.NearestNeighbor)
 	bgImage = imaging.Blur(bgImage, 10.0)
 	frameCtx.DrawImage(bgImage, 0, 0)
@@ -93,10 +99,13 @@ func prepBgContext(totalHeight int, bgImage image.Image) (frameCtx *gg.Context, 
 }
 
 // PrepNewCard - Prepare a new cardData struct
-func PrepNewCard(index int, heightMod float64) CardData {
+func PrepNewCard(index int, heightMod float64, width int) CardData {
+	if width == 0 {
+		width = BaseCardWidth
+	}
 	cardHeight := int(float64(BaseCardHeigh) * heightMod)
-	cardWidth := BaseCardWidth
-	cardCtx := gg.NewContext(cardWidth, cardHeight)
+	cardWidth := width
+	cardCtx := gg.NewContext(width, cardHeight)
 	cardCtx.SetColor(BaseCardColor)
 	cardCtx.DrawRoundedRectangle(0, 0, float64(cardWidth), float64(cardHeight), FontSize)
 	cardCtx.Fill()
