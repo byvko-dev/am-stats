@@ -14,8 +14,8 @@ import (
 	"github.com/fogleman/gg"
 )
 
-// PlayerAchievementsLbImage -
-func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData dataprep.AchievementsPIDPos, bgImage image.Image, medals []mongodbapi.MedalWeight) (finalImage image.Image, err error) {
+// OldPlayerAchievementsLbImage -
+func OldPlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData dataprep.AchievementsPIDPos, bgImage image.Image, medals []mongodbapi.MedalWeight) (finalImage image.Image, err error) {
 	// Get icon URLs
 	for i, m := range medals {
 		m.IconURL, err = dbGloss.GetAchievementIcon(m.Name)
@@ -89,7 +89,8 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 			defer wg.Done()
 
 			// Prep card context
-			card := render.PrepNewCard(1, 0.5, cardWidth)
+			var card render.CardData
+			render.PrepNewCard(&card, 1, 0.5, cardWidth)
 			card.Index = i
 			blueprint := slimBlockBP
 			if player.PID == checkData.PID {

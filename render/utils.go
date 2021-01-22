@@ -100,7 +100,13 @@ func prepBgContext(totalHeight int, width int, bgImage image.Image) (frameCtx *g
 }
 
 // PrepNewCard - Prepare a new cardData struct
-func PrepNewCard(index int, heightMod float64, width int) CardData {
+func PrepNewCard(card *CardData, index int, heightMod float64, width int) {
+	if len(card.Blocks) != 0 {
+		for _, b := range card.Blocks {
+			width += b.Width
+		}
+		width += card.FrameMargin * 2
+	}
 	if width == 0 {
 		width = BaseCardWidth
 	}
@@ -110,8 +116,6 @@ func PrepNewCard(index int, heightMod float64, width int) CardData {
 	cardCtx.SetColor(BaseCardColor)
 	cardCtx.DrawRoundedRectangle(0, 0, float64(cardWidth), float64(cardHeight), FontSize)
 	cardCtx.Fill()
-	var card CardData
 	card.Context = cardCtx
 	card.Index = index
-	return card
 }

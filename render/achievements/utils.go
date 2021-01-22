@@ -30,7 +30,7 @@ func renderBlock(block *cardBlockData) (err error) {
 		block.TotalTextHeight = block.IconSize
 		block.TotalTextLines++
 	}
-	_, altTextH, altTextDrwX := getTextParams(ctx, block, (block.AltTextSize), block.AltText)
+	altTextW, altTextH, _ := getTextParams(ctx, block, (block.AltTextSize), block.AltText)
 	_, smlTextH, smlTextDrwX := getTextParams(ctx, block, (block.SmallTextSize), block.SmallText)
 	_, bigTextH, bigTextDrwX := getTextParams(ctx, block, (block.BigTextSize), block.BigText)
 
@@ -51,8 +51,8 @@ func renderBlock(block *cardBlockData) (err error) {
 		icon = imaging.Fill(icon, block.IconSize, block.IconSize, imaging.Center, imaging.Box)
 
 		// Paste Icon
-		drawX := (((block.Width) - (block.IconSize)) / 2.0)
-		ctx.DrawImage(icon, drawX, int(lastY))
+		IcondrawX := getAlignedX(block.TextAlign, float64(block.Width), float64(block.IconSize))
+		ctx.DrawImage(icon, int(IcondrawX), int(lastY))
 		lastY += (drawTextMargins / 2) + float64(block.IconSize)
 
 		if block.AltText != "" {
@@ -61,7 +61,8 @@ func renderBlock(block *cardBlockData) (err error) {
 			}
 			ctx.SetColor(block.AltTextColor)
 			lastY := lastY + altTextH
-			ctx.DrawString(block.AltText, altTextDrwX, lastY)
+			drawX := getAlignedX(0, float64(block.IconSize), altTextW) + IcondrawX
+			ctx.DrawString(block.AltText, drawX, lastY)
 		}
 	}
 
@@ -162,6 +163,7 @@ func addScoreAndMedals(card *render.CardData, blueprint cardBlockData, score int
 		medalBlock.AltText = fmt.Sprint(m.Score)
 		medalBlock.AltTextColor = blueprint.SmallTextColor
 		medalBlock.IconURL = m.IconURL
+		medalBlock.TextAlign = 1
 
 		if err := renderBlock(&medalBlock); err != nil {
 			return err

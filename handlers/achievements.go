@@ -248,8 +248,6 @@ func HandlerPlayersLeaderboardImage(c *fiber.Ctx) error {
 		})
 	}
 
-	// debug.FreeOSMemory()
-
 	// Encode image
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, image)

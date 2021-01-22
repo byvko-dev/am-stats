@@ -24,7 +24,7 @@ func TestPlayerAchievementsLbImage(t *testing.T) {
 	request.Medals = []mongodbapi.MedalWeight{{Name: "markofmastery", Weight: 25}, {Name: "markofmasteryi", Weight: 5}, {Name: "markofmasteryii", Weight: 1}, {Name: "markofmasteryiii", Weight: 1}}
 
 	// Get data
-	data, _, err := dataprep.ExportAchievementsLeaderboard(request.Realm, request.Days, request.Limit, request.PlayerID, request.Medals...)
+	data, checkData, err := dataprep.ExportAchievementsLeaderboard(request.Realm, request.Days, request.Limit, request.PlayerID, request.Medals...)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()
@@ -45,7 +45,7 @@ func TestPlayerAchievementsLbImage(t *testing.T) {
 	}
 
 	// Render image
-	image, err := render.PlayerAchievementsLbImage(data, bgImage, request.Medals)
+	image, err := render.PlayerAchievementsLbImage(data, checkData, bgImage, request.Medals)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()

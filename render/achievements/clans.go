@@ -90,7 +90,8 @@ func ClanAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image,
 			defer wg.Done()
 
 			// Prep card context
-			card := render.PrepNewCard(1, 0.5, cardWidth)
+			var card render.CardData
+			render.PrepNewCard(&card, 1, 0.5, cardWidth)
 			card.Index = i
 			if err := makeClanSlimCard(&card, slimBlockBP, &clan, i, clan.Medals); err != nil {
 				log.Println(err)
