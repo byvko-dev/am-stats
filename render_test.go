@@ -20,7 +20,7 @@ func TestPlayerAchievementsLbImage(t *testing.T) {
 	request.Days = 0
 	request.Limit = 10
 	request.PlayerID = 0
-	request.Medals = []dataprep.MedalWeight{{Name: "markofmastery", Weight: 25}, {Name: "markofmasteryi", Weight: 5}, {Name: "markofmasteryii", Weight: 1}, {Name: "markofmasteryiii", Weight: 100}}
+	request.Medals = []dataprep.MedalWeight{{Name: "markofmastery", Weight: 25}, {Name: "markofmasteryi", Weight: 5}, {Name: "markofmasteryii", Weight: 1}, {Name: "markofmasteryiii", Weight: 1}}
 
 	// Get data
 	data, _, err := dataprep.ExportAchievementsLeaderboard(request.Realm, request.Days, request.Limit, request.PlayerID, request.Medals...)

@@ -43,7 +43,7 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, bgImage imag
 	for i, player := range data {
 		// Fix player clan tag
 		if player.ClanTag != "" {
-			player.ClanTag = fmt.Sprintf("[%s] ", player.ClanTag)
+			player.ClanTag = fmt.Sprintf("[%s]", player.ClanTag)
 			data[i].ClanTag = player.ClanTag
 		}
 
@@ -62,8 +62,8 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, bgImage imag
 		}
 	}
 	slimBlockBP.NameMargin = maxNameWidth
-	slimBlockBP.ClanTagMargin = maxClanTagWidth
-	slimBlockBP.SpecialBlockWidth = (maxScoreWidth + slimBlockBP.TextMargin)
+	slimBlockBP.ClanTagMargin = maxClanTagWidth + slimBlockBP.TextMargin
+	slimBlockBP.SpecialBlockWidth = maxScoreWidth + slimBlockBP.TextMargin
 
 	// Calculate required card width
 	cardWidth := (0 +
