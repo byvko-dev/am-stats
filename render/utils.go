@@ -15,19 +15,20 @@ import (
 
 // General settings
 var (
-	FontPath        = (config.AssetsPath + "/font.ttf")
-	FontSizeHeader  = 36.0
-	FontSize        = 24.0
-	TextMargin      = FontSize / 2
-	FrameWidth      = 900
-	FrameMargin     = 50
-	BaseCardWidth   = FrameWidth - (2 * FrameMargin)
-	BaseCardHeigh   = 150
-	BaseCardColor   = color.RGBA{30, 30, 30, 204}
-	DecorLinesColor = color.RGBA{80, 80, 80, 255}
-	BigTextColor    = color.RGBA{255, 255, 255, 255}
-	SmallTextColor  = color.RGBA{204, 204, 204, 255}
-	AltTextColor    = color.RGBA{100, 100, 100, 255}
+	FontPath         = (config.AssetsPath + "/font.ttf")
+	FontSizeHeader   = 36.0
+	FontSize         = 24.0
+	TextMargin       = FontSize / 2
+	FrameWidth       = 900
+	FrameMargin      = 50
+	BaseCardWidth    = FrameWidth - (2 * FrameMargin)
+	BaseCardHeigh    = 150
+	BaseCardColor    = color.RGBA{30, 30, 30, 204}
+	DecorLinesColor  = color.RGBA{80, 80, 80, 255}
+	BigTextColor     = color.RGBA{255, 255, 255, 255}
+	SmallTextColor   = color.RGBA{204, 204, 204, 255}
+	AltTextColor     = color.RGBA{100, 100, 100, 255}
+	ProtagonistColor = color.RGBA{255, 165, 0, 255}
 
 	PremiumColor  = color.RGBA{255, 223, 0, 255}
 	VerifiedColor = color.RGBA{72, 167, 250, 255}

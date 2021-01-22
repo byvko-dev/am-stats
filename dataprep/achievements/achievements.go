@@ -94,24 +94,25 @@ func ExportClanAchievementsLbByRealm(realm string, days int, limit int, medals .
 }
 
 // ExportAchievementsLeaderboard - Export achievements from a session
-func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, checkPos int, err error) {
+func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, chackData AchievementsPIDPos, err error) {
 	// Get realm players
 	pidSlice, err := dbPlayers.GetRealmPlayers(realm)
 	if err != nil {
-		return export, checkPos, err
+		return export, chackData, err
 	}
 
 	// Get Leaderboard
 	export, _, err = exportAchievementsByPIDs(pidSlice, days, medals...)
 	if err != nil {
-		return export, checkPos, err
+		return export, chackData, err
 	}
 
 	// Check Pid position
 	if checkPid != 0 {
 		for i, d := range export {
 			if d.PID == checkPid {
-				checkPos = i + 1
+				chackData.Position = i + 1
+				chackData.AchievementsPlayerData = export[i]
 				break
 			}
 		}
@@ -119,9 +120,9 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 
 	// Check limit
 	if len(export) > limit {
-		return export[:limit], checkPos, err
+		return export[:limit], chackData, err
 	}
-	return export, checkPos, err
+	return export, chackData, err
 }
 
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs
@@ -133,7 +134,7 @@ func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWei
 	}
 
 	// Get data
-	data, err := dbAch.GetPlayerAchievementsByPIDs(pidSlice, fields...)
+	data, err := dbAch.GetPlayerAchievementsByPIDs(pidSlice, medals...)
 	if err != nil {
 		return []dbAch.AchievementsPlayerData{}, totalScore, err
 	}

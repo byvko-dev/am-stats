@@ -6,6 +6,7 @@ import (
 	"log"
 	"sync"
 
+	dataprep "github.com/cufee/am-stats/dataprep/achievements"
 	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	mongodbapi "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	dbGloss "github.com/cufee/am-stats/mongodbapi/v1/glossary"
@@ -14,7 +15,7 @@ import (
 )
 
 // PlayerAchievementsLbImage -
-func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, bgImage image.Image, medals []mongodbapi.MedalWeight) (finalImage image.Image, err error) {
+func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData dataprep.AchievementsPIDPos, bgImage image.Image, medals []mongodbapi.MedalWeight) (finalImage image.Image, err error) {
 	// Get icon URLs
 	for i, m := range medals {
 		m.IconURL, err = dbGloss.GetAchievementIcon(m.Name)
@@ -90,7 +91,12 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, bgImage imag
 			// Prep card context
 			card := render.PrepNewCard(1, 0.5, cardWidth)
 			card.Index = i
-			if err := makePlayerSlimCard(&card, slimBlockBP, &player, i, player.Medals); err != nil {
+			blueprint := slimBlockBP
+			if player.PID == checkData.PID {
+				blueprint = cardBlockData(slimBlockBP)
+				blueprint.TextColor = render.ProtagonistColor
+			}
+			if err := makePlayerSlimCard(&card, blueprint, &player, i, player.Medals); err != nil {
 				log.Println(err)
 				return
 			}
@@ -138,6 +144,7 @@ func makePlayerSlimCard(card *render.CardData, blueprint cardBlockData, data *db
 	nameBlock.BigText = playerName
 	nameBlock.Width = int(blueprint.NameMargin)
 	nameBlock.BigTextSize = blueprint.TextSize
+	nameBlock.BigTextColor = blueprint.TextColor
 	nameBlock.TextAlign = -1
 
 	if err := renderBlock(&nameBlock); err != nil {

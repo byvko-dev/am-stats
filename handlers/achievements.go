@@ -227,7 +227,7 @@ func HandlerPlayersLeaderboardImage(c *fiber.Ctx) error {
 	}
 
 	// Get data
-	data, _, err := dataprep.ExportAchievementsLeaderboard(request.Realm, request.Days, request.Limit, request.PlayerID, request.Medals...)
+	data, checkData, err := dataprep.ExportAchievementsLeaderboard(request.Realm, request.Days, request.Limit, request.PlayerID, request.Medals...)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -235,8 +235,12 @@ func HandlerPlayersLeaderboardImage(c *fiber.Ctx) error {
 		})
 	}
 
+	if checkData.Position > request.Limit {
+		data = append(data, checkData.AchievementsPlayerData)
+	}
+
 	// Render image
-	image, err := render.PlayerAchievementsLbImage(data, bgImage, request.Medals)
+	image, err := render.PlayerAchievementsLbImage(data, checkData, bgImage, request.Medals)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{

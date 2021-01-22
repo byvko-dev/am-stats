@@ -28,6 +28,7 @@ type cardBlockData struct {
 	ClanTagMargin     float64
 	SpecialBlockWidth float64
 	// Text
+	TextColor      color.RGBA
 	BigTextColor   color.RGBA
 	SmallTextColor color.RGBA
 	BigText        string
@@ -58,6 +59,7 @@ func (c *cardBlockData) DefaultSlim() {
 	c.SmallTextSize = resieFont(c.BigTextSize, c.TextCoeff, 10)
 	c.BlockTextSize = resieFont(float64(render.FontSize), 125, 100)
 
+	c.TextColor = render.BigTextColor
 	c.BigTextColor = render.BigTextColor
 	c.AltTextColor = render.AltTextColor
 	c.SmallTextColor = render.SmallTextColor

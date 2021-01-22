@@ -72,16 +72,16 @@ func GetPlayerAchievementsLb(realm string, fields ...string) (data []Achievement
 }
 
 // GetPlayerAchievementsByPIDs - Get last cached players achievements from player IDs slice
-func GetPlayerAchievementsByPIDs(pidSLice []int, fields ...string) (data []AchievementsPlayerData, err error) {
+func GetPlayerAchievementsByPIDs(pidSLice []int, medals ...MedalWeight) (data []AchievementsPlayerData, err error) {
 	opts := options.FindOne()
 	// Generate projection
-	if len(fields) > 0 {
+	if len(medals) > 0 {
 		var project bson.D
 		// Loop over field, compile project and sort
-		for _, f := range fields {
-			project = append(project, bson.E{Key: fmt.Sprintf("data.achievements.%s", f), Value: 1}) // Show field
+		for _, m := range medals {
+			query := fmt.Sprintf("data.achievements.%s", m.Name)
+			project = append(project, bson.E{Key: query, Value: 1}) // Show field
 		}
-		project = append(project, bson.E{Key: "_id", Value: 1}) // Always show player ID
 		opts.Projection = project
 	}
 
