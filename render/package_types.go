@@ -8,9 +8,11 @@ import (
 
 // CardData -
 type CardData struct {
-	Image   image.Image
-	Index   int
-	Context *gg.Context
+	Image      image.Image
+	Index      int
+	Context    *gg.Context
+	LastXOffs  int
+	BlockWidth float64
 }
 
 // AllCards - A slice of all generated cards

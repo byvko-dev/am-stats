@@ -132,7 +132,7 @@ func HandleClanAchievementsLbExport(c *fiber.Ctx) error {
 	}
 
 	// Get data
-	export, err := achievements.ExportClanAchievementsLbByTag(request.Realm, request.Days, request.Limit, request.Medals...)
+	export, err := achievements.ExportClanAchievementsLbByRealm(request.Realm, request.Days, request.Limit, request.Medals...)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{

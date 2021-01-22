@@ -1,6 +1,8 @@
 package handlers
 
-import dataprep "github.com/cufee/am-stats/dataprep/achievements"
+import (
+	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
+)
 
 // StatsRequest - Request for stats image
 type StatsRequest struct {
@@ -16,14 +18,14 @@ type StatsRequest struct {
 
 // AchievementsRequest - Request for achievements data
 type AchievementsRequest struct {
-	BgURL     string                 `json:"bg_url"`
-	Premium   bool                   `json:"premium"`
-	Verified  bool                   `json:"verified"`
-	ClanTag   string                 `json:"clan_tag"`
-	PlayerID  int                    `json:"player_id"`
-	Days      int                    `json:"days"`
-	Limit     int                    `json:"limit"`
-	Highlight bool                   `json:"highlight"`
-	Realm     string                 `json:"realm"`
-	Medals    []dataprep.MedalWeight `json:"medals"`
+	BgURL     string              `json:"bg_url"`
+	Premium   bool                `json:"premium"`
+	Verified  bool                `json:"verified"`
+	ClanTag   string              `json:"clan_tag"`
+	PlayerID  int                 `json:"player_id"`
+	Days      int                 `json:"days"`
+	Limit     int                 `json:"limit"`
+	Highlight bool                `json:"highlight"`
+	Realm     string              `json:"realm"`
+	Medals    []dbAch.MedalWeight `json:"medals"`
 }

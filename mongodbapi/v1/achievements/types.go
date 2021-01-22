@@ -6,6 +6,14 @@ import (
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
 
+// MedalWeight - Object for calculating per medal scores
+type MedalWeight struct {
+	Name    string `json:"medal"`
+	Weight  int    `json:"weight"`
+	IconURL string `json:"-"`
+	Score   int    `json:"-"`
+}
+
 // AchievementsPlayerData -
 type AchievementsPlayerData struct {
 	Timestamp time.Time               `json:"timestamp,omitempty" bson:"timestamp"`
@@ -16,6 +24,7 @@ type AchievementsPlayerData struct {
 	Realm     string                  `json:"realm,omitempty" bson:"realm"`
 	Data      wgapi.AchievementsFrame `json:"data" bson:"data"`
 	Score     int                     `json:"score" bson:"score"`
+	Medals    []MedalWeight           `json:"-" bson:"-"`
 }
 
 // ClanAchievements -
@@ -27,4 +36,5 @@ type ClanAchievements struct {
 	Timestamp time.Time               `json:"timestamp,omitempty" bson:"timestamp"`
 	Data      wgapi.AchievementsFrame `json:"data,omitempty" bson:"data,omitempty"`
 	Score     int                     `json:"score,omitempty" bson:"score,omitempty"`
+	Medals    []MedalWeight           `json:"-" bson:"-"`
 }

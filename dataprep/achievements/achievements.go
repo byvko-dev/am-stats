@@ -22,7 +22,7 @@ func ExportAchievementsSession(pid int, realm string, days int) (wgapi.Achieveme
 }
 
 // ExportClanAchievementsByID - Export clan achievements LB by clan ID
-func ExportClanAchievementsByID(clanID int, realm string, days int, medals ...MedalWeight) (export []dbAch.AchievementsPlayerData, clanTotalScore int, err error) {
+func ExportClanAchievementsByID(clanID int, realm string, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, clanTotalScore int, err error) {
 	// Get clan members from WG
 	ClanProfile, err := wgapi.ClanDataByID(clanID, realm)
 	if err != nil {
@@ -34,7 +34,7 @@ func ExportClanAchievementsByID(clanID int, realm string, days int, medals ...Me
 }
 
 // ExportClanAchievementsByTag - Export clan achievements by clan tag
-func ExportClanAchievementsByTag(clanTag string, realm string, days int, medals ...MedalWeight) (export []dbAch.AchievementsPlayerData, clanTotalScore int, err error) {
+func ExportClanAchievementsByTag(clanTag string, realm string, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, clanTotalScore int, err error) {
 	// Get clan members from WG
 	ClanProfile, err := wgapi.ClanDataByTag(clanTag, realm)
 	if err != nil {
@@ -45,8 +45,8 @@ func ExportClanAchievementsByTag(clanTag string, realm string, days int, medals 
 	return exportAchievementsByPIDs(ClanProfile.MembersIds, days, medals...)
 }
 
-// ExportClanAchievementsLbByTag - Export clan achievements LB by realm
-func ExportClanAchievementsLbByTag(realm string, days int, limit int, medals ...MedalWeight) (export []dbAch.ClanAchievements, err error) {
+// ExportClanAchievementsLbByRealm - Export clan achievements LB by realm
+func ExportClanAchievementsLbByRealm(realm string, days int, limit int, medals ...dbAch.MedalWeight) (export []dbAch.ClanAchievements, err error) {
 	// Get realm players
 	pidSlice, err := dbPlayers.GetRealmPlayers(realm)
 	if err != nil {
@@ -94,7 +94,7 @@ func ExportClanAchievementsLbByTag(realm string, days int, limit int, medals ...
 }
 
 // ExportAchievementsLeaderboard - Export achievements from a session
-func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid int, medals ...MedalWeight) (export []dbAch.AchievementsPlayerData, checkPos int, err error) {
+func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, checkPos int, err error) {
 	// Get realm players
 	pidSlice, err := dbPlayers.GetRealmPlayers(realm)
 	if err != nil {
@@ -125,7 +125,7 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 }
 
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs
-func exportAchievementsByPIDs(pidSlice []int, days int, medals ...MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
+func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
 	// Generate fields
 	fields := []string{}
 	for _, m := range medals {

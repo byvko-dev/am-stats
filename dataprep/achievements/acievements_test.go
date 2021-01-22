@@ -3,10 +3,12 @@ package dataprep
 import (
 	"log"
 	"testing"
+
+	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 )
 
 func TestExportClanAchievementsByTag(t *testing.T) {
-	medals := []MedalWeight{{Name: "markofmastery", Weight: 1}}
+	medals := []dbAch.MedalWeight{{Name: "markofmastery", Weight: 1}}
 	clanTag := "RGN"
 	realm := "NA"
 
