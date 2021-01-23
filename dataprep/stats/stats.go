@@ -221,7 +221,7 @@ func ExportSessionAsStruct(pid int, realm string, days int) (export ExportData, 
 	}
 	export.PlayerDetails = playerProfile
 	export.SessionStats = session
-	export.LastSession.Vehicles = vehicleMap
+	export.LastSession = lastRetro
 	export.TimeToComplete = time.Now().Sub(timerStart).Seconds()
 
 	return export, nil

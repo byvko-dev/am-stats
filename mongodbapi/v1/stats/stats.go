@@ -57,19 +57,21 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 	if days > 0 {
 		// Setting days to negative to look back
 		queryOptions.SetSort(bson.M{"timestamp": 1})
-		sessionTime := time.Now().AddDate(0, 0, -(days + 1))
+		sessionTime := time.Now().Add(time.Hour * 24 * -(time.Duration(days) + 1))
 		filters = append(filters, mgo.FilterPair{Key: "timestamp", Value: bson.M{"$gt": sessionTime}})
 	}
 	query := mgo.MakeFilter(filters...)
 	// Get session
 	var retroSession RetroSession
 	err = sessionsCollection.FindOne(ctx, query, &queryOptions).Decode(&retroSession)
+
+	log.Print(retroSession.PlayerID)
+
 	if err != nil {
 		return session, err
 	}
-	// Comvert to Session
-	var retroConv Convert = retroSession
-	return retroConv.ToSession(), nil
+	// Convert to Session
+	return retroSession.ToSession(), nil
 }
 
 // GetPlayerSessionAchievements -
