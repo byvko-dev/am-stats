@@ -5,6 +5,7 @@ import (
 	"image"
 	"log"
 	"sync"
+	"time"
 
 	dataprep "github.com/cufee/am-stats/dataprep/achievements"
 	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
@@ -35,6 +36,7 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 	slimBlockBP.BigTextSize = (slimBlockBP.BigTextSize * 3 / 2)
 
 	// Get longest name
+	var maxTimestamp time.Time
 	var maxNameWidth float64
 	var maxClanTagWidth float64
 	var maxPositionWidth float64
@@ -66,6 +68,11 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 		}
 		if sW > maxScoreWidth { // Check score width
 			maxScoreWidth = sW
+		}
+
+		// Get max timestamp
+		if player.Timestamp.After(maxTimestamp) {
+			maxTimestamp = player.Timestamp
 		}
 	}
 
@@ -173,7 +180,8 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 		finalCards.Cards = append(finalCards.Cards, c)
 	}
 
-	finalCtx, err := render.AddAllCardsToFrame(finalCards, "Achievements Leaderboard", bgImage)
+	header := fmt.Sprintf("Achievements Leaderboard | Updated %v min ago", int(time.Now().Sub(maxTimestamp).Minutes()))
+	finalCtx, err := render.AddAllCardsToFrame(finalCards, header, bgImage)
 	if err != nil {
 		return nil, err
 	}

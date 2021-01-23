@@ -73,6 +73,10 @@ func ExportClanAchievementsLbByRealm(realm string, days int, limit int, medals .
 			clanData.Data = setField(clanData.Data, m.Name, (oldVal + pScore))
 		}
 
+		if clanData.Timestamp.Before(p.Timestamp) {
+			clanData.Timestamp = p.Timestamp
+		}
+
 		clanData.ClanID = p.ClanID
 		clanData.ClanTag = p.ClanTag
 		clanData.Score += p.Score

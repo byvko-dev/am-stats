@@ -5,6 +5,7 @@ import (
 	"image"
 	"log"
 	"sync"
+	"time"
 
 	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	mongodbapi "github.com/cufee/am-stats/mongodbapi/v1/achievements"
@@ -34,6 +35,7 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image
 	slimBlockBP.BigTextSize = (slimBlockBP.BigTextSize * 3 / 2)
 
 	// Get longest name
+	var maxTimestamp time.Time
 	var maxClanTagWidth float64
 	var maxPositionWidth float64
 	checkCtx := gg.NewContext(1, 1)
@@ -62,6 +64,11 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image
 		}
 		if mW > maxClanPlayersWidth { // Check score width
 			maxClanPlayersWidth = mW
+		}
+
+		// Get max timestamp
+		if clan.Timestamp.After(maxTimestamp) {
+			maxTimestamp = clan.Timestamp
 		}
 	}
 
@@ -154,7 +161,8 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image
 		finalCards.Cards = append(finalCards.Cards, c)
 	}
 
-	finalCtx, err := render.AddAllCardsToFrame(finalCards, "Achievements Leaderboard", bgImage)
+	header := fmt.Sprintf("Achievements Leaderboard | Updated %v min ago", int(time.Now().Sub(maxTimestamp).Minutes()))
+	finalCtx, err := render.AddAllCardsToFrame(finalCards, header, bgImage)
 	if err != nil {
 		return nil, err
 	}

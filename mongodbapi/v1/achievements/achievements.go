@@ -77,6 +77,7 @@ func GetPlayerAchievementsByPIDs(pidSLice []int, medals ...MedalWeight) (data []
 	// Generate projection
 	if len(medals) > 0 {
 		var project bson.D
+		project = append(project, bson.E{Key: "timestamp", Value: 1}) // Show timestamp
 		// Loop over field, compile project and sort
 		for _, m := range medals {
 			query := fmt.Sprintf("data.achievements.%s", m.Name)
