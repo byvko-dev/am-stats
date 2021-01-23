@@ -71,11 +71,9 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 			lastSession := data.LastSession.Vehicles[strconv.Itoa(tank.TankID)]
 			var tankCard render.CardData
 			if i < 3 {
-				var tankCard render.CardData
 				render.PrepNewCard(&tankCard, (i + 2), 1.0, 0)
 				tankCard, err = makeDetailedCard(tankCard, tank, lastSession)
 			} else {
-				var tankCard render.CardData
 				render.PrepNewCard(&tankCard, (i + 2), 0.5, 0)
 				tankCard, err = makeSlimCard(tankCard, tank, lastSession)
 			}
