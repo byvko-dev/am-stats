@@ -64,9 +64,6 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 	// Get session
 	var retroSession RetroSession
 	err = sessionsCollection.FindOne(ctx, query, &queryOptions).Decode(&retroSession)
-
-	log.Print(retroSession.PlayerID)
-
 	if err != nil {
 		return session, err
 	}

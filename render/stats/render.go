@@ -655,7 +655,7 @@ func makeAllStatsCard(card render.CardData, data stats.ExportData) (render.CardD
 		// Ace data available
 		streakBlock.BigText = "-"
 		if data.SessionStats.Achievements.Achievements.MarkOfMastery > 0 {
-			streakBlock.SmallText = strconv.Itoa(data.SessionStats.Achievements.Achievements.MarkOfMastery)
+			streakBlock.BigText = strconv.Itoa(data.SessionStats.Achievements.Achievements.MarkOfMastery)
 		}
 		streakBlock.SmallText = strconv.Itoa(data.LastSession.Achievements.Achievements.MarkOfMastery)
 		streakBlock.AltText = "Ace Tanker"
