@@ -96,7 +96,6 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image
 			clanExtra := cardBlockData(blueprint)
 			clanExtra.BigText = fmt.Sprintf("[%s]", clan.ClanTag)
 			clanExtra.BigTextSize = blueprint.TextSize
-			clanExtra.TextAlign = -1
 			tagBlock.Extra = &clanExtra
 			card.Blocks = append(card.Blocks, tagBlock)
 

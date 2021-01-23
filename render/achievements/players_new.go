@@ -126,7 +126,6 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 			clanExtra.BigText = player.ClanTag
 			clanExtra.BigTextSize = blueprint.TextSize
 			clanExtra.BigTextColor = blueprint.SmallTextColor
-			clanExtra.TextAlign = -1
 			tagBlock.Extra = &clanExtra
 			card.Blocks = append(card.Blocks, tagBlock)
 
