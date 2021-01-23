@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"log"
 	"net/http"
 	"reflect"
 	"strings"
+	"sync"
 
 	mongodbapi "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	"github.com/cufee/am-stats/render"
@@ -171,6 +173,48 @@ func addScoreAndMedals(card *render.CardData, blueprint cardBlockData, score int
 		card.Context.DrawImage(medalBlock.Context.Image(), card.LastXOffs, 0)
 		card.LastXOffs += int(card.BlockWidth)
 	}
+
+	// Render image
+	card.Image = card.Context.Image()
+	return nil
+}
+
+// renderCardBlocks - Render all card blocks
+func renderCardBlocks(card *render.CardData, position int, medals []mongodbapi.MedalWeight) error {
+	// Atomic counter
+	var wg sync.WaitGroup
+
+	for i, block := range card.Blocks {
+		if block.Extra == nil {
+			continue
+		}
+
+		wg.Add(1)
+		go func(block render.Block, i int) {
+			defer wg.Done()
+
+			// Fill block Width and Height for legacy code
+			blockExtra := block.Extra.(*cardBlockData)
+			blockExtra.Height = card.Context.Height()
+			blockExtra.Width = block.Width
+
+			// Render block image
+			if err := renderBlock(blockExtra); err != nil {
+				log.Print(err)
+				return
+			}
+
+			// Calculate rendering offset
+			var offset int = card.FrameMargin
+			for _, b := range card.Blocks[:i] {
+				offset += b.Width
+			}
+
+			// Draw block
+			card.Context.DrawImage(blockExtra.Context.Image(), offset, 0)
+		}(block, i)
+	}
+	wg.Wait()
 
 	// Render image
 	card.Image = card.Context.Image()

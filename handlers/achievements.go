@@ -334,7 +334,7 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 	}
 
 	// Render image
-	image, err := render.ClanAchievementsLbImage(data, bgImage, request.Medals)
+	image, err := render.ClansAchievementsLbImage(data, bgImage, request.Medals)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{

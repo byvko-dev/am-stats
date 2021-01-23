@@ -6,7 +6,6 @@ import (
 	"log"
 	"sync"
 
-	dataprep "github.com/cufee/am-stats/dataprep/achievements"
 	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	mongodbapi "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	dbGloss "github.com/cufee/am-stats/mongodbapi/v1/glossary"
@@ -14,8 +13,8 @@ import (
 	"github.com/fogleman/gg"
 )
 
-// PlayerAchievementsLbImage -
-func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData dataprep.AchievementsPIDPos, bgImage image.Image, medals []mongodbapi.MedalWeight) (finalImage image.Image, err error) {
+// ClansAchievementsLbImage -
+func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image, medals []mongodbapi.MedalWeight) (finalImage image.Image, err error) {
 	// Get icon URLs
 	for i, m := range medals {
 		m.IconURL, err = dbGloss.GetAchievementIcon(m.Name)
@@ -35,31 +34,25 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 	slimBlockBP.BigTextSize = (slimBlockBP.BigTextSize * 3 / 2)
 
 	// Get longest name
-	var maxNameWidth float64
 	var maxClanTagWidth float64
 	var maxPositionWidth float64
 	checkCtx := gg.NewContext(1, 1)
 	checkBlock := cardBlockData(slimBlockBP)
 	maxScoreWidth, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.SmallTextSize, "Score")
+	maxClanPlayersWidth, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.SmallTextSize, "Players")
 
 	// Prep block blueprints
-	for i, player := range data {
+	for i, clan := range data {
 		// Fix player clan tag
-		if player.ClanTag != "" {
-			player.ClanTag = fmt.Sprintf("[%s]", player.ClanTag)
-			data[i].ClanTag = player.ClanTag
-		}
+		clan.ClanTag = fmt.Sprintf("[%s]", clan.ClanTag)
 
 		// Get text size
-		cW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, player.ClanTag)
-		nW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, player.Nickname)
+		cW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, clan.ClanTag)
 		pW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, fmt.Sprintf("#%v", i+1))
-		sW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.BigTextSize, fmt.Sprint(player.Score))
+		sW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.BigTextSize, fmt.Sprint(clan.Score))
+		mW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.BigTextSize, fmt.Sprint(clan.Members))
 		if cW > maxClanTagWidth { // Check clan tag width
 			maxClanTagWidth = cW
-		}
-		if nW > maxNameWidth { // Check name width
-			maxNameWidth = nW
 		}
 		if pW > maxPositionWidth { // Check position width
 			maxPositionWidth = pW
@@ -67,23 +60,22 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 		if sW > maxScoreWidth { // Check score width
 			maxScoreWidth = sW
 		}
+		if mW > maxClanPlayersWidth { // Check score width
+			maxClanPlayersWidth = mW
+		}
 	}
 
 	// Work on cards in go routines
-	for i, player := range data {
+	for i, clan := range data {
 		wg.Add(1)
 
-		go func(player dbAch.AchievementsPlayerData, i int) {
+		go func(clan dbAch.ClanAchievements, i int) {
 			defer wg.Done()
 
 			// Pre card blocks
 			var card render.CardData
 			card.FrameMargin = render.FrameMargin / 2
 			blueprint := slimBlockBP
-			if player.PID == checkData.PID {
-				blueprint = cardBlockData(slimBlockBP)
-				blueprint.TextColor = render.ProtagonistColor
-			}
 
 			// Position
 			var posBlock render.Block
@@ -91,48 +83,41 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 			// Prep extra block data
 			posExtra := cardBlockData(blueprint)
 			posExtra.BigText = fmt.Sprintf("#%v", i+1)
-			if player.PID == checkData.PID {
-				posExtra.BigText = fmt.Sprintf("#%v", checkData.Position)
-			}
 			posExtra.BigTextSize = blueprint.TextSize
 			posExtra.BigTextColor = blueprint.SmallTextColor
 			posExtra.TextAlign = -1
 			posBlock.Extra = &posExtra
 			card.Blocks = append(card.Blocks, posBlock)
 
-			// Name
-			var nameBlock render.Block
-			nameBlock.Width = int(maxNameWidth + blueprint.TextMargin/2)
-			if player.PID == checkData.PID {
-				nameBlock.TextColor = render.ProtagonistColor
-			}
-			// Prep extra block data
-			nameExtra := cardBlockData(blueprint)
-			nameExtra.BigText = player.Nickname
-			nameExtra.BigTextSize = blueprint.TextSize
-			nameExtra.BigTextColor = blueprint.TextColor
-			nameExtra.TextAlign = -1
-			nameBlock.Extra = &nameExtra
-			card.Blocks = append(card.Blocks, nameBlock)
-
 			// ClanTag
 			var tagBlock render.Block
 			tagBlock.Width = int(maxClanTagWidth + blueprint.TextMargin/2)
 			// Prep extra block data
 			clanExtra := cardBlockData(blueprint)
-			clanExtra.BigText = player.ClanTag
+			clanExtra.BigText = fmt.Sprintf("[%s]", clan.ClanTag)
 			clanExtra.BigTextSize = blueprint.TextSize
-			clanExtra.BigTextColor = blueprint.SmallTextColor
 			clanExtra.TextAlign = -1
 			tagBlock.Extra = &clanExtra
 			card.Blocks = append(card.Blocks, tagBlock)
+
+			// Clan players
+			var membersBlock render.Block
+			membersBlock.Width = int(maxClanPlayersWidth + blueprint.TextMargin)
+			// Prep extra block data
+			membersExtra := cardBlockData(blueprint)
+			membersExtra.BigText = fmt.Sprintf("%v", clan.Members)
+			membersExtra.SmallText = "Players"
+			membersExtra.BigTextSize = blueprint.TextSize
+			membersExtra.BigTextColor = blueprint.SmallTextColor
+			membersBlock.Extra = &membersExtra
+			card.Blocks = append(card.Blocks, membersBlock)
 
 			// Score
 			var scoreBlock render.Block
 			scoreBlock.Width = int(maxScoreWidth + blueprint.TextMargin/2)
 			// Prep extra block data
 			scoreExtra := cardBlockData(blueprint)
-			scoreExtra.BigText = fmt.Sprint(player.Score)
+			scoreExtra.BigText = fmt.Sprint(clan.Score)
 			scoreExtra.SmallText = "Score"
 			scoreBlock.Extra = &scoreExtra
 			card.Blocks = append(card.Blocks, scoreBlock)
@@ -143,7 +128,7 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 				medalBlock.Width = int(blueprint.IconSize) * 3 / 2
 				medalExtra := cardBlockData(blueprint)
 				// Prep extra block data
-				medalExtra.AltText = fmt.Sprint(getField(player.Data, m.Name))
+				medalExtra.AltText = fmt.Sprint(getField(clan.Data, m.Name))
 				medalExtra.AltTextColor = blueprint.SmallTextColor
 				medalExtra.IconURL = m.IconURL
 				medalExtra.TextAlign = 1
@@ -154,14 +139,14 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 			// Prep card context
 			render.PrepNewCard(&card, 1, 0.5, 0)
 			card.Index = i
-			if err := renderCardBlocks(&card, i, player.Medals); err != nil {
+			if err := renderCardBlocks(&card, i, clan.Medals); err != nil {
 				log.Println(err)
 				return
 			}
 
 			cardsChan <- card
 			return
-		}(player, i)
+		}(clan, i)
 	}
 	wg.Wait()
 	close(cardsChan)
