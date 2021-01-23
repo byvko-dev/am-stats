@@ -87,7 +87,8 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 
 			// Position
 			var posBlock render.Block
-			posBlock.Width = int(maxPositionWidth + blueprint.TextMargin/2)
+			posBlock.Width = int(maxPositionWidth)
+			posBlock.Padding = int(blueprint.TextMargin / 2)
 			// Prep extra block data
 			posExtra := cardBlockData(blueprint)
 			posExtra.BigText = fmt.Sprintf("#%v", i+1)
@@ -102,7 +103,8 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 
 			// Name
 			var nameBlock render.Block
-			nameBlock.Width = int(maxNameWidth + blueprint.TextMargin/2)
+			nameBlock.Width = int(maxNameWidth)
+			nameBlock.Padding = int(blueprint.TextMargin / 2)
 			if player.PID == checkData.PID {
 				nameBlock.TextColor = render.ProtagonistColor
 			}
@@ -117,7 +119,8 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 
 			// ClanTag
 			var tagBlock render.Block
-			tagBlock.Width = int(maxClanTagWidth + blueprint.TextMargin/2)
+			tagBlock.Width = int(maxClanTagWidth)
+			tagBlock.Padding = int(blueprint.TextMargin / 4)
 			// Prep extra block data
 			clanExtra := cardBlockData(blueprint)
 			clanExtra.BigText = player.ClanTag
@@ -129,7 +132,8 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 
 			// Score
 			var scoreBlock render.Block
-			scoreBlock.Width = int(maxScoreWidth + blueprint.TextMargin/2)
+			scoreBlock.Width = int(maxScoreWidth)
+			scoreBlock.Padding = int(blueprint.TextMargin / 2)
 			// Prep extra block data
 			scoreExtra := cardBlockData(blueprint)
 			scoreExtra.BigText = fmt.Sprint(player.Score)
@@ -140,7 +144,7 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 			// Fill medal scores and blocks
 			for _, m := range medals {
 				var medalBlock render.Block
-				medalBlock.Width = int(blueprint.IconSize) * 3 / 2
+				medalBlock.Width = int(blueprint.IconSize)
 				medalExtra := cardBlockData(blueprint)
 				// Prep extra block data
 				medalExtra.AltText = fmt.Sprint(getField(player.Data, m.Name))

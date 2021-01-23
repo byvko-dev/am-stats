@@ -103,7 +103,7 @@ func prepBgContext(totalHeight int, width int, bgImage image.Image) (frameCtx *g
 func PrepNewCard(card *CardData, index int, heightMod float64, width int) {
 	if len(card.Blocks) > 0 {
 		for _, b := range card.Blocks {
-			width += b.Width
+			width += b.Width + b.Padding
 		}
 		width += card.FrameMargin * 2
 	}

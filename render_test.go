@@ -96,7 +96,7 @@ func TestClanAchievementsLbImage(t *testing.T) {
 	}
 
 	// Render image
-	image, err := render.ClanAchievementsLbImage(data, bgImage, request.Medals)
+	image, err := render.ClansAchievementsLbImage(data, bgImage, request.Medals)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()

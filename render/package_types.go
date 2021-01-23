@@ -37,6 +37,7 @@ type Block struct {
 	TextMargin     float64
 	TextAlign      int
 	// Dimensions
+	Padding int
 	Width   int
 	Height  int
 	Context *gg.Context

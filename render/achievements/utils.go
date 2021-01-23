@@ -1,7 +1,6 @@
 package render
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -19,6 +18,7 @@ import (
 
 func renderBlock(block *cardBlockData) (err error) {
 	ctx := gg.NewContext(block.Width, block.Height)
+	defer func() { block.Context = ctx }()
 
 	// Color is requested
 	if block.Color != (color.RGBA{}) {
@@ -43,6 +43,11 @@ func renderBlock(block *cardBlockData) (err error) {
 
 	// Icon and Alt text
 	if block.IconURL != "" {
+		// Center icon if there is no text
+		if block.AltText == "" {
+			lastY = float64(block.Height-block.IconSize) / 2
+		}
+
 		// Load Icon
 		var icon image.Image
 		if icon, err = loadIcon(block.IconURL); err != nil {
@@ -66,6 +71,7 @@ func renderBlock(block *cardBlockData) (err error) {
 			drawX := getAlignedX(0, float64(block.IconSize), altTextW) + IcondrawX
 			ctx.DrawString(block.AltText, drawX, lastY)
 		}
+		return nil
 	}
 
 	// Big text
@@ -88,8 +94,6 @@ func renderBlock(block *cardBlockData) (err error) {
 
 		ctx.DrawString(block.SmallText, smlTextDrwX, lastY)
 	}
-
-	block.Context = ctx
 	return err
 }
 
@@ -146,39 +150,6 @@ func getField(data wgapi.AchievementsFrame, field string) int {
 	return int(f.Int())
 }
 
-func addScoreAndMedals(card *render.CardData, blueprint cardBlockData, score int, position int, medals []mongodbapi.MedalWeight) error {
-	// Score Block
-	scoreBlock := cardBlockData(blueprint)
-	scoreBlock.BigText = fmt.Sprint(score)
-	scoreBlock.Width = int(blueprint.SpecialBlockWidth)
-	scoreBlock.SmallText = "Score"
-
-	if err := renderBlock(&scoreBlock); err != nil {
-		return err
-	}
-	card.Context.DrawImage(scoreBlock.Context.Image(), card.LastXOffs, 0)
-	card.LastXOffs += scoreBlock.Width
-
-	//  Medal Blocks
-	for _, m := range medals {
-		medalBlock := cardBlockData(blueprint)
-		medalBlock.AltText = fmt.Sprint(m.Score)
-		medalBlock.AltTextColor = blueprint.SmallTextColor
-		medalBlock.IconURL = m.IconURL
-		medalBlock.TextAlign = 1
-
-		if err := renderBlock(&medalBlock); err != nil {
-			return err
-		}
-		card.Context.DrawImage(medalBlock.Context.Image(), card.LastXOffs, 0)
-		card.LastXOffs += int(card.BlockWidth)
-	}
-
-	// Render image
-	card.Image = card.Context.Image()
-	return nil
-}
-
 // renderCardBlocks - Render all card blocks
 func renderCardBlocks(card *render.CardData, position int, medals []mongodbapi.MedalWeight) error {
 	// Atomic counter
@@ -196,7 +167,7 @@ func renderCardBlocks(card *render.CardData, position int, medals []mongodbapi.M
 			// Fill block Width and Height for legacy code
 			blockExtra := block.Extra.(*cardBlockData)
 			blockExtra.Height = card.Context.Height()
-			blockExtra.Width = block.Width
+			blockExtra.Width = block.Width + block.Padding
 
 			// Render block image
 			if err := renderBlock(blockExtra); err != nil {
@@ -207,7 +178,7 @@ func renderCardBlocks(card *render.CardData, position int, medals []mongodbapi.M
 			// Calculate rendering offset
 			var offset int = card.FrameMargin
 			for _, b := range card.Blocks[:i] {
-				offset += b.Width
+				offset += b.Width + b.Padding
 			}
 
 			// Draw block
