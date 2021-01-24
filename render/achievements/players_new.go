@@ -52,10 +52,16 @@ func PlayerAchievementsLbImage(data []dbAch.AchievementsPlayerData, checkData da
 			data[i].ClanTag = player.ClanTag
 		}
 
+		// Fix position
+		position := i + 1
+		if player.PID == checkData.PID {
+			position = checkData.Position
+		}
+
 		// Get text size
 		cW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, player.ClanTag)
 		nW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, player.Nickname)
-		pW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, fmt.Sprintf("#%v", i+1))
+		pW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, fmt.Sprintf("#%v", position))
 		sW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.BigTextSize, fmt.Sprint(player.Score))
 		if cW > maxClanTagWidth { // Check clan tag width
 			maxClanTagWidth = cW
