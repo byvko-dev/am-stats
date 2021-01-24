@@ -9,6 +9,7 @@ import (
 	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
+	"github.com/cufee/am-stats/utils"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
 
@@ -47,17 +48,27 @@ func ExportClanAchievementsByTag(clanTag string, realm string, days int, medals 
 
 // ExportClanAchievementsLbByRealm - Export clan achievements LB by realm
 func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit int, medals ...dbAch.MedalWeight) (export []dbAch.ClanAchievements, checkData dbAch.ClanAchievements, err error) {
+	// Timer
+	timer := utils.Timer{Name: "get players on realm", FunctionName: "ExportClanAchievementsLbByRealm", Enabled: false}
+	timer.Start()
+
 	// Get realm players
 	pidSlice, err := dbPlayers.GetRealmPlayers(realm)
 	if err != nil {
 		return export, checkData, err
 	}
 
+	// Timer
+	timer.Reset("get leaderboard")
+
 	// Get Leaderboard
 	leaderboard, _, err := exportAchievementsByPIDs(pidSlice, days, medals...)
 	if err != nil {
 		return export, checkData, err
 	}
+
+	// Timer
+	timer.Reset("sort players by clan")
 
 	// Sort by clan
 	clanMap := make(map[int]dbAch.ClanAchievements)
@@ -92,8 +103,14 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 		export = append(export, clan)
 	}
 
+	// Timer
+	timer.Reset("sort clans by score")
+
 	// Sort
 	export = quickSortClans(export)
+
+	// Timer
+	timer.End()
 
 	// Get clan check position
 	if checkPID != 0 {
@@ -142,6 +159,10 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs
 func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
+	// Timer
+	timer := utils.Timer{Name: "prep", FunctionName: "exportAchievementsByPIDs", Enabled: false}
+	timer.Start()
+
 	// Generate fields
 	fields := []string{}
 	for _, m := range medals {
@@ -151,6 +172,10 @@ func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWei
 	dataChan := make(chan dbAch.AchievementsPlayerData, len(pidSlice))
 	totalChan := make(chan int, len(pidSlice))
 	var wg sync.WaitGroup
+
+	// Timer
+	timer.Reset("fill player data")
+
 	// Fill nicknames and clan tags
 	for _, pid := range pidSlice {
 		wg.Add(1)
@@ -205,6 +230,9 @@ func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWei
 	close(dataChan)
 	close(totalChan)
 
+	// Timer
+	timer.Reset("fill clan total scores")
+
 	// Export
 	for d := range dataChan {
 		export = append(export, d)
@@ -215,8 +243,14 @@ func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWei
 		totalScore += s
 	}
 
+	// Timer
+	timer.Reset("sort")
+
 	// Quicksort
 	sorted := quickSortPlayers(export)
+
+	// Timer
+	timer.End()
 
 	return sorted, totalScore, err
 

@@ -14,6 +14,7 @@ import (
 	achievements "github.com/cufee/am-stats/dataprep/achievements"
 	dataprep "github.com/cufee/am-stats/dataprep/achievements"
 	render "github.com/cufee/am-stats/render/achievements"
+	"github.com/cufee/am-stats/utils"
 	"github.com/fogleman/gg"
 	"github.com/gofiber/fiber/v2"
 )
@@ -285,6 +286,10 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 		}
 	}()
 
+	// Timer
+	timer := utils.Timer{Name: "parse request", FunctionName: "HandlerClansLeaderboardImage", Enabled: false}
+	timer.Start()
+
 	// Parse request data
 	var request AchievementsRequest
 	err := c.BodyParser(&request)
@@ -294,6 +299,9 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	// Timer
+	timer.Reset("load bg image")
 
 	// Get bg Image
 	var bgImage image.Image
@@ -325,6 +333,9 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	// Timer
+	timer.Reset("prep data")
+
 	// Get data
 	data, checkData, err := achievements.ExportClanAchievementsLbByRealm(request.Realm, request.PlayerID, request.Days, request.Limit, request.Medals...)
 	if err != nil {
@@ -339,6 +350,9 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 		data = append(data, checkData)
 	}
 
+	// Timer
+	timer.Reset("render image")
+
 	// Render image
 	image, err := render.ClansAchievementsLbImage(data, checkData, bgImage, request.Medals)
 	if err != nil {
@@ -347,6 +361,9 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	// Timer
+	timer.Reset("encode image")
 
 	// Encode image
 	buf := new(bytes.Buffer)
@@ -358,6 +375,9 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 		})
 	}
 
+	// Timer
+	timer.Reset("send image")
+
 	// Send image
 	c.Set("Content-Type", "image/png")
 	s, err := ioutil.ReadAll(buf)
@@ -367,6 +387,8 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+	// Timer
+	timer.End()
 
 	return c.Send(s)
 }

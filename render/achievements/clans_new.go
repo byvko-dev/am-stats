@@ -11,11 +11,16 @@ import (
 	mongodbapi "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	dbGloss "github.com/cufee/am-stats/mongodbapi/v1/glossary"
 	"github.com/cufee/am-stats/render"
+	"github.com/cufee/am-stats/utils"
 	"github.com/fogleman/gg"
 )
 
 // ClansAchievementsLbImage -
 func ClansAchievementsLbImage(data []dbAch.ClanAchievements, checkData dbAch.ClanAchievements, bgImage image.Image, medals []mongodbapi.MedalWeight) (finalImage image.Image, err error) {
+	// Timer
+	timer := utils.Timer{Name: "Prep", Enabled: false}
+	timer.Start()
+
 	// Get icon URLs
 	for i, m := range medals {
 		m.IconURL, err = dbGloss.GetAchievementIcon(m.Name)
@@ -42,6 +47,9 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, checkData dbAch.Cla
 	checkBlock := cardBlockData(slimBlockBP)
 	maxScoreWidth, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.SmallTextSize, "Score")
 	maxClanPlayersWidth, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.SmallTextSize, "Players")
+
+	// Timer
+	timer.Reset("Check max values")
 
 	// Prep block blueprints
 	for i, clan := range data {
@@ -76,6 +84,9 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, checkData dbAch.Cla
 			maxTimestamp = clan.Timestamp
 		}
 	}
+
+	// Timer
+	timer.Reset("Render all cards")
 
 	// Work on cards in go routines
 	for i, clan := range data {
@@ -164,14 +175,25 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, checkData dbAch.Cla
 	wg.Wait()
 	close(cardsChan)
 
+	timer.Reset("Add cards to slice")
+
 	for c := range cardsChan {
 		finalCards.Cards = append(finalCards.Cards, c)
 	}
+
+	timer.Reset("Get final ctx")
 
 	header := fmt.Sprintf("Achievements Leaderboard | Updated %v min ago", int(time.Now().Sub(maxTimestamp).Minutes()))
 	finalCtx, err := render.AddAllCardsToFrame(finalCards, header, bgImage)
 	if err != nil {
 		return nil, err
 	}
-	return finalCtx.Image(), err
+
+	timer.Reset("Render image")
+
+	image := finalCtx.Image()
+
+	timer.End()
+
+	return image, err
 }

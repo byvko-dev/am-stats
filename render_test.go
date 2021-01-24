@@ -75,7 +75,7 @@ func TestClanAchievementsLbImage(t *testing.T) {
 	request.Medals = []mongodbapi.MedalWeight{{Name: "markofmastery", Weight: 25}, {Name: "markofmasteryi", Weight: 5}, {Name: "markofmasteryii", Weight: 1}, {Name: "markofmasteryiii", Weight: 1}}
 
 	// Get data
-	data, err := dataprep.ExportClanAchievementsLbByRealm(request.Realm, request.Days, request.Limit, request.Medals...)
+	data, check, err := dataprep.ExportClanAchievementsLbByRealm(request.Realm, request.PlayerID, request.Days, request.Limit, request.Medals...)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()
@@ -96,7 +96,7 @@ func TestClanAchievementsLbImage(t *testing.T) {
 	}
 
 	// Render image
-	image, err := render.ClansAchievementsLbImage(data, bgImage, request.Medals)
+	image, err := render.ClansAchievementsLbImage(data, check, bgImage, request.Medals)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()
