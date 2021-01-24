@@ -108,7 +108,7 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image
 
 			// Clan players
 			var membersBlock render.Block
-			membersBlock.Width = int(maxClanPlayersWidth + blueprint.TextMargin)
+			membersBlock.Width = int(maxClanPlayersWidth + blueprint.TextMargin/2)
 			// Prep extra block data
 			membersExtra := cardBlockData(blueprint)
 			membersExtra.BigText = fmt.Sprintf("%v", clan.Members)
@@ -131,7 +131,7 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image
 			// Fill medal scores and blocks
 			for _, m := range medals {
 				var medalBlock render.Block
-				medalBlock.Width = int(blueprint.IconSize) * 3 / 2
+				medalBlock.Width = int(blueprint.IconSize)
 				medalExtra := cardBlockData(blueprint)
 				// Prep extra block data
 				medalExtra.AltText = fmt.Sprint(getField(clan.Data, m.Name))
