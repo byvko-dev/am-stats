@@ -132,7 +132,7 @@ func HandleClanAchievementsLbExport(c *fiber.Ctx) error {
 	}
 
 	// Get data
-	export, err := achievements.ExportClanAchievementsLbByRealm(request.Realm, request.Days, request.Limit, request.Medals...)
+	export, checkData, err := achievements.ExportClanAchievementsLbByRealm(request.Realm, request.PlayerID, request.Days, request.Limit, request.Medals...)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -141,6 +141,7 @@ func HandleClanAchievementsLbExport(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{
 		"leaderboard": export,
+		"player_clan": checkData,
 	})
 }
 
@@ -325,7 +326,7 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 	}
 
 	// Get data
-	data, err := achievements.ExportClanAchievementsLbByRealm(request.Realm, request.Days, request.Limit, request.Medals...)
+	data, checkData, err := achievements.ExportClanAchievementsLbByRealm(request.Realm, request.PlayerID, request.Days, request.Limit, request.Medals...)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -333,8 +334,13 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 		})
 	}
 
+	// Add player clan to data
+	if checkData.Position > request.Limit {
+		data = append(data, checkData)
+	}
+
 	// Render image
-	image, err := render.ClansAchievementsLbImage(data, bgImage, request.Medals)
+	image, err := render.ClansAchievementsLbImage(data, checkData, bgImage, request.Medals)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{

@@ -49,5 +49,6 @@ type ClanAchievements struct {
 	Timestamp time.Time               `json:"timestamp,omitempty" bson:"timestamp"`
 	Data      wgapi.AchievementsFrame `json:"data,omitempty" bson:"data,omitempty"`
 	Score     int                     `json:"score,omitempty" bson:"score,omitempty"`
+	Position  int                     `json:"position,omitempty" bson:"position,omitempty"`
 	Medals    []MedalWeight           `json:"-" bson:"-"`
 }

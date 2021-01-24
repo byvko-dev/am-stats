@@ -46,17 +46,17 @@ func ExportClanAchievementsByTag(clanTag string, realm string, days int, medals 
 }
 
 // ExportClanAchievementsLbByRealm - Export clan achievements LB by realm
-func ExportClanAchievementsLbByRealm(realm string, days int, limit int, medals ...dbAch.MedalWeight) (export []dbAch.ClanAchievements, err error) {
+func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit int, medals ...dbAch.MedalWeight) (export []dbAch.ClanAchievements, checkData dbAch.ClanAchievements, err error) {
 	// Get realm players
 	pidSlice, err := dbPlayers.GetRealmPlayers(realm)
 	if err != nil {
-		return export, err
+		return export, checkData, err
 	}
 
 	// Get Leaderboard
 	leaderboard, _, err := exportAchievementsByPIDs(pidSlice, days, medals...)
 	if err != nil {
-		return export, err
+		return export, checkData, err
 	}
 
 	// Sort by clan
@@ -82,8 +82,11 @@ func ExportClanAchievementsLbByRealm(realm string, days int, limit int, medals .
 		clanData.Score += p.Score
 		clanData.Members++
 		clanMap[p.ClanID] = clanData
-	}
 
+		if checkPID != 0 && p.PID == checkPID {
+			checkData = clanData
+		}
+	}
 	// Create a slice
 	for _, clan := range clanMap {
 		export = append(export, clan)
@@ -91,10 +94,18 @@ func ExportClanAchievementsLbByRealm(realm string, days int, limit int, medals .
 
 	// Sort
 	export = quickSortClans(export)
-	if len(export) > limit {
-		return export[:limit], err
+
+	// Get clan check position
+	if checkPID != 0 {
+		for i := range export {
+			checkData.Position = i + 1
+		}
 	}
-	return export, err
+
+	if len(export) > limit {
+		return export[:limit], checkData, err
+	}
+	return export, checkData, err
 }
 
 // ExportAchievementsLeaderboard - Export achievements from a session

@@ -15,7 +15,7 @@ import (
 )
 
 // ClansAchievementsLbImage -
-func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image, medals []mongodbapi.MedalWeight) (finalImage image.Image, err error) {
+func ClansAchievementsLbImage(data []dbAch.ClanAchievements, checkData dbAch.ClanAchievements, bgImage image.Image, medals []mongodbapi.MedalWeight) (finalImage image.Image, err error) {
 	// Get icon URLs
 	for i, m := range medals {
 		m.IconURL, err = dbGloss.GetAchievementIcon(m.Name)
@@ -47,10 +47,15 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image
 	for i, clan := range data {
 		// Fix player clan tag
 		clan.ClanTag = fmt.Sprintf("[%s]", clan.ClanTag)
+		position := i + 1
+		if clan.ClanID == checkData.ClanID {
+			position = checkData.Position
+		}
+		data[i].Position = position
 
 		// Get text size
 		cW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, clan.ClanTag)
-		pW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, fmt.Sprintf("#%v", i+1))
+		pW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, fmt.Sprintf("#%v", position))
 		sW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.BigTextSize, fmt.Sprint(clan.Score))
 		mW, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.BigTextSize, fmt.Sprint(clan.Members))
 		if cW > maxClanTagWidth { // Check clan tag width
@@ -83,13 +88,12 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image
 			var card render.CardData
 			card.FrameMargin = render.FrameMargin / 2
 			blueprint := slimBlockBP
-
 			// Position
 			var posBlock render.Block
 			posBlock.Width = int(maxPositionWidth + blueprint.TextMargin/2)
 			// Prep extra block data
 			posExtra := cardBlockData(blueprint)
-			posExtra.BigText = fmt.Sprintf("#%v", i+1)
+			posExtra.BigText = fmt.Sprintf("#%v", clan.Position)
 			posExtra.BigTextSize = blueprint.TextSize
 			posExtra.BigTextColor = blueprint.SmallTextColor
 			posExtra.TextAlign = -1
@@ -101,6 +105,9 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, bgImage image.Image
 			tagBlock.Width = int(maxClanTagWidth + blueprint.TextMargin/2)
 			// Prep extra block data
 			clanExtra := cardBlockData(blueprint)
+			if clan.ClanID == checkData.ClanID {
+				clanExtra.BigTextColor = render.ProtagonistColor
+			}
 			clanExtra.BigText = fmt.Sprintf("[%s]", clan.ClanTag)
 			clanExtra.BigTextSize = blueprint.TextSize
 			tagBlock.Extra = &clanExtra
