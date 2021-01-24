@@ -335,7 +335,7 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 	}
 
 	// Add player clan to data
-	if checkData.Position > request.Limit {
+	if request.PlayerID != 0 && checkData.Position > request.Limit {
 		data = append(data, checkData)
 	}
 

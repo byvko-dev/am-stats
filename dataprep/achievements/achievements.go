@@ -83,7 +83,7 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 		clanData.Members++
 		clanMap[p.ClanID] = clanData
 
-		if checkPID != 0 && p.PID == checkPID {
+		if checkPID != 0 && p.ClanID != 0 && p.PID == checkPID {
 			checkData = clanData
 		}
 	}
