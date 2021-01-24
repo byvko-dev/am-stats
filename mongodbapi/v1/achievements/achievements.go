@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sync"
 	"time"
 
 	"github.com/cufee/am-stats/config"
@@ -71,8 +70,8 @@ func GetPlayerAchievementsLb(realm string, fields ...string) (data []Achievement
 	return data, err
 }
 
-// GetPlayerAchievementsByPIDs - Get last cached players achievements from player IDs slice
-func GetPlayerAchievementsByPIDs(pidSLice []int, medals ...MedalWeight) (data []AchievementsPlayerData, err error) {
+// GetPlayerAchievements - Get last cached player achievements from player ID
+func GetPlayerAchievements(pid int, medals ...MedalWeight) (data AchievementsPlayerData, err error) {
 	opts := options.FindOne()
 	// Generate projection
 	if len(medals) > 0 {
@@ -86,36 +85,12 @@ func GetPlayerAchievementsByPIDs(pidSLice []int, medals ...MedalWeight) (data []
 		opts.Projection = project
 	}
 
-	// Make channel and WG
-	dataChan := make(chan AchievementsPlayerData, len(pidSLice))
-	var wg sync.WaitGroup
-
-	for _, pid := range pidSLice {
-		wg.Add(1)
-		go func(pid int) {
-			defer wg.Done()
-
-			// Find Player
-			var playerData AchievementsPlayerData
-			err := achievementsPlayersCollection.FindOne(ctx, bson.M{"_id": pid}, opts).Decode(&playerData)
-			if err != nil {
-				return
-			}
-			dataChan <- playerData
-		}(pid)
-	}
-	wg.Wait()
-	close(dataChan)
-
-	// Make a slice
-	for d := range dataChan {
-		data = append(data, d)
+	// Find Player
+	err = achievementsPlayersCollection.FindOne(ctx, bson.M{"_id": pid}, opts).Decode(&data)
+	if err != nil {
+		return
 	}
 
-	// Check slice length
-	if len(data) == 0 {
-		return data, fmt.Errorf("no suitable data")
-	}
 	return data, err
 }
 

@@ -137,21 +137,20 @@ func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWei
 		fields = append(fields, strings.ToLower(m.Name))
 	}
 
-	// Get data
-	data, err := dbAch.GetPlayerAchievementsByPIDs(pidSlice, medals...)
-	if err != nil {
-		return []dbAch.AchievementsPlayerData{}, totalScore, err
-	}
-
-	dataChan := make(chan dbAch.AchievementsPlayerData, len(data))
-	totalChan := make(chan int, len(data))
+	dataChan := make(chan dbAch.AchievementsPlayerData, len(pidSlice))
+	totalChan := make(chan int, len(pidSlice))
 	var wg sync.WaitGroup
 	// Fill nicknames and clan tags
-	for _, player := range data {
+	for _, pid := range pidSlice {
 		wg.Add(1)
 
-		go func(player dbAch.AchievementsPlayerData) {
+		go func(pid int) {
 			defer wg.Done()
+
+			player, err := dbAch.GetPlayerAchievements(pid, medals...)
+			if err != nil {
+				return
+			}
 
 			// Get player profile
 			playerData, err := dbPlayers.GetPlayerProfile(player.PID)
@@ -160,7 +159,7 @@ func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWei
 			}
 
 			// Get player cached achievements
-			achCache, err := dbStats.GetPlayerSessionAchievements(player.PID, days, fields...)
+			achCache, err := dbStats.GetPlayerSessionAchievements(pid, days, fields...)
 			if achCache == (dbAch.AchievementsPlayerData{}).Data {
 				return
 			}
@@ -189,7 +188,7 @@ func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWei
 
 			// Send to chan
 			dataChan <- player
-		}(player)
+		}(pid)
 	}
 	wg.Wait()
 	close(dataChan)
