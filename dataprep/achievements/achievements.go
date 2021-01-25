@@ -114,8 +114,10 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 
 	// Get clan check position
 	if checkPID != 0 {
-		for i := range export {
-			checkData.Position = i + 1
+		for i, c := range export {
+			if c.ClanID == checkData.ClanID {
+				checkData.Position = i + 1
+			}
 		}
 	}
 
