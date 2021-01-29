@@ -68,22 +68,30 @@ func getJSON(url string, target interface{}) error {
 		}
 		reqData, pErr := json.Marshal(proxyReq)
 		if pErr != nil {
-			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", pErr)
+			return pErr
 		}
 
 		// Make request
 		req, pErr := http.NewRequest("GET", config.WGProxyURL, bytes.NewBuffer(reqData))
 		if pErr != nil {
-			return fmt.Errorf("failed to make a proxy request, error: %v", pErr)
+			return fmt.Errorf("proxy: no response recieved, error: %v", pErr)
 		}
 		req.Header.Set("Content-Type", "application/json")
 
 		// Send request
 		res, pErr = clientHTTP.Do(req)
 		if res == nil {
-			return fmt.Errorf("no response recieved from WG API after proxy try, error: %v", pErr)
+			return fmt.Errorf("proxy: no response recieved, error: %v", pErr)
 		}
+		if pErr != nil {
+			return pErr
+		}
+
+		// Read body
 		resData, pErr = ioutil.ReadAll(res.Body)
+		if pErr != nil {
+			return pErr
+		}
 
 		// Check for errors
 		var proxyErr struct {
@@ -131,7 +139,7 @@ func getAPIDomain(realm string) (string, error) {
 }
 
 // PlayerVehicleStats - Fetch stats for player Vehicles, returns a slice of all vehicle stats
-func PlayerVehicleStats(playerID int, realm string) (finalResponse []VehicleStats, err error) {
+func PlayerVehicleStats(playerID int, tankID int, realm string) (finalResponse []VehicleStats, err error) {
 	// Get API domain
 	domain, err := getAPIDomain(realm)
 	if err != nil {
@@ -139,6 +147,11 @@ func PlayerVehicleStats(playerID int, realm string) (finalResponse []VehicleStat
 	}
 	// Get stats
 	url := domain + wgAPIVehicles + strconv.Itoa(playerID)
+
+	if tankID != 0 {
+		url += fmt.Sprintf("&tank_id=%v", tankID)
+	}
+
 	var rawResponse vehiclesDataToPIDres
 	err = getJSON(url, &rawResponse)
 	if err != nil {

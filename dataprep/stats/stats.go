@@ -137,7 +137,7 @@ func sessionDiff(oldStats dbStats.Session, liveStats dbStats.Session) (session d
 }
 
 // CalcSession - Calculate a new session
-func calcSession(pid int, realm string, days int) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, err error) {
+func calcSession(pid int, tankID int, realm string, days int) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, err error) {
 	// Get live profile
 	playerProfile, err = wgapi.PlayerProfileData(pid, realm)
 	if err != nil {
@@ -180,10 +180,11 @@ func calcSession(pid int, realm string, days int) (session dbStats.Session, oldS
 	}
 
 	playerProfile.CareerWN8 = cachedPlayerProfile.CareerWN8
-	playerVehicles, err := wgapi.PlayerVehicleStats(pid, realm)
+	playerVehicles, err := wgapi.PlayerVehicleStats(pid, tankID, realm)
 	if err != nil {
 		return session, oldSession, playerProfile, err
 	}
+
 	// Get previous session
 	oldSession, err = dbStats.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
 	if err != nil {
@@ -208,9 +209,9 @@ func calcSession(pid int, realm string, days int) (session dbStats.Session, oldS
 }
 
 // ExportSessionAsStruct - Export a full player session as a struct
-func ExportSessionAsStruct(pid int, realm string, days int) (export ExportData, err error) {
+func ExportSessionAsStruct(pid int, tankID int, realm string, days int) (export ExportData, err error) {
 	timerStart := time.Now()
-	session, lastSession, playerProfile, err := calcSession(pid, realm, days)
+	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days)
 	if err != nil {
 		return export, err
 	}

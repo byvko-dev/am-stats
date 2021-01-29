@@ -29,9 +29,6 @@ func main() {
 	app.Get("/stats/image", handlers.HandleStatsImageExport)
 
 	// Achievements
-	// Session
-	app.Get("/achievements", handlers.HandleSessionAchievementsExport)
-	app.Get("/achievements/image", handlers.HandleSessionAchievementsExport)
 	// Clan
 	app.Get("/achievements/clan", handlers.HandleClanAchievementsExport)
 	app.Get("/achievements/clan/image", handlers.HandleClanAchievementsExport)

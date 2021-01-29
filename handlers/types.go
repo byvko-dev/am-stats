@@ -13,6 +13,7 @@ type StatsRequest struct {
 	Days      int    `json:"days"`
 	Sort      string `json:"sort_key"`
 	TankLimit int    `json:"detailed_limit"`
+	TankID    int    `json:"tank_id"`
 	BgURL     string `json:"bg_url"`
 }
 

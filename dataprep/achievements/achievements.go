@@ -5,22 +5,12 @@ import (
 	"strings"
 	"sync"
 
-	stats "github.com/cufee/am-stats/dataprep/stats"
 	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	"github.com/cufee/am-stats/utils"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
-
-// ExportAchievementsSession - Export achievements from a session
-func ExportAchievementsSession(pid int, realm string, days int) (wgapi.AchievementsFrame, error) {
-	// Get session
-	data, err := stats.ExportSessionAsStruct(pid, realm, days)
-
-	// Return Achievemenets
-	return data.SessionStats.Achievements, err
-}
 
 // ExportClanAchievementsByID - Export clan achievements LB by clan ID
 func ExportClanAchievementsByID(clanID int, realm string, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, clanTotalScore int, err error) {
