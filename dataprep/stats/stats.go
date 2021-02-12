@@ -12,13 +12,27 @@ import (
 	"math"
 	"time"
 
-	"github.com/cufee/am-stats/dataprep"
 	dbGlossary "github.com/cufee/am-stats/mongodbapi/v1/glossary"
 	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
-	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"go.mongodb.org/mongo-driver/bson"
+
+	db "github.com/cufee/am-stats/mongodbapi/v1/stats"
+	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
+
+// LiveToSession - Convert Live data to Session
+func LiveToSession(profile wgapi.PlayerProfile, vehicles []wgapi.VehicleStats, achievements wgapi.AchievementsFrame) (liveSession db.Session) {
+	liveSession.Vehicles = vehicles
+	liveSession.Achievements = achievements
+	liveSession.PlayerID = profile.ID
+	liveSession.LastBattle = time.Unix(int64(profile.LastBattle), 0)
+	liveSession.BattlesAll = profile.Stats.All.Battles
+	liveSession.StatsAll = profile.Stats.All
+	liveSession.BattlesRating = profile.Stats.Rating.Battles
+	liveSession.StatsRating = profile.Stats.Rating
+	return liveSession
+}
 
 // CalcVehicleWN8 - Calculate WN8 for a VehicleStats struct
 func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
@@ -193,7 +207,7 @@ func calcSession(pid int, tankID int, realm string, days int) (session dbStats.S
 			s, _ := dbStats.GetSession(bson.M{"player_id": pid})
 			// Add a new session if one does not exist
 			if s.PlayerID == 0 {
-				sessionData := dataprep.LiveToSession(playerProfile, playerVehicles, liveAchievements)
+				sessionData := LiveToSession(playerProfile, playerVehicles, liveAchievements)
 				sessionData.SessionRating = -1
 				err = dbStats.AddSession(sessionData)
 				if err == nil {
@@ -205,7 +219,7 @@ func calcSession(pid int, tankID int, realm string, days int) (session dbStats.S
 	}
 
 	// Calculate session differance and return
-	return sessionDiff(oldSession, dataprep.LiveToSession(playerProfile, playerVehicles, liveAchievements)), oldSession, playerProfile, nil
+	return sessionDiff(oldSession, LiveToSession(playerProfile, playerVehicles, liveAchievements)), oldSession, playerProfile, nil
 }
 
 // ExportSessionAsStruct - Export a full player session as a struct

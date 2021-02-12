@@ -1,21 +1,73 @@
 package dataprep
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
-
-	db "github.com/cufee/am-stats/mongodbapi/v1/stats"
-	wgapi "github.com/cufee/am-stats/wargamingapi"
 )
 
-// LiveToSession - Convert Live data to Session
-func LiveToSession(profile wgapi.PlayerProfile, vehicles []wgapi.VehicleStats, achievements wgapi.AchievementsFrame) (liveSession db.Session) {
-	liveSession.Vehicles = vehicles
-	liveSession.Achievements = achievements
-	liveSession.PlayerID = profile.ID
-	liveSession.LastBattle = time.Unix(int64(profile.LastBattle), 0)
-	liveSession.BattlesAll = profile.Stats.All.Battles
-	liveSession.StatsAll = profile.Stats.All
-	liveSession.BattlesRating = profile.Stats.Rating.Battles
-	liveSession.StatsRating = profile.Stats.Rating
-	return liveSession
+type responseError struct {
+	Error string `json:"error"`
+}
+
+// HTTP client
+var clientHTTP = &http.Client{Timeout: 10 * time.Second}
+
+// DecodeHTTPResponse - Send HTTP request with a payload and headers, decode to target
+func DecodeHTTPResponse(method string, headers map[string]string, requestURL *url.URL, reqData []byte, target interface{}) error {
+	// Make request
+	req, err := http.NewRequest(strings.ToUpper(method), requestURL.String(), bytes.NewBuffer(reqData))
+	if err != nil {
+		return err
+	}
+
+	// Set headers
+	if headers != nil {
+		for k, v := range headers {
+			req.Header.Set(k, v)
+		}
+	}
+
+	// Send request
+	res, err := clientHTTP.Do(req)
+
+	// Check for response
+	if res == nil {
+		return fmt.Errorf("no response recieved, error: %v", err)
+	}
+
+	// Read body
+	resData, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	// Decode body
+	return json.Unmarshal(resData, target)
+}
+
+// StringInSlice - Check if a slice contains a string
+func StringInSlice(str string, sl []string) bool {
+	for _, s := range sl {
+		if s == str {
+			return true
+		}
+	}
+	return false
+}
+
+// IntInSlice - Check if a slice contains an integer
+func IntInSlice(n int, sl []int) bool {
+	for _, num := range sl {
+		if n == num {
+			return true
+		}
+	}
+	return false
 }

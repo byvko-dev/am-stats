@@ -24,6 +24,10 @@ func main() {
 	// Checks
 	app.Get("/player/id/:id", handlers.HandlePlayerCheck)
 
+	// Replays
+	app.Get("/replay", handlers.HandleReplayJSONExport)
+	app.Get("/replay/image", handlers.HandleReplayJSONExport)
+
 	// Stats
 	app.Get("/stats", handlers.HandleStatsJSONExport)
 	app.Get("/stats/image", handlers.HandleStatsImageExport)

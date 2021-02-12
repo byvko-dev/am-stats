@@ -29,7 +29,7 @@ var wgAPIClanSearch string = fmt.Sprintf("/wotb/clans/list/?application_id=%s&se
 var wgAPIClanDetails string = fmt.Sprintf("/wotb/clans/info/?application_id=%s&fields=clan_id,name,tag,members_ids,members_count&clan_id=", config.WgAPIAppID)
 
 // HTTP client
-var clientHTTP = &http.Client{Timeout: 500 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
+var clientHTTP = &http.Client{Timeout: 750 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 
 // Mutex lock for rps counter
 var waitGroup sync.WaitGroup
@@ -57,8 +57,9 @@ func getJSON(url string, target interface{}) error {
 
 	if res == nil {
 		// Change timeout to account for cold starts
+		timeout := clientHTTP.Timeout
 		clientHTTP.Timeout = 2 * time.Second
-		defer func() { clientHTTP.Timeout = 750 * time.Millisecond }()
+		defer func() { clientHTTP.Timeout = timeout }()
 
 		// Marshal a request
 		proxyReq := struct {
@@ -225,6 +226,59 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 		return finalResponse, err
 	}
 	finalResponse.playerClanData = clanRes.Data[strconv.Itoa(playerID)].playerClanData
+	return finalResponse, nil
+}
+
+// PlayerSliceProfileData - Fetch general account information and all stats for a player
+func PlayerSliceProfileData(realm string, playerIDsRaw []int) (finalResponse map[string]PlayerProfile, err error) {
+	// Check list length
+	if len(playerIDsRaw) > 100 {
+		return finalResponse, fmt.Errorf("player_id list is too long")
+	}
+
+	// Conver list to strings
+	var playerIDs []string
+	for _, pid := range playerIDsRaw {
+		playerIDs = append(playerIDs, strconv.Itoa(pid))
+	}
+
+	// Get API domain
+	domain, err := getAPIDomain(realm)
+	if err != nil {
+		return finalResponse, err
+	}
+
+	// Get stats
+	url := domain + wgAPIProfileData + strings.Join(playerIDs, ",")
+	var rawResponse playerDataToPIDres
+
+	err = getJSON(url, &rawResponse)
+	if err != nil {
+		return finalResponse, err
+	}
+	if rawResponse.Error.Message != "" {
+		return finalResponse, fmt.Errorf("WG error: %s", rawResponse.Error.Message)
+	}
+	if rawResponse.Status != "ok" {
+		return finalResponse, fmt.Errorf("WG error: %v", rawResponse.Error.Message)
+	}
+
+	// Get clan data
+	var clanRes playerDataToPIDres
+	url = domain + wgAPIPlayerClan + strings.Join(playerIDs, ",")
+	err = getJSON(url, &clanRes)
+	if err != nil {
+		return finalResponse, err
+	}
+
+	finalResponse = rawResponse.Data
+
+	// Fill clan data
+	for pid, playerData := range finalResponse {
+		playerData.playerClanData = clanRes.Data[pid].playerClanData
+		finalResponse[pid] = playerData
+	}
+
 	return finalResponse, nil
 }
 
