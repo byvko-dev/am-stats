@@ -8,9 +8,11 @@ import (
 
 	"github.com/cufee/am-stats/config"
 	dataprep "github.com/cufee/am-stats/dataprep/achievements"
+	replays "github.com/cufee/am-stats/dataprep/replays"
 	"github.com/cufee/am-stats/handlers"
 	mongodbapi "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	render "github.com/cufee/am-stats/render/achievements"
+	renderReplay "github.com/cufee/am-stats/render/replays"
 	"github.com/fogleman/gg"
 )
 
@@ -97,6 +99,46 @@ func TestClanAchievementsLbImage(t *testing.T) {
 
 	// Render image
 	image, err := render.ClansAchievementsLbImage(data, check, bgImage, request.Medals)
+	if err != nil {
+		log.Print(err)
+		t.FailNow()
+		return
+	}
+
+	// Open file
+	f, _ := os.Create("test.png")
+	defer f.Close()
+
+	// Encode image
+	err = png.Encode(f, image)
+	if err != nil {
+		log.Print(err)
+		t.FailNow()
+		return
+	}
+}
+
+func TestReplayRender(t *testing.T) {
+	url := "https://replays.wotinspector.com/en/download/314ba298837c51d885d1d590b389cfc4"
+
+	// Get data
+	data, err := replays.ProcessReplay(url)
+	if err != nil {
+		log.Print(err)
+		t.FailNow()
+		return
+	}
+
+	// Get BG
+	bgImage, err := gg.LoadImage(config.AssetsPath + config.DefaultBG)
+	if err != nil {
+		log.Print(err)
+		t.FailNow()
+		return
+	}
+
+	// Render image
+	image, err := renderReplay.Render(data, bgImage)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()

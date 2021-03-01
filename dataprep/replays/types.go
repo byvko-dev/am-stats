@@ -93,7 +93,9 @@ type ReplayPlayerData struct {
 	DeathReason         int                 `json:"death_reason"`
 	ShotsMade           int                 `json:"shots_made"`
 	Profile             wgapi.PlayerProfile `json:"profile"`
+	TankProfile         wgapi.VehicleStats  `json:"tank_profile"`
 	Team                int                 `json:"team"`
+	IsProtagonist       bool                `json:"is_protagonist"`
 }
 
 // ReplayAchievement - Achivement value from replay

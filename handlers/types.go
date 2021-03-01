@@ -30,3 +30,11 @@ type AchievementsRequest struct {
 	Realm     string              `json:"realm"`
 	Medals    []dbAch.MedalWeight `json:"medals"`
 }
+
+// ReplayRequest - Request for replay image
+type ReplayRequest struct {
+	Premium   bool   `json:"premium"`
+	Verified  bool   `json:"verified"`
+	ReplayURL string `json:"replay_url"`
+	BgURL     string `json:"bg_url"`
+}
