@@ -26,7 +26,7 @@ func main() {
 
 	// Replays
 	app.Get("/replay", handlers.HandleReplayJSONExport)
-	app.Get("/replay/image", handlers.HandleReplayJSONExport)
+	app.Get("/replay/image", handlers.HandleReplayImageExport)
 
 	// Stats
 	app.Get("/stats", handlers.HandleStatsJSONExport)

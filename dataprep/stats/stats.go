@@ -35,20 +35,18 @@ func LiveToSession(profile wgapi.PlayerProfile, vehicles []wgapi.VehicleStats, a
 }
 
 // CalcVehicleWN8 - Calculate WN8 for a VehicleStats struct
-func calcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
+func CalcVehicleWN8(tank wgapi.VehicleStats) (wgapi.VehicleStats, error) {
 	// Get tank info
 	tankInfo, err := dbGlossary.GetTankGlossary(tank.TankID)
 	tank.TankTier = tankInfo.Tier
 	tank.TankName = tankInfo.Name
 
 	if err != nil || tankInfo.Name == "" {
-		// Refresh Glossary cache -  Disabled, cache updates are done every 24 hours
-		// go refreshGlossary()
-
 		log.Print("no tank glossary data (", err, ")")
 		tank.TankTier = 0
 		tank.TankName = "Unknown"
 	}
+
 	// Get tank averages
 	tankAvgData, err := dbGlossary.GetTankAverages(tank.TankID)
 	if err != nil {
@@ -115,7 +113,7 @@ func sessionDiff(oldStats dbStats.Session, liveStats dbStats.Session) (session d
 		go func(newData wgapi.VehicleStats) {
 			defer wg.Done()
 			// Get session diff and add vehicle WN8
-			finalVehicle, err := calcVehicleWN8(wgapi.Diff(retroSession.Vehicles[strconv.Itoa(newData.TankID)], newData))
+			finalVehicle, err := CalcVehicleWN8(wgapi.Diff(retroSession.Vehicles[strconv.Itoa(newData.TankID)], newData))
 			if err != nil {
 				log.Println(err)
 				return

@@ -10,13 +10,18 @@ import (
 // CardData -
 type CardData struct {
 	Image       image.Image
+	IndexX      int
 	Index       int
 	Context     *gg.Context
 	LastXOffs   int
 	FrameMargin int
 	BlockWidth  float64
+	Type        string
 	Blocks      []Block
 }
+
+// CardTypeHeader - Header card type
+const CardTypeHeader string = "headerCard"
 
 // AllCards - A slice of all generated cards
 type AllCards struct {
@@ -27,7 +32,8 @@ type AllCards struct {
 // Block -
 type Block struct {
 	// Additional data
-	Extra interface{}
+	Extra     interface{}
+	ExtraType string
 	// Block setup
 	Color color.RGBA
 	// Text

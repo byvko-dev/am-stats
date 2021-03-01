@@ -221,7 +221,7 @@ func makeDetailedCard(card render.CardData, session wgapi.VehicleStats, lastSess
 	ratingBlock.BigText = "-"
 	if session.TankWN8 > -1 {
 		ratingBlock.HasBigIcon = true
-		ratingBlock.BigIconColor = getRatingColor(session.TankWN8)
+		ratingBlock.BigIconColor = GetRatingColor(session.TankWN8)
 		ratingBlock.BigText = strconv.Itoa(session.TankWN8)
 	}
 	ratingBlock.SmallTextColor = render.AltTextColor
@@ -308,7 +308,7 @@ func makeSlimCard(card render.CardData, session wgapi.VehicleStats, lastSession 
 	ratingBlock.BigText = "-"
 	if session.TankWN8 > -1 {
 		ratingBlock.HasBigIcon = true
-		ratingBlock.BigIconColor = getRatingColor(session.TankWN8)
+		ratingBlock.BigIconColor = GetRatingColor(session.TankWN8)
 		ratingBlock.BigText = strconv.Itoa(session.TankWN8)
 	}
 	ratingBlock, err := addStatsBlockCtx(ratingBlock)
@@ -357,6 +357,7 @@ func makeSlimCard(card render.CardData, session wgapi.VehicleStats, lastSession 
 	card.Image = ctx.Image()
 	return card, nil
 }
+
 func addStatsBlockCtx(block statsBlock) (statsBlock, error) {
 	ctx := gg.NewContext(block.Width, block.Height)
 	// Color is requested
@@ -539,9 +540,9 @@ func makeAllStatsCard(card render.CardData, data stats.ExportData) (render.CardD
 	ratingBlock := statsBlock(defaultBlock)
 	// Icon
 	ratingBlock.HasBigIcon = true
-	ratingBlock.BigIconColor = getRatingColor(data.SessionStats.SessionRating)
+	ratingBlock.BigIconColor = GetRatingColor(data.SessionStats.SessionRating)
 	ratingBlock.HasSmallIcon = true
-	ratingBlock.SmallIconColor = getRatingColor(data.PlayerDetails.CareerWN8)
+	ratingBlock.SmallIconColor = GetRatingColor(data.PlayerDetails.CareerWN8)
 	ratingBlock.Height = blockHeight + int(render.FontSize)
 	ratingBlock.TextSize = render.FontSize * 1.75
 	careerWN8str := "-"
@@ -758,8 +759,8 @@ func makeStatsHeaderCard(card render.CardData, playerName, playerClan, battleTyp
 	return card, nil
 }
 
-// Rating color calculator
-func getRatingColor(r int) color.RGBA {
+// GetRatingColor - Rating color calculator
+func GetRatingColor(r int) color.RGBA {
 	if r > 0 && r < 301 {
 		return color.RGBA{255, 0, 0, 180}
 	}
