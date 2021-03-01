@@ -101,17 +101,20 @@ func getReplayDetails(replayURL string) (summary ReplaySummary, err error) {
 	}
 
 	// Send request
-	var relayRes ReplayDetailsRes
-	err = dataprep.DecodeHTTPResponse("GET", make(map[string]string), requestURL, nil, &relayRes)
+	var replayRes ReplayDetailsRes
+	err = dataprep.DecodeHTTPResponse("GET", make(map[string]string), requestURL, nil, &replayRes)
 	if err != nil {
 		return summary, fmt.Errorf("replays api error: %s", err.Error())
 	}
+	if replayRes.Error.Message != "" {
+		return summary, fmt.Errorf("replays api error: %s", replayRes.Error.Message)
+	}
 
 	// Set Download and File URLs
-	relayRes.Data.Summary.DownloadURL = relayRes.Data.DownloadURL
-	relayRes.Data.Summary.FileURL = replayURL
+	replayRes.Data.Summary.DownloadURL = replayRes.Data.DownloadURL
+	replayRes.Data.Summary.FileURL = replayURL
 
-	return relayRes.Data.Summary, nil
+	return replayRes.Data.Summary, nil
 }
 
 // detailsToStatsFrame - Convert replay details to stats frame fow WN8 calculations
