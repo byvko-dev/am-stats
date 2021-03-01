@@ -120,6 +120,7 @@ func TestClanAchievementsLbImage(t *testing.T) {
 
 func TestReplayRender(t *testing.T) {
 	url := "https://replays.wotinspector.com/en/download/314ba298837c51d885d1d590b389cfc4"
+	// url := "https://cdn.discordapp.com/attachments/719875141047418962/811394021808668672/20210216_1454___Vova_GB_Vickers_Cruiser_2309088850756783412.wotbreplay"
 
 	// Get data
 	data, err := replays.ProcessReplay(url)

@@ -7,6 +7,22 @@ import (
 	"github.com/fogleman/gg"
 )
 
+// GameModeMap - Map of all known game modes
+var GameModeMap map[int]string = make(map[int]string)
+
+func init() {
+	GameModeMap[0] = "Unknown"
+	GameModeMap[1] = "Regular Battle"
+	GameModeMap[2] = "Training Room"
+	GameModeMap[4] = "Tournament Battle"
+	GameModeMap[5] = "Tournament Battle"
+	GameModeMap[7] = "Rating Battle"
+	GameModeMap[8] = "Mad Games"
+	GameModeMap[22] = "Realistic Battle"
+	GameModeMap[23] = "Uprising"
+	GameModeMap[24] = "Gravity Force"
+}
+
 type hpBarBlockData struct {
 	// HP %
 	PercentHP float64

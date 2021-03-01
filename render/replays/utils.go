@@ -54,7 +54,7 @@ func getTextParams(ctx *gg.Context, block *replayBlockData, size float64, value 
 		return width, height, drawX
 	}
 	width, height = ctx.MeasureString(value)
-	drawX = getAlignedX(block.TextAlign, float64(block.Width), width) + float64(block.Padding/2)
+	drawX = getAlignedX(block.TextAlign, float64(block.Width-block.Padding), width) + float64(block.Padding/2)
 	block.TotalTextHeight += int(height)
 	block.TotalTextLines++
 	return width, height, drawX
@@ -196,8 +196,8 @@ func renderAllCardsOnFrame(finalCards render.AllCards, header string, bgImage im
 		}
 	}
 
-	// Draw timestamp
-	if err := finalCards.Frame.LoadFontFace(render.FontPath, render.FontSize*0.75); err != nil {
+	// Draw header
+	if err := finalCards.Frame.LoadFontFace(render.FontPath, render.FontSize); err != nil {
 		return finalCards.Frame, err
 	}
 	finalCards.Frame.SetColor(color.RGBA{100, 100, 100, 100})

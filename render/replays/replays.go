@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"strings"
 	"sync"
 
 	replays "github.com/cufee/am-stats/dataprep/replays"
@@ -32,18 +33,27 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	var addPlatoon bool
 	const hpBarWidth int = 8
 	const platoonWidth int = 25
-	var maxNameLength float64
+	maxNameLength, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, "Supremacy Points - 000")
 	var maxKillsLength float64
 	var maxRatingLength float64
 	var maxDamageLength float64
 	var maxAssistLength float64
 	var maxWinrateLength float64
+	teamPoints := make(map[int]int)
 
 	// Calculate max length for data
 	for i, player := range replay.Details {
 		// Check if need platoon icon spacing
 		if player.SquadIndex > 0 && !addPlatoon {
 			addPlatoon = true
+		}
+
+		// Team points
+		teamPoints[player.Team] += player.WpPointsEarned
+		if player.Team == 1 {
+			teamPoints[2] += player.WpPointsStolen
+		} else {
+			teamPoints[1] += player.WpPointsStolen
 		}
 
 		// Compile clan tag
@@ -123,6 +133,9 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 			hpBarBlock.ExtraType = "hpbar"
 			if player.KilledBy == 0 {
 				hpBarExtra.PercentHP = float64(player.HitpointsLeft) / float64(player.HitpointsLeft+player.DamageReceived)
+				if hpBarExtra.PercentHP < 0.1 {
+					hpBarExtra.PercentHP = 0.1
+				}
 			}
 			hpBarExtra.HPColorBG = color.RGBA{100, 100, 100, 220}
 			hpBarExtra.HPColor = color.RGBA{123, 219, 101, 220}
@@ -166,7 +179,7 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 			// Add rating value
 			var ratingBlock render.Block
 			ratingBlock.Width = int(maxRatingLength)
-			ratingBlock.Padding = 8
+			ratingBlock.Padding = hpBarWidth
 			// Prep extra block data
 			ratingBlockExtra := replayBlockData(blueprint)
 			rating := "-"
@@ -244,22 +257,22 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	if addPlatoon {
 		blankBlock.Width += platoonWidth
 	}
-	// Prep extra block data
-	blankBlockExtra := replayBlockData(blueprint)
-	blankBlockExtra.TextLines = append(blankBlockExtra.TextLines, blockTextLine{Text: fmt.Sprintf("Points: %v", 0), Color: render.SmallTextColor})
-	blankBlockExtra.TextAlign = -1
-	blankBlock.Extra = &blankBlockExtra
+	if replay.BattleType == battlesTypeSupremacy {
+		// Prep extra block data
+		blankBlockExtra := replayBlockData(blueprint)
+		blankBlockExtra.TextLines = append(blankBlockExtra.TextLines, blockTextLine{Text: fmt.Sprintf("Supremacy Points - %v", ((teamPoints[1]+49)/50)*50), Color: render.SmallTextColor})
+		blankBlockExtra.TextAlign = -1
+		blankBlock.Extra = &blankBlockExtra
+	}
 	card.Blocks = append(card.Blocks, blankBlock)
 
 	// Add rating
 	var ratingBlock1 render.Block
-	ratingBlock1.Width = int(maxRatingLength + render.TextMargin)
+	ratingBlock1.Width = int(maxRatingLength) + hpBarWidth
 	// Prep extra block data
-	if replay.BattleType == battlesTypeSupremacy {
-		ratingBlock1Extra := replayBlockData(blueprint)
-		ratingBlock1Extra.TextLines = append(ratingBlock1Extra.TextLines, blockTextLine{Text: "WN8", Color: render.SmallTextColor})
-		ratingBlock1.Extra = &ratingBlock1Extra
-	}
+	ratingBlock1Extra := replayBlockData(blueprint)
+	ratingBlock1Extra.TextLines = append(ratingBlock1Extra.TextLines, blockTextLine{Text: "WN8", Color: render.SmallTextColor})
+	ratingBlock1.Extra = &ratingBlock1Extra
 	card.Blocks = append(card.Blocks, ratingBlock1)
 
 	// Add winrate
@@ -291,7 +304,7 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 
 	// Spacing block
 	var spacingBlock render.Block
-	spacingBlock.Width = int(render.TextMargin*1.5) + render.FrameMargin
+	spacingBlock.Width = int(render.FrameMargin * 3 / 2)
 	spacingBlockExtra := replayBlockData(blueprint)
 	spacingBlockExtra.TextLines = append(spacingBlockExtra.TextLines, blockTextLine{Text: "|", Color: render.AltTextColor, TextScale: 1.5})
 	spacingBlock.Extra = &spacingBlockExtra
@@ -300,16 +313,16 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	// Add Team 2 averages
 	blankBlock2 := render.Block(blankBlock)
 	if replay.BattleType == battlesTypeSupremacy {
-		blankBlockExtra2 := replayBlockData(blankBlockExtra)
-		blankBlockExtra2.TextLines = []blockTextLine{{Text: fmt.Sprintf("Points: %v", 0), Color: render.SmallTextColor}}
+		blankBlockExtra2 := replayBlockData(blueprint)
+		blankBlockExtra2.TextLines = []blockTextLine{{Text: fmt.Sprintf("Supremacy Points - %v", ((teamPoints[2]+49)/50)*50), Color: render.SmallTextColor}}
+		blankBlockExtra2.TextAlign = -1
 		blankBlock2.Extra = &blankBlockExtra2
 	}
 	card.Blocks = append(card.Blocks, blankBlock2)
 
 	// Add rating
 	var ratingBlock2 render.Block
-	ratingBlock2.Width = int(maxRatingLength + render.TextMargin)
-	// Prep extra block data
+	ratingBlock2.Width = int(maxRatingLength) + hpBarWidth
 	ratingBlock2Extra := replayBlockData(blueprint)
 	ratingBlock2Extra.TextLines = append(ratingBlock2Extra.TextLines, blockTextLine{Text: "WN8", Color: render.SmallTextColor})
 	ratingBlock2.Extra = &ratingBlock2Extra
@@ -358,7 +371,13 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 		result = "Defeat"
 	}
 
-	header := fmt.Sprintf("%v - %v", replay.MapName, result)
+	// Game mode
+	gameMode, ok := GameModeMap[replay.RoomType]
+	if !ok {
+		gameMode = GameModeMap[0]
+	}
+
+	header := strings.Join([]string{replay.MapName, gameMode, result}, " - ")
 	finalCtx, err := renderAllCardsOnFrame(finalCards, header, bgImage)
 	if err != nil {
 		return nil, err
