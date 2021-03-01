@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"reflect"
 	"time"
 
 	"github.com/cufee/am-stats/config"
@@ -83,7 +84,9 @@ func GetRealmPlayers(realm string) (pidSlice []int, err error) {
 
 	// Make a slice
 	for _, pid := range rawSlice {
-		pidSlice = append(pidSlice, int(pid.(int32)))
+		if reflect.TypeOf(pid) == reflect.TypeOf(int32(1)) {
+			pidSlice = append(pidSlice, int(pid.(int32)))
+		}
 	}
 
 	return pidSlice, err
