@@ -239,3 +239,13 @@ func prepBgContext(totalHeight int, width int, bgImage image.Image) (frameCtx *g
 	frameCtx.DrawImage(bgImage, 0, 0)
 	return frameCtx, nil
 }
+
+// intInSlice - Check if int exuist in slice
+func intInSlice(slice []int, i int) bool {
+	for _, n := range slice {
+		if i == n {
+			return true
+		}
+	}
+	return false
+}

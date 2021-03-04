@@ -10,6 +10,9 @@ import (
 // GameModeMap - Map of all known game modes
 var GameModeMap map[int]string = make(map[int]string)
 
+// SpecialGameModeTypes - Tournament and training battles
+var SpecialGameModeTypes []int = []int{2, 4, 5}
+
 func init() {
 	GameModeMap[0] = "Unknown"
 	GameModeMap[1] = "Regular Battle"

@@ -44,7 +44,7 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	// Calculate max length for data
 	for i, player := range replay.Details {
 		// Check if need platoon icon spacing
-		if player.SquadIndex > 0 && !addPlatoon {
+		if player.SquadIndex > 0 && !addPlatoon && !intInSlice(SpecialGameModeTypes, replay.RoomType) {
 			addPlatoon = true
 		}
 
