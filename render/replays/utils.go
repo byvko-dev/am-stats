@@ -143,8 +143,10 @@ func renderAllCardsOnFrame(finalCards render.AllCards, header string, bgImage im
 
 	// Frame height
 	maxIndexXMap := make(map[int]int)
-	var totalStackedCards int
-	var totalCardsHeight int
+	totalStackedCardsMap := make(map[int]int)
+	totalCardsHeightMap := make(map[int]int)
+	var totalHeaderCardsHeight int
+	var totalHeaderCards int
 	var totalCardsWidth int
 	var maxIndexX int
 	var maxWidth int
@@ -154,17 +156,36 @@ func renderAllCardsOnFrame(finalCards render.AllCards, header string, bgImage im
 			maxIndexX = maxIndexXMap[card.IndexX]
 		}
 
-		if card.IndexX == 0 {
-			totalStackedCards++
-			totalCardsHeight += card.Context.Height()
+		if card.Type == render.CardTypeHeader {
+			totalHeaderCards++
+			totalHeaderCardsHeight += card.Context.Height()
+		} else {
+			totalStackedCardsMap[card.IndexX]++
+			totalCardsHeightMap[card.IndexX] += card.Context.Height()
 		}
 
 		if card.Context.Width() > maxWidth && card.Type != render.CardTypeHeader {
 			maxWidth = card.Context.Width()
 		}
 	}
+
+	// Save max height and cards stacked
+	var totalCardsHeight int
+	var totalStackedCards int
+	for _, t := range totalStackedCardsMap {
+		if (t + totalHeaderCards) > totalStackedCards {
+			totalStackedCards = t + totalHeaderCards
+		}
+	}
+	for _, h := range totalCardsHeightMap {
+		if (h + totalHeaderCardsHeight) > totalCardsHeight {
+			totalCardsHeight = h + totalHeaderCardsHeight
+		}
+
+	}
 	totalCardsHeight += ((totalStackedCards-1)*(render.FrameMargin/4) + (render.FrameMargin * 2))
 	totalCardsWidth += (maxIndexX+1)*maxWidth + render.FrameMargin/2
+
 	// Get frame CTX
 	ctx, err := prepBgContext(totalCardsHeight, totalCardsWidth, bgImage)
 	if err != nil {
