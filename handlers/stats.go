@@ -131,7 +131,7 @@ func HandleStatsJSONExport(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.TankID, request.Realm, request.Days, 0)
+	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.TankID, request.Realm, request.Days, request.TankLimit)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
