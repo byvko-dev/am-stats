@@ -221,7 +221,7 @@ func calcSession(pid int, tankID int, realm string, days int) (session dbStats.S
 }
 
 // ExportSessionAsStruct - Export a full player session as a struct
-func ExportSessionAsStruct(pid int, tankID int, realm string, days int) (export ExportData, err error) {
+func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int) (export ExportData, err error) {
 	timerStart := time.Now()
 	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days)
 	if err != nil {
@@ -229,7 +229,11 @@ func ExportSessionAsStruct(pid int, tankID int, realm string, days int) (export 
 	}
 	lastRetro := lastSession.ToRetro()
 	vehicleMap := make(map[string]wgapi.VehicleStats)
-	for _, v := range session.Vehicles {
+	for i, v := range session.Vehicles {
+		// Limit
+		if limit > 0 && (i+1) > limit {
+			break
+		}
 		vehicleMap[strconv.Itoa(v.TankID)] = lastRetro.Vehicles[strconv.Itoa(v.TankID)]
 	}
 	export.PlayerDetails = playerProfile
