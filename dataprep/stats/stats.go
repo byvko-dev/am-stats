@@ -231,7 +231,7 @@ func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit in
 	lastRetro := lastSession.ToRetro()
 
 	// Limit
-	if limit > 0 {
+	if limit > 0 && len(session.Vehicles) > limit {
 		limitedLastSession := make(map[string]wgapi.VehicleStats)
 		session.Vehicles = session.Vehicles[0:limit]
 		for _, v := range session.Vehicles {
@@ -242,6 +242,7 @@ func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit in
 
 	// Sort
 	if sort != "" {
+		log.Print(sort)
 		session.Vehicles = SortTanks(session.Vehicles, sort)
 	}
 
@@ -305,7 +306,7 @@ func SortTanks(vehicles []wgapi.VehicleStats, sortKey string) []wgapi.VehicleSta
 		})
 	default:
 		sort.Slice(vehicles, func(i, j int) bool {
-			return vehicles[i].LastBattleTime > vehicles[j].LastBattleTime
+			return absInt(vehicles[i].LastBattleTime) > absInt(vehicles[j].LastBattleTime)
 		})
 	}
 	return vehicles
