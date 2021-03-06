@@ -42,7 +42,7 @@ func HandleStatsImageExport(c *fiber.Ctx) error {
 	// Log player ID and realm
 	log.Printf("pid: %v, realm: %v", request.PlayerID, request.Realm)
 
-	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.TankID, request.Realm, request.Days, 0)
+	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.TankID, request.Realm, request.Days, 0, "")
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -131,7 +131,7 @@ func HandleStatsJSONExport(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.TankID, request.Realm, request.Days, request.TankLimit)
+	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.TankID, request.Realm, request.Days, request.TankLimit, request.Sort)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -168,7 +168,7 @@ func HandlePublicStatsJSONExport(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.TankID, request.Realm, request.Days, request.TankLimit)
+	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.TankID, request.Realm, request.Days, request.TankLimit, request.Sort)
 
 	if err != nil {
 		log.Println(err)

@@ -59,7 +59,7 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 	}()
 
 	// Sort vehicles
-	vehicles := sortTanks(data.SessionStats.Vehicles, sortKey)
+	vehicles := SortTanks(data.SessionStats.Vehicles, sortKey)
 	// Create cards for each vehicle in routines
 	for i, tank := range vehicles {
 		if i == tankLimit {
@@ -822,8 +822,8 @@ func tierToRoman(t int) string {
 	}
 }
 
-// Sorting of vehicles
-func sortTanks(vehicles []wgapi.VehicleStats, sortKey string) []wgapi.VehicleStats {
+// SortTanks - Sorting of vehicles
+func SortTanks(vehicles []wgapi.VehicleStats, sortKey string) []wgapi.VehicleStats {
 	// Sort based on passed key
 	switch sortKey {
 	case "+battles":

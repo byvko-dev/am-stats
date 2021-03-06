@@ -3,6 +3,7 @@ package dataprep
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -221,7 +222,7 @@ func calcSession(pid int, tankID int, realm string, days int) (session dbStats.S
 }
 
 // ExportSessionAsStruct - Export a full player session as a struct
-func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int) (export ExportData, err error) {
+func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int, sort string) (export ExportData, err error) {
 	timerStart := time.Now()
 	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days)
 	if err != nil {
@@ -237,6 +238,11 @@ func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit in
 			limitedLastSession[strconv.Itoa(v.TankID)] = lastRetro.Vehicles[strconv.Itoa(v.TankID)]
 		}
 		lastRetro.Vehicles = limitedLastSession
+	}
+
+	// Sort
+	if sort != "" {
+		session.Vehicles = SortTanks(session.Vehicles, sort)
 	}
 
 	export.PlayerDetails = playerProfile
@@ -255,4 +261,60 @@ func convWGtoDBprofile(wgData wgapi.PlayerProfile) (dbData dbPlayers.DBPlayerPof
 	dbData.ClanName = wgData.ClanName
 	dbData.ClanTag = wgData.ClanTag
 	return dbData
+}
+
+// SortTanks - Sorting of vehicles
+func SortTanks(vehicles []wgapi.VehicleStats, sortKey string) []wgapi.VehicleStats {
+	// Sort based on passed key
+	switch sortKey {
+	case "+battles":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return vehicles[i].Battles < vehicles[j].Battles
+		})
+	case "-battles":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return vehicles[i].Battles > vehicles[j].Battles
+		})
+	case "+winrate":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return (float64(vehicles[i].Wins) / float64(vehicles[i].Battles)) < (float64(vehicles[j].Wins) / float64(vehicles[j].Battles))
+		})
+	case "-winrate":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return (float64(vehicles[i].Wins) / float64(vehicles[i].Battles)) > (float64(vehicles[j].Wins) / float64(vehicles[j].Battles))
+		})
+	case "+wn8":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return absInt(vehicles[i].TankWN8) < absInt(vehicles[j].TankWN8)
+		})
+	case "-wn8":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return absInt(vehicles[i].TankWN8) > absInt(vehicles[j].TankWN8)
+		})
+	case "+last_battle":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return absInt(vehicles[i].LastBattleTime) < absInt(vehicles[j].LastBattleTime)
+		})
+	case "-last_battle":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return absInt(vehicles[i].LastBattleTime) > absInt(vehicles[j].LastBattleTime)
+		})
+	case "relevance":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return (absInt(vehicles[i].TankRawWN8) * vehicles[i].LastBattleTime * vehicles[i].Battles) > (absInt(vehicles[j].TankRawWN8) * vehicles[j].LastBattleTime * vehicles[j].Battles)
+		})
+	default:
+		sort.Slice(vehicles, func(i, j int) bool {
+			return vehicles[i].LastBattleTime > vehicles[j].LastBattleTime
+		})
+	}
+	return vehicles
+}
+
+// absInt - Absolute value of an integer
+func absInt(val int) int {
+	if val >= 0 {
+		return val
+	}
+	return -val
 }
