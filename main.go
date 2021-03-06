@@ -8,6 +8,7 @@ import (
 	"github.com/cufee/am-stats/config"
 	"github.com/cufee/am-stats/handlers"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
@@ -17,6 +18,15 @@ func main() {
 
 	// Logger
 	app.Use(logger.New())
+	// CORS
+	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
+	// Public endpoints
+	// Stats
+	app.Post("/public/stats", handlers.HandlePublicStatsJSONExport)
 
 	// API key validator
 	app.Use(auth.Validator)

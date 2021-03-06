@@ -147,3 +147,46 @@ func HandleStatsJSONExport(c *fiber.Ctx) error {
 
 	return c.JSON(export)
 }
+
+// HandlePublicStatsJSONExport - Get stats as JSON
+func HandlePublicStatsJSONExport(c *fiber.Ctx) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in handlePlayerRequest", r)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
+			c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "something did not work",
+			})
+		}
+	}()
+
+	var request StatsRequest
+	err := c.BodyParser(&request)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	export, err := stats.ExportSessionAsStruct(request.PlayerID, request.TankID, request.Realm, request.Days)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	if export.PlayerDetails == (externalapis.PlayerProfile{}) || export.PlayerDetails.Name == "" {
+		log.Printf("%+v", request)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "bad player data",
+		})
+	}
+
+	// Trim data
+	var publicExport stats.ExportData
+	publicExport.SessionStats = export.SessionStats
+	publicExport.LastSession = export.LastSession
+	publicExport.PlayerDetails = export.PlayerDetails
+
+	return c.JSON(publicExport)
+}
