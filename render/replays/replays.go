@@ -39,7 +39,11 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	var maxDamageLength float64
 	var maxAssistLength float64
 	var maxWinrateLength float64
+	teamWins := make(map[int]int)
 	teamPoints := make(map[int]int)
+	teamRating := make(map[int]int)
+	teamDamage := make(map[int]int)
+	teamBattles := make(map[int]int)
 
 	// Calculate max length for data
 	for i, player := range replay.Details {
@@ -55,6 +59,13 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 		} else {
 			teamPoints[1] += player.WpPointsStolen
 		}
+
+		// Team totals
+		teamRating[player.Team] += player.TankProfile.TankWN8
+		teamWins[player.Team] += player.Profile.Stats.All.Wins
+		teamBattles[player.Team] += player.TankProfile.Battles
+		teamDamage[player.Team] += player.TankProfile.DamageDealt
+		teamBattles[player.Team] += player.Profile.Stats.All.Battles
 
 		// Compile clan tag
 		var clanTag string
@@ -179,11 +190,11 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 			// Add rating value
 			var ratingBlock render.Block
 			ratingBlock.Width = int(maxRatingLength)
-			ratingBlock.Padding = hpBarWidth
+			ratingBlock.Padding = hpBarWidth * 2
 			// Prep extra block data
 			ratingBlockExtra := replayBlockData(blueprint)
 			rating := "-"
-			if player.TankProfile.TankWN8 > 0 {
+			if player.TankProfile.TankWN8 >= 0 {
 				rating = fmt.Sprint(player.TankProfile.TankWN8)
 			}
 			ratingBlockExtra.TextLines = append(ratingBlockExtra.TextLines, blockTextLine{Text: rating})
@@ -268,10 +279,11 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 
 	// Add rating
 	var ratingBlock1 render.Block
-	ratingBlock1.Width = int(maxRatingLength) + hpBarWidth
+	ratingBlock1.Width = int(maxRatingLength) + (hpBarWidth * 2)
 	// Prep extra block data
 	ratingBlock1Extra := replayBlockData(blueprint)
-	ratingBlock1Extra.TextLines = append(ratingBlock1Extra.TextLines, blockTextLine{Text: "WN8", Color: render.SmallTextColor})
+	ratingBlock1Extra.TextLines = append(ratingBlock1Extra.TextLines, blockTextLine{Text: "WN8", Color: render.AltTextColor})
+	// ratingBlock1Extra.TextLines = append(ratingBlock1Extra.TextLines, blockTextLine{Text: fmt.Sprint(teamRating[1] / len(replay.Allies)), Color: render.BigTextColor})
 	ratingBlock1.Extra = &ratingBlock1Extra
 	card.Blocks = append(card.Blocks, ratingBlock1)
 
@@ -280,7 +292,8 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	winrateBlock1.Width = int(maxWinrateLength + render.TextMargin)
 	// Prep extra block data
 	winrateBlock1Extra := replayBlockData(blueprint)
-	winrateBlock1Extra.TextLines = append(winrateBlock1Extra.TextLines, blockTextLine{Text: "WR", Color: render.SmallTextColor})
+	winrateBlock1Extra.TextLines = append(winrateBlock1Extra.TextLines, blockTextLine{Text: "WR", Color: render.AltTextColor})
+	// winrateBlock1Extra.TextLines = append(winrateBlock1Extra.TextLines, blockTextLine{Text: fmt.Sprintf("%.2f", 100*float64(teamWins[1])/float64(teamBattles[1])) + "%", Color: render.SmallTextColor})
 	winrateBlock1.Extra = &winrateBlock1Extra
 	card.Blocks = append(card.Blocks, winrateBlock1)
 
@@ -289,7 +302,8 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	damageBlock1.Width = int(maxDamageLength + render.TextMargin)
 	// Prep extra block data
 	damageBlock1Extra := replayBlockData(blueprint)
-	damageBlock1Extra.TextLines = append(damageBlock1Extra.TextLines, blockTextLine{Text: "DMG", Color: render.SmallTextColor})
+	damageBlock1Extra.TextLines = append(damageBlock1Extra.TextLines, blockTextLine{Text: "DMG", Color: render.AltTextColor})
+	// damageBlock1Extra.TextLines = append(damageBlock1Extra.TextLines, blockTextLine{Text: fmt.Sprint(teamDamage[1] / len(replay.Allies)), Color: render.BigTextColor})
 	damageBlock1.Extra = &damageBlock1Extra
 	card.Blocks = append(card.Blocks, damageBlock1)
 
@@ -298,7 +312,8 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	killsBlock1.Width = int(maxKillsLength + render.TextMargin)
 	// Prep extra block data
 	killsBlock1Extra := replayBlockData(blueprint)
-	killsBlock1Extra.TextLines = append(killsBlock1Extra.TextLines, blockTextLine{Text: "K", Color: render.SmallTextColor})
+	killsBlock1Extra.TextLines = append(killsBlock1Extra.TextLines, blockTextLine{Text: "K", Color: render.AltTextColor})
+	// killsBlock1Extra.TextLines = append(killsBlock1Extra.TextLines, blockTextLine{Text: " ", Color: render.SmallTextColor})
 	killsBlock1.Extra = &killsBlock1Extra
 	card.Blocks = append(card.Blocks, killsBlock1)
 
@@ -322,9 +337,10 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 
 	// Add rating
 	var ratingBlock2 render.Block
-	ratingBlock2.Width = int(maxRatingLength) + hpBarWidth
+	ratingBlock2.Width = int(maxRatingLength) + (hpBarWidth * 2)
 	ratingBlock2Extra := replayBlockData(blueprint)
-	ratingBlock2Extra.TextLines = append(ratingBlock2Extra.TextLines, blockTextLine{Text: "WN8", Color: render.SmallTextColor})
+	ratingBlock2Extra.TextLines = append(ratingBlock2Extra.TextLines, blockTextLine{Text: "WN8", Color: render.AltTextColor})
+	// ratingBlock2Extra.TextLines = append(ratingBlock2Extra.TextLines, blockTextLine{Text: fmt.Sprint(math.Round(float64(teamRating[2] / len(replay.Enemies)))), Color: render.BigTextColor})
 	ratingBlock2.Extra = &ratingBlock2Extra
 	card.Blocks = append(card.Blocks, ratingBlock2)
 
@@ -333,7 +349,9 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	winrateBlock2.Width = int(maxWinrateLength + render.TextMargin)
 	// Prep extra block data
 	winrateBlock2Extra := replayBlockData(blueprint)
-	winrateBlock2Extra.TextLines = append(winrateBlock2Extra.TextLines, blockTextLine{Text: "WR", Color: render.SmallTextColor})
+	winrateBlock2Extra.TextLines = append(winrateBlock2Extra.TextLines, blockTextLine{Text: "WR", Color: render.AltTextColor})
+	// winrateBlock2Extra.TextLines = append(winrateBlock2Extra.TextLines, blockTextLine{Text: fmt.Sprintf("%.2f", 100*float64(teamWins[2])/float64(teamBattles[2])) + "%", Color: render.SmallTextColor})
+	log.Print(teamWins[2], teamBattles[2])
 	winrateBlock2.Extra = &winrateBlock2Extra
 	card.Blocks = append(card.Blocks, winrateBlock2)
 
@@ -342,7 +360,8 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	damageBlock2.Width = int(maxDamageLength + render.TextMargin)
 	// Prep extra block data
 	damageBlock2Extra := replayBlockData(blueprint)
-	damageBlock2Extra.TextLines = append(damageBlock2Extra.TextLines, blockTextLine{Text: "DMG", Color: render.SmallTextColor})
+	damageBlock2Extra.TextLines = append(damageBlock2Extra.TextLines, blockTextLine{Text: "DMG", Color: render.AltTextColor})
+	// damageBlock2Extra.TextLines = append(damageBlock2Extra.TextLines, blockTextLine{Text: fmt.Sprint(teamDamage[2] / len(replay.Enemies)), Color: render.BigTextColor})
 	damageBlock2.Extra = &damageBlock2Extra
 	card.Blocks = append(card.Blocks, damageBlock2)
 
@@ -351,7 +370,8 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	killsBlock2.Width = int(maxKillsLength + render.TextMargin)
 	// Prep extra block data
 	killsBlock2Extra := replayBlockData(blueprint)
-	killsBlock2Extra.TextLines = append(killsBlock2Extra.TextLines, blockTextLine{Text: "K", Color: render.SmallTextColor})
+	killsBlock2Extra.TextLines = append(killsBlock2Extra.TextLines, blockTextLine{Text: "K", Color: render.AltTextColor})
+	// killsBlock2Extra.TextLines = append(killsBlock2Extra.TextLines, blockTextLine{Text: " ", Color: render.SmallTextColor})
 	killsBlock2.Extra = &killsBlock2Extra
 	card.Blocks = append(card.Blocks, killsBlock2)
 
