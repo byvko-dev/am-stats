@@ -27,6 +27,7 @@ func main() {
 	// Public endpoints
 	// Stats
 	app.Post("/public/stats", handlers.HandlePublicStatsJSONExport)
+	app.Post("/public/stats/reset-special", handlers.HandleSpecialSessionReset)
 
 	// API key validator
 	app.Use(auth.Validator)

@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
+	"time"
 
 	"github.com/cufee/am-stats/config"
 	stats "github.com/cufee/am-stats/dataprep/stats"
@@ -146,6 +147,42 @@ func HandleStatsJSONExport(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(export)
+}
+
+// HandleSpecialSessionReset - reset special session
+func HandleSpecialSessionReset(c *fiber.Ctx) error {
+	var request StatsRequest
+	err := c.BodyParser(&request)
+	if err != nil {
+		log.Println(err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	httpClient := &http.Client{Timeout: 1 * time.Second}
+	// Make request
+	req, err := http.NewRequest("GET", config.AMCacheURL+fmt.Sprintf("/%v/special-session/%v", request.Realm, request.PlayerID), nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", config.AMAPIKey)
+
+	// Send request
+	res, err := httpClient.Do(req)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Check response code
+	if res.StatusCode != fiber.StatusOK {
+		errData, _ := ioutil.ReadAll(res.Body)
+		return c.Status(res.StatusCode).Send(errData)
+	}
+	return c.SendStatus(fiber.StatusOK)
 }
 
 // HandlePublicStatsJSONExport - Get stats as JSON
