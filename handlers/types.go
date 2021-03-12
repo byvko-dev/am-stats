@@ -15,6 +15,7 @@ type StatsRequest struct {
 	TankLimit int    `json:"detailed_limit"`
 	TankID    int    `json:"tank_id"`
 	BgURL     string `json:"bg_url"`
+	Special   bool   `json:"special"`
 }
 
 // AchievementsRequest - Request for achievements data

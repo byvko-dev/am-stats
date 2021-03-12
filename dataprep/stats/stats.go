@@ -149,7 +149,7 @@ func sessionDiff(oldStats dbStats.Session, liveStats dbStats.Session) (session d
 }
 
 // CalcSession - Calculate a new session
-func calcSession(pid int, tankID int, realm string, days int) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, err error) {
+func calcSession(pid int, tankID int, realm string, days int, special bool) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, err error) {
 	// Get live profile
 	playerProfile, err = wgapi.PlayerProfileData(pid, realm)
 	if err != nil {
@@ -198,7 +198,17 @@ func calcSession(pid int, tankID int, realm string, days int) (session dbStats.S
 	}
 
 	// Get previous session
-	oldSession, err = dbStats.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
+	switch special {
+	case true:
+		oldSession, err = dbStats.GetPlayerSpecialSession(pid)
+		if err == nil {
+			break
+		}
+		fallthrough
+	default:
+		oldSession, err = dbStats.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
+	}
+	// Check errors
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" && days == 0 {
 			// Check if session exists
@@ -221,9 +231,9 @@ func calcSession(pid int, tankID int, realm string, days int) (session dbStats.S
 }
 
 // ExportSessionAsStruct - Export a full player session as a struct
-func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int, sort string) (export ExportData, err error) {
+func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int, sort string, special bool) (export ExportData, err error) {
 	timerStart := time.Now()
-	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days)
+	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days, special)
 	if err != nil {
 		return export, err
 	}

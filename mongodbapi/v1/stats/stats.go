@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+var specialSessionsCollection *mongo.Collection
 var sessionsCollection *mongo.Collection
 var streaksCollection *mongo.Collection
 
@@ -41,6 +42,7 @@ func init() {
 	}
 	log.Println("Stats - successfully connected and pinged.")
 
+	specialSessionsCollection = client.Database("stats").Collection("special-sessions")
 	sessionsCollection = client.Database("stats").Collection("sessions")
 	streaksCollection = client.Database("stats").Collection("streaks")
 }
@@ -64,6 +66,18 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 	// Get session
 	var retroSession RetroSession
 	err = sessionsCollection.FindOne(ctx, query, &queryOptions).Decode(&retroSession)
+	if err != nil {
+		return session, err
+	}
+	// Convert to Session
+	return retroSession.ToSession(), nil
+}
+
+// GetPlayerSpecialSession -
+func GetPlayerSpecialSession(pid int) (session Session, err error) {
+	// Get session
+	var retroSession RetroSession
+	err = specialSessionsCollection.FindOne(ctx, bson.M{"player_id": pid}).Decode(&retroSession)
 	if err != nil {
 		return session, err
 	}
