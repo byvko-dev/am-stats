@@ -74,10 +74,10 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 }
 
 // GetPlayerSpecialSession -
-func GetPlayerSpecialSession(pid int) (session Session, err error) {
+func GetPlayerSpecialSession(pid int, battles int) (session Session, err error) {
 	// Get session
 	var retroSession RetroSession
-	err = specialSessionsCollection.FindOne(ctx, bson.M{"player_id": pid}).Decode(&retroSession)
+	err = specialSessionsCollection.FindOne(ctx, bson.M{"player_id": pid, "battles_random": bson.M{"$lt": battles}}).Decode(&retroSession)
 	if err != nil {
 		return session, err
 	}

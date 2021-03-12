@@ -200,7 +200,7 @@ func calcSession(pid int, tankID int, realm string, days int, special bool) (ses
 	// Get previous session
 	switch special {
 	case true:
-		oldSession, err = dbStats.GetPlayerSpecialSession(pid)
+		oldSession, err = dbStats.GetPlayerSpecialSession(pid, playerProfile.Stats.All.Battles)
 		if err == nil {
 			break
 		}
