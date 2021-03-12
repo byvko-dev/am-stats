@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"image"
 	"image/png"
@@ -155,16 +156,18 @@ func HandleSpecialSessionReset(c *fiber.Ctx) error {
 	err := c.BodyParser(&request)
 	if err != nil {
 		log.Println(err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	httpClient := &http.Client{Timeout: 1 * time.Second}
+	httpClient := &http.Client{Timeout: 1 * time.Second, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 	// Make request
 	req, err := http.NewRequest("GET", config.AMCacheURL+fmt.Sprintf("/%v/special-session/%v", request.Realm, request.PlayerID), nil)
 	if err != nil {
-		return err
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("x-api-key", config.AMAPIKey)
@@ -172,7 +175,7 @@ func HandleSpecialSessionReset(c *fiber.Ctx) error {
 	// Send request
 	res, err := httpClient.Do(req)
 	if err != nil {
-		return c.JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
