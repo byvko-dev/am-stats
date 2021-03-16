@@ -142,14 +142,15 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 			// Prep extra block data
 			var hpBarExtra hpBarBlockData
 			hpBarBlock.ExtraType = "hpbar"
+			hpBarExtra.HPColorBG = color.RGBA{65, 65, 65, 220}
 			if player.KilledBy == 0 {
 				hpBarExtra.PercentHP = float64(player.HitpointsLeft) / float64(player.HitpointsLeft+player.DamageReceived)
+				hpBarExtra.HPColor = color.RGBA{123, 219, 101, 220}
+				hpBarExtra.HPColorBG = color.RGBA{80, 80, 80, 220}
 				if hpBarExtra.PercentHP < 0.1 {
 					hpBarExtra.PercentHP = 0.1
 				}
 			}
-			hpBarExtra.HPColorBG = color.RGBA{100, 100, 100, 220}
-			hpBarExtra.HPColor = color.RGBA{123, 219, 101, 220}
 			if player.Team != 1 {
 				hpBarExtra.HPColor = color.RGBA{219, 109, 101, 220}
 			}
