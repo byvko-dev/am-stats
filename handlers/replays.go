@@ -12,6 +12,7 @@ import (
 
 	"github.com/cufee/am-stats/config"
 	replays "github.com/cufee/am-stats/dataprep/replays"
+	"github.com/cufee/am-stats/external"
 	renderReplay "github.com/cufee/am-stats/render/replays"
 	"github.com/fogleman/gg"
 	"github.com/gofiber/fiber/v2"
@@ -92,10 +93,13 @@ func HandleReplayImageExport(c *fiber.Ctx) error {
 		})
 	}
 
+	// Get protogonist bg URL
+	protoData, _ := external.CheckUserByPID(export.Protagonist)
+
 	// Get bg Image
 	var bgImage image.Image
-	if request.BgURL != "" {
-		response, _ := http.Get(request.BgURL)
+	if protoData.CustomBgURL != "" {
+		response, _ := http.Get(protoData.CustomBgURL)
 		if response != nil {
 			bgImage, _, err = image.Decode(response.Body)
 			defer response.Body.Close()
@@ -103,7 +107,7 @@ func HandleReplayImageExport(c *fiber.Ctx) error {
 			err = fmt.Errorf("bad bg image")
 		}
 	}
-	if err != nil || request.BgURL == "" {
+	if err != nil || protoData.CustomBgURL == "" {
 		bgImage, err = gg.LoadImage(config.AssetsPath + config.DefaultBG)
 		if err != nil {
 			log.Println(err)
