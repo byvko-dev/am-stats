@@ -182,7 +182,14 @@ func recursivePlayerSort(arr []ReplayPlayerData, start, end int) {
 				arr[splitIndex] = arr[i]
 				arr[i] = temp
 			}
+			splitIndex++
+		} else if arr[i].TankProfile.TankWN8 == 0 && pivot.TankProfile.TankWN8 == 0 && arr[i].TankProfile.DamageDealt > pivot.TankProfile.DamageDealt {
+			if splitIndex != i {
+				temp := arr[splitIndex]
 
+				arr[splitIndex] = arr[i]
+				arr[i] = temp
+			}
 			splitIndex++
 		}
 	}
