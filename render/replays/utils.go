@@ -249,3 +249,17 @@ func intInSlice(slice []int, i int) bool {
 	}
 	return false
 }
+
+func masteryToIconURL(mastery int) string {
+	switch mastery {
+	case 3:
+		return "http://glossary-eu-static.gcdn.co/icons/wotb/current/achievements/markOfMasteryI.png"
+	case 2:
+		return "http://glossary-eu-static.gcdn.co/icons/wotb/current/achievements/markOfMasteryII.png"
+	case 1:
+		return "http://glossary-eu-static.gcdn.co/icons/wotb/current/achievements/markOfMasteryIII.png"
+	case 4:
+		return "http://glossary-eu-static.gcdn.co/icons/wotb/current/achievements/markOfMastery.png"
+	}
+	return ""
+}

@@ -119,8 +119,9 @@ func TestClanAchievementsLbImage(t *testing.T) {
 }
 
 func TestReplayRender(t *testing.T) {
-	url := "https://replays.wotinspector.com/en/download/314ba298837c51d885d1d590b389cfc4"
+	url := "https://cdn.discordapp.com/attachments/346861614735294464/821871066342752256/20210317_1816__Mochanado_Cz04_T50_51_4295187955351455.wotbreplay"
 	// url := "https://cdn.discordapp.com/attachments/346861614735294464/816882621723443221/20210303_1914__Tutankhamun_1332BC_A116_XM551_11598169955651744.wotbreplay"
+	// url := "https://cdn.discordapp.com/attachments/719831153162321981/823314368333873192/20210320_2053__Vladok1408_Object252_4311306967881970.wotbreplay"
 
 	// Get data
 	data, err := replays.ProcessReplay(url)

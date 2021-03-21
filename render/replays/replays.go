@@ -31,7 +31,10 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	checkBlock := replayBlockData(slimBlockBP)
 
 	var addPlatoon bool
+	var masteryBadges bool
 	const hpBarWidth int = 8
+	const masteryWidth int = 50
+	const masteryPadding int = 5
 	const platoonWidth int = 25
 	maxNameLength, _, _ := getTextParams(checkCtx, &checkBlock, slimBlockBP.TextSize, "Supremacy Points - 000")
 	var maxKillsLength float64
@@ -44,6 +47,11 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	teamRating := make(map[int]int)
 	teamDamage := make(map[int]int)
 	teamBattles := make(map[int]int)
+
+	// Set mastery badge
+	if replay.MasteryBadge > 0 {
+		masteryBadges = true
+	}
 
 	// Calculate max length for data
 	for i, player := range replay.Details {
@@ -176,6 +184,21 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 			playerNameBlock.Extra = &playerNameExtra
 			card.Blocks = append(card.Blocks, playerNameBlock)
 
+			// Platoon icon
+			if masteryBadges {
+				var masteryBlock render.Block
+				masteryBlock.Width = masteryWidth
+				masteryBlock.Padding = masteryPadding
+				if player.IsProtagonist {
+					// Prep extra block data
+					masteryExtra := replayBlockData(blueprint)
+					masteryExtra.IconSize = masteryWidth
+					masteryExtra.IconURL = masteryToIconURL(replay.MasteryBadge)
+					masteryBlock.Extra = &masteryExtra
+				}
+				card.Blocks = append(card.Blocks, masteryBlock)
+			}
+
 			// Add rating color bar
 			var ratingBar render.Block
 			ratingBar.Width = hpBarWidth
@@ -266,6 +289,9 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	// Add Team 1 averages
 	var blankBlock render.Block
 	blankBlock.Width = int(maxNameLength) + (hpBarWidth * 2) + int(render.TextMargin*3)
+	if masteryBadges {
+		blankBlock.Width += masteryWidth + masteryPadding
+	}
 	if addPlatoon {
 		blankBlock.Width += platoonWidth
 	}
@@ -333,6 +359,9 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 		blankBlockExtra2.TextLines = []blockTextLine{{Text: fmt.Sprintf("Supremacy Points - %v", ((teamPoints[2]+49)/50)*50), Color: render.SmallTextColor}}
 		blankBlockExtra2.TextAlign = -1
 		blankBlock2.Extra = &blankBlockExtra2
+	}
+	if masteryBadges {
+		blankBlock.Width += masteryWidth + masteryPadding
 	}
 	card.Blocks = append(card.Blocks, blankBlock2)
 
