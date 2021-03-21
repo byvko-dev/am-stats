@@ -114,6 +114,14 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 		}
 	}
 
+	// Fix team points
+	for k, v := range teamPoints {
+		if v > 1000 {
+			v = 1000
+			teamPoints[k] = v
+		}
+	}
+
 	// Work on cards in go routines
 	for i, player := range replay.Details {
 		wg.Add(1)

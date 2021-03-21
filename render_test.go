@@ -18,11 +18,11 @@ import (
 
 func TestPlayerAchievementsLbImage(t *testing.T) {
 	var request handlers.AchievementsRequest
-	request.Realm = "NA"
-	request.Highlight = false
 	request.Days = 0
 	request.Limit = 10
+	request.Realm = "NA"
 	request.PlayerID = 0
+	request.Highlight = false
 	request.Medals = []mongodbapi.MedalWeight{{Name: "markofmastery", Weight: 25}, {Name: "markofmasteryi", Weight: 5}, {Name: "markofmasteryii", Weight: 1}, {Name: "markofmasteryiii", Weight: 1}}
 
 	// Get data

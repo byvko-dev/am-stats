@@ -56,7 +56,7 @@ func AddAllCardsToFrame(finalCards AllCards, header string, bgImage image.Image)
 			maxWidth = card.Context.Width()
 		}
 	}
-	totalCardsHeight += ((len(finalCards.Cards)-1)*(FrameMargin/2) + (FrameMargin * 2))
+	totalCardsHeight += ((len(finalCards.Cards)-1)*(FrameMargin/4) + (FrameMargin * 2))
 	// Get frame CTX
 	ctx, err := prepBgContext(totalCardsHeight, maxWidth, bgImage)
 	if err != nil {
@@ -68,10 +68,10 @@ func AddAllCardsToFrame(finalCards AllCards, header string, bgImage image.Image)
 		return finalCards.Cards[i].Index < finalCards.Cards[j].Index
 	})
 	// Render cards
-	var lastCardPos int = FrameMargin / 2
+	var lastCardPos int = FrameMargin * 3 / 4
 	for i := 0; i < len(finalCards.Cards); i++ {
 		card := finalCards.Cards[i]
-		cardMarginH := lastCardPos + (FrameMargin / 2)
+		cardMarginH := lastCardPos + (FrameMargin / 4)
 		finalCards.Frame.DrawImage(card.Image, FrameMargin, cardMarginH)
 		lastCardPos = cardMarginH + card.Context.Height()
 	}
