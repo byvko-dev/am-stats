@@ -17,7 +17,7 @@ type responseError struct {
 }
 
 // HTTP client
-var clientHTTP = &http.Client{Timeout: 10 * time.Second, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
+var clientHTTP = &http.Client{Timeout: 8 * time.Second, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 
 // DecodeHTTPResponse - Send HTTP request with a payload and headers, decode to target
 func DecodeHTTPResponse(method string, headers map[string]string, requestURL *url.URL, reqData []byte, target interface{}) error {
