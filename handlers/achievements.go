@@ -171,6 +171,8 @@ func HandlerPlayersLeaderboardImage(c *fiber.Ctx) error {
 		})
 	}
 
+	log.Print(request.PlayerID, request.Realm, request.Days)
+
 	// Get bg Image
 	var bgImage image.Image
 	if request.BgURL != "" {
