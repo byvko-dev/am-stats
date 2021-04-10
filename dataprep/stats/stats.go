@@ -232,7 +232,6 @@ func calcSession(pid int, tankID int, realm string, days int, special bool) (ses
 
 // ExportSessionAsStruct - Export a full player session as a struct
 func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int, sort string, special bool) (export ExportData, err error) {
-	export.PlayerDetails.Realm = realm // Set realm
 
 	timerStart := time.Now()
 	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days, special)
@@ -257,6 +256,7 @@ func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit in
 	}
 
 	export.PlayerDetails = playerProfile
+	export.PlayerDetails.Realm = realm
 	export.SessionStats = session
 	export.LastSession = lastRetro
 	export.TimeToComplete = time.Now().Sub(timerStart).Seconds()

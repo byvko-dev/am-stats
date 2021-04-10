@@ -98,7 +98,7 @@ func AddAllCardsToFrame(finalCards AllCards, header, realm string, bgImage image
 			// Resize and paste icon
 			icon = imaging.Fill(icon, ServerIconSize, ServerIconSize, imaging.Center, imaging.Box)
 			margin := (FrameMargin - ServerIconSize) / 2
-			finalCards.Frame.DrawImage(icon, FrameMargin, margin)
+			finalCards.Frame.DrawImage(icon, margin, margin)
 		}
 	}
 
