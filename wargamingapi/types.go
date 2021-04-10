@@ -98,6 +98,7 @@ type PlayerProfile struct {
 	LastBattle     int            `json:"last_battle_time"`
 	Stats          playerStatsRes `json:"statistics"`
 	CareerWN8      int            `json:"career_wn8"`
+	Realm          string         `json:"realm"`
 }
 
 // Player stats response

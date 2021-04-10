@@ -93,7 +93,7 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 	}
 
 	header := data.SessionStats.Timestamp.Format(fmt.Sprintf("%s Jan 2", "Session from"))
-	finalCtx, err := render.AddAllCardsToFrame(finalCards, header, bgImage)
+	finalCtx, err := render.AddAllCardsToFrame(finalCards, header, data.PlayerDetails.Realm, bgImage)
 	if err != nil {
 		return nil, err
 	}
@@ -696,7 +696,7 @@ func makeAllStatsCard(card render.CardData, data stats.ExportData) (render.CardD
 	return card, nil
 }
 
-func makeStatsHeaderCard(card render.CardData, playerName, playerClan, battleType string, premium bool, verified bool) (render.CardData, error) {
+func makeStatsHeaderCard(card render.CardData, playerName, playerClan, battleType string, premium, verified bool) (render.CardData, error) {
 	ctx := *card.Context
 	if err := ctx.LoadFontFace(render.FontPath, render.FontSizeHeader); err != nil {
 		return card, err
@@ -754,6 +754,8 @@ func makeStatsHeaderCard(card render.CardData, playerName, playerClan, battleTyp
 		ctx.DrawLine(lineX2, lineY2, lineX3, lineY3)
 		ctx.Stroke()
 	}
+	// Draw server icon
+
 	// Make image
 	card.Image = ctx.Image()
 	return card, nil

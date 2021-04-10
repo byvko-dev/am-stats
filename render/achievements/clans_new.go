@@ -184,7 +184,7 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, checkData dbAch.Cla
 	timer.Reset("Get final ctx")
 
 	header := fmt.Sprintf("Achievements Leaderboard | Updated %v min ago", int(time.Now().Sub(maxTimestamp).Minutes()))
-	finalCtx, err := render.AddAllCardsToFrame(finalCards, header, bgImage)
+	finalCtx, err := render.AddAllCardsToFrame(finalCards, header, checkData.Realm, bgImage)
 	if err != nil {
 		return nil, err
 	}

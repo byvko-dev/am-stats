@@ -119,6 +119,9 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 
 // ExportAchievementsLeaderboard - Export achievements from a session
 func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, chackData AchievementsPIDPos, err error) {
+	// Add realm
+	chackData.Realm = realm
+
 	// Get realm players
 	pidSlice, err := dbPlayers.GetRealmPlayers(realm)
 	if err != nil {

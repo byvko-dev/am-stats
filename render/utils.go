@@ -2,7 +2,9 @@ package render
 
 import (
 	"fmt"
+	"log"
 	"sort"
+	"strings"
 
 	"image"
 	"image/color"
@@ -33,6 +35,8 @@ var (
 	PremiumColor  = color.RGBA{255, 223, 0, 255}
 	VerifiedColor = color.RGBA{72, 167, 250, 255}
 
+	ServerIconSize = 40
+
 	// DEBUG
 
 	DebugColorRed   = color.RGBA{255, 0, 0, 255}
@@ -42,7 +46,7 @@ var (
 )
 
 // AddAllCardsToFrame - Render all cards to frame
-func AddAllCardsToFrame(finalCards AllCards, header string, bgImage image.Image) (*gg.Context, error) {
+func AddAllCardsToFrame(finalCards AllCards, header, realm string, bgImage image.Image) (*gg.Context, error) {
 	if len(finalCards.Cards) == 0 {
 		return nil, fmt.Errorf("no cards to be rendered")
 	}
@@ -76,7 +80,7 @@ func AddAllCardsToFrame(finalCards AllCards, header string, bgImage image.Image)
 		lastCardPos = cardMarginH + card.Context.Height()
 	}
 
-	// Draw timestamp
+	// Draw header
 	if err := finalCards.Frame.LoadFontFace(FontPath, FontSize*0.75); err != nil {
 		return finalCards.Frame, err
 	}
@@ -85,6 +89,18 @@ func AddAllCardsToFrame(finalCards AllCards, header string, bgImage image.Image)
 	headerX := (float64(finalCards.Frame.Width()) - headerW) / 2
 	headerY := (float64(FrameMargin)-headerH)/2 + headerH
 	finalCards.Frame.DrawString(header, headerX, headerY)
+
+	log.Print(realm)
+	if realm != "" {
+		// Draw realm icon
+		icon, err := gg.LoadImage(config.AssetsPath + "icons/" + realmToEmoji(realm))
+		if err == nil {
+			// Resize and paste icon
+			icon = imaging.Fill(icon, ServerIconSize, ServerIconSize, imaging.Center, imaging.Box)
+			margin := (FrameMargin - ServerIconSize) / 2
+			finalCards.Frame.DrawImage(icon, FrameMargin, margin)
+		}
+	}
 
 	return finalCards.Frame, nil
 }
@@ -118,4 +134,18 @@ func PrepNewCard(card *CardData, index int, heightMod float64, width int) {
 	cardCtx.Fill()
 	card.Context = cardCtx
 	card.Index = index
+}
+
+// Tank tier to roman numeral
+func realmToEmoji(r string) string {
+	switch strings.ToUpper(r) {
+	case "RU":
+		return "ru.png"
+	case "NA":
+		return "na.png"
+	case "EU":
+		return "eu.png"
+	default:
+		return "asia.png"
+	}
 }
