@@ -2,7 +2,6 @@ package render
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 
@@ -90,10 +89,9 @@ func AddAllCardsToFrame(finalCards AllCards, header, realm string, bgImage image
 	headerY := (float64(FrameMargin)-headerH)/2 + headerH
 	finalCards.Frame.DrawString(header, headerX, headerY)
 
-	log.Print(realm)
 	if realm != "" {
 		// Draw realm icon
-		icon, err := gg.LoadImage(config.AssetsPath + "icons/" + realmToEmoji(realm))
+		icon, err := gg.LoadImage(config.AssetsPath + "icons/" + RealmToEmoji(realm))
 		if err == nil {
 			// Resize and paste icon
 			icon = imaging.Fill(icon, ServerIconSize, ServerIconSize, imaging.Center, imaging.Box)
@@ -137,7 +135,7 @@ func PrepNewCard(card *CardData, index int, heightMod float64, width int) {
 }
 
 // Tank tier to roman numeral
-func realmToEmoji(r string) string {
+func RealmToEmoji(r string) string {
 	switch strings.ToUpper(r) {
 	case "RU":
 		return "ru.png"

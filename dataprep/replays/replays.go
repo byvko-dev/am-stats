@@ -21,6 +21,7 @@ func ProcessReplay(replayURL string) (summary ReplaySummary, err error) {
 
 	// Detect realm
 	realm := realmFromID(summary.Protagonist)
+	summary.Realm = realm
 
 	// Get player profile data
 	wgPlayerData, err := wgapi.PlayerSliceProfileData(realm, append(summary.Allies, summary.Enemies...))

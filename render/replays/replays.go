@@ -436,7 +436,7 @@ func Render(replay replays.ReplaySummary, bgImage image.Image) (image.Image, err
 	}
 
 	header := strings.Join([]string{replay.MapName, gameMode, result}, " - ")
-	finalCtx, err := renderAllCardsOnFrame(finalCards, header, bgImage)
+	finalCtx, err := renderAllCardsOnFrame(finalCards, header, replay.Realm, bgImage)
 	if err != nil {
 		return nil, err
 	}

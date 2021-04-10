@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/cufee/am-stats/config"
 	"github.com/cufee/am-stats/render"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"github.com/disintegration/imaging"
@@ -136,7 +137,7 @@ func renderCardBlocks(card *render.CardData) error {
 }
 
 // AddAllCardsToFrame - Render all cards to frame
-func renderAllCardsOnFrame(finalCards render.AllCards, header string, bgImage image.Image) (*gg.Context, error) {
+func renderAllCardsOnFrame(finalCards render.AllCards, header, realm string, bgImage image.Image) (*gg.Context, error) {
 	if len(finalCards.Cards) == 0 {
 		return nil, fmt.Errorf("no cards to be rendered")
 	}
@@ -226,6 +227,17 @@ func renderAllCardsOnFrame(finalCards render.AllCards, header string, bgImage im
 	headerX := (float64(finalCards.Frame.Width()) - headerW) / 2
 	headerY := (float64(render.FrameMargin)-headerH)/2 + headerH
 	finalCards.Frame.DrawString(header, headerX, headerY)
+
+	if realm != "" {
+		// Draw realm icon
+		icon, err := gg.LoadImage(config.AssetsPath + "icons/" + render.RealmToEmoji(realm))
+		if err == nil {
+			// Resize and paste icon
+			icon = imaging.Fill(icon, render.ServerIconSize, render.ServerIconSize, imaging.Center, imaging.Box)
+			margin := (render.FrameMargin - render.ServerIconSize) / 2
+			finalCards.Frame.DrawImage(icon, margin, margin)
+		}
+	}
 
 	return finalCards.Frame, nil
 }

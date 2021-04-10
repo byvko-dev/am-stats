@@ -19,6 +19,7 @@ type ReplayDetailsRes struct {
 
 // ReplaySummary - Replay summary
 type ReplaySummary struct {
+	Realm                string             `json:"realm"`
 	DownloadURL          string             `json:"download_url"`
 	FileURL              string             `json:"file_url"`
 	WinnerTeam           int                `json:"winner_team"`
