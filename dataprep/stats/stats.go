@@ -310,6 +310,14 @@ func SortTanks(vehicles []wgapi.VehicleStats, sortKey string) []wgapi.VehicleSta
 		sort.Slice(vehicles, func(i, j int) bool {
 			return absInt(vehicles[i].LastBattleTime) > absInt(vehicles[j].LastBattleTime)
 		})
+	case "+damage":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return absInt(vehicles[i].DamageDealt) < absInt(vehicles[j].DamageDealt)
+		})
+	case "-damage":
+		sort.Slice(vehicles, func(i, j int) bool {
+			return absInt(vehicles[i].DamageDealt) > absInt(vehicles[j].DamageDealt)
+		})
 	case "relevance":
 		sort.Slice(vehicles, func(i, j int) bool {
 			return (absInt(vehicles[i].TankRawWN8) * vehicles[i].LastBattleTime * vehicles[i].Battles) > (absInt(vehicles[j].TankRawWN8) * vehicles[j].LastBattleTime * vehicles[j].Battles)
