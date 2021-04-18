@@ -232,7 +232,6 @@ func calcSession(pid int, tankID int, realm string, days int, special bool) (ses
 
 // ExportSessionAsStruct - Export a full player session as a struct
 func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int, sort string, special bool) (export ExportData, err error) {
-
 	timerStart := time.Now()
 	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days, special)
 	if err != nil {
@@ -312,11 +311,11 @@ func SortTanks(vehicles []wgapi.VehicleStats, sortKey string) []wgapi.VehicleSta
 		})
 	case "+damage":
 		sort.Slice(vehicles, func(i, j int) bool {
-			return (vehicles[i].DamageDealt)/(vehicles[i].Battles) < (vehicles[i].DamageDealt)/(vehicles[i].Battles)
+			return int(float64(vehicles[i].DamageDealt)/float64(vehicles[i].Battles)) < int(float64(vehicles[j].DamageDealt)/float64(vehicles[j].Battles))
 		})
 	case "-damage":
 		sort.Slice(vehicles, func(i, j int) bool {
-			return (vehicles[i].DamageDealt)/(vehicles[i].Battles) > (vehicles[i].DamageDealt)/(vehicles[i].Battles)
+			return int(float64(vehicles[i].DamageDealt)/float64(vehicles[i].Battles)) > int(float64(vehicles[j].DamageDealt)/float64(vehicles[j].Battles))
 		})
 	case "relevance":
 		sort.Slice(vehicles, func(i, j int) bool {
