@@ -9,10 +9,12 @@ import (
 	"github.com/cufee/am-stats/config"
 	dataprep "github.com/cufee/am-stats/dataprep/achievements"
 	replays "github.com/cufee/am-stats/dataprep/replays"
+	stats "github.com/cufee/am-stats/dataprep/stats"
 	"github.com/cufee/am-stats/handlers"
 	mongodbapi "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	render "github.com/cufee/am-stats/render/achievements"
 	renderReplay "github.com/cufee/am-stats/render/replays"
+	renderStats "github.com/cufee/am-stats/render/stats"
 	"github.com/fogleman/gg"
 )
 
@@ -141,6 +143,46 @@ func TestReplayRender(t *testing.T) {
 
 	// Render image
 	image, err := renderReplay.Render(data, bgImage)
+	if err != nil {
+		log.Print(err)
+		t.FailNow()
+		return
+	}
+
+	// Open file
+	f, _ := os.Create("test.png")
+	defer f.Close()
+
+	// Encode image
+	err = png.Encode(f, image)
+	if err != nil {
+		log.Print(err)
+		t.FailNow()
+		return
+	}
+}
+func TestStatsRender(t *testing.T) {
+	realm := "RU"
+	id := 112833260
+
+	// Get data
+	data, err := stats.ExportSessionAsStruct(id, 0, realm, 0, 3, "", false)
+	if err != nil {
+		log.Print(err)
+		t.FailNow()
+		return
+	}
+
+	// Get BG
+	bgImage, err := gg.LoadImage(config.AssetsPath + config.DefaultBG)
+	if err != nil {
+		log.Print(err)
+		t.FailNow()
+		return
+	}
+
+	// Render image
+	image, err := renderStats.ImageFromStats(data, "", 3, false, true, bgImage)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()
