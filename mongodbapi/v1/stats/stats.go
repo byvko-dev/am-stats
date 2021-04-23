@@ -48,14 +48,18 @@ func init() {
 }
 
 // GetPlayerSession -
-func GetPlayerSession(pid int, days int, currentBattles int) (session Session, err error) {
+func GetPlayerSession(pid, days, battlesRandom, battlesRating int) (session Session, err error) {
 	// Sorting options
 	queryOptions := options.FindOneOptions{}
 	queryOptions.SetSort(bson.M{"timestamp": -1})
 	// Make a filter
+	var battlesCheck []bson.M
+	battlesCheck = append(battlesCheck, bson.M{"battles_random": bson.M{"$lt": battlesRandom}})
+	battlesCheck = append(battlesCheck, bson.M{"battles_rating": bson.M{"$lt": battlesRating}})
+
 	var filters []mgo.FilterPair
 	filters = append(filters, mgo.FilterPair{Key: "player_id", Value: pid})
-	filters = append(filters, mgo.FilterPair{Key: "battles_random", Value: bson.M{"$ne": currentBattles}})
+	filters = append(filters, mgo.FilterPair{Key: "$or", Value: battlesCheck})
 	if days > 0 {
 		// Setting days to negative to look back
 		queryOptions.SetSort(bson.M{"timestamp": 1})
@@ -74,10 +78,14 @@ func GetPlayerSession(pid int, days int, currentBattles int) (session Session, e
 }
 
 // GetPlayerSpecialSession -
-func GetPlayerSpecialSession(pid int, battles int) (session Session, err error) {
+func GetPlayerSpecialSession(pid int, battlesRandom int, battlesRating int) (session Session, err error) {
 	// Get session
 	var retroSession RetroSession
-	err = specialSessionsCollection.FindOne(ctx, bson.M{"player_id": pid, "battles_random": bson.M{"$lt": battles}}).Decode(&retroSession)
+	var battlesCheck []bson.M
+	battlesCheck = append(battlesCheck, bson.M{"battles_random": bson.M{"$lt": battlesRandom}})
+	battlesCheck = append(battlesCheck, bson.M{"battles_rating": bson.M{"$lt": battlesRating}})
+
+	err = specialSessionsCollection.FindOne(ctx, bson.M{"player_id": pid, "$or": battlesCheck}).Decode(&retroSession)
 	if err != nil {
 		return session, err
 	}

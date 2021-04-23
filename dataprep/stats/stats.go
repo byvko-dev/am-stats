@@ -149,7 +149,7 @@ func sessionDiff(oldStats dbStats.Session, liveStats dbStats.Session) (session d
 }
 
 // CalcSession - Calculate a new session
-func calcSession(pid int, tankID int, realm string, days int, special bool) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, err error) {
+func calcSession(pid int, tankID int, realm string, days int, special, includeRating bool) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, err error) {
 	// Get live profile
 	playerProfile, err = wgapi.PlayerProfileData(pid, realm)
 	if err != nil {
@@ -197,16 +197,22 @@ func calcSession(pid int, tankID int, realm string, days int, special bool) (ses
 		return session, oldSession, playerProfile, err
 	}
 
+	// -1 rating will never find anything valid
+	var ratingBattles int = -1
+	if includeRating {
+		ratingBattles = playerProfile.Stats.Rating.Battles
+	}
+
 	// Get previous session
 	switch special {
 	case true:
-		oldSession, err = dbStats.GetPlayerSpecialSession(pid, playerProfile.Stats.All.Battles)
+		oldSession, err = dbStats.GetPlayerSpecialSession(pid, playerProfile.Stats.All.Battles, ratingBattles)
 		if err == nil {
 			break
 		}
 		fallthrough
 	default:
-		oldSession, err = dbStats.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles)
+		oldSession, err = dbStats.GetPlayerSession(pid, days, playerProfile.Stats.All.Battles, ratingBattles)
 	}
 	// Check errors
 	if err != nil {
@@ -231,9 +237,9 @@ func calcSession(pid int, tankID int, realm string, days int, special bool) (ses
 }
 
 // ExportSessionAsStruct - Export a full player session as a struct
-func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int, sort string, special bool) (export ExportData, err error) {
+func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int, sort string, special, includeRating bool) (export ExportData, err error) {
 	timerStart := time.Now()
-	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days, special)
+	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days, special, includeRating)
 	if err != nil {
 		return export, err
 	}

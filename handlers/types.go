@@ -6,16 +6,17 @@ import (
 
 // StatsRequest - Request for stats image
 type StatsRequest struct {
-	PlayerID  int    `json:"player_id"`
-	Premium   bool   `json:"premium"`
-	Verified  bool   `json:"verified"`
-	Realm     string `json:"realm"`
-	Days      int    `json:"days"`
-	Sort      string `json:"sort_key"`
-	TankLimit int    `json:"detailed_limit"`
-	TankID    int    `json:"tank_id"`
-	BgURL     string `json:"bg_url"`
-	Special   bool   `json:"special"`
+	PlayerID      int    `json:"player_id"`
+	Premium       bool   `json:"premium"`
+	Verified      bool   `json:"verified"`
+	Realm         string `json:"realm"`
+	Days          int    `json:"days"`
+	Sort          string `json:"sort_key"`
+	TankLimit     int    `json:"detailed_limit"`
+	TankID        int    `json:"tank_id"`
+	BgURL         string `json:"bg_url"`
+	Special       bool   `json:"special"`
+	IncludeRating bool   `json:"include_rating"`
 }
 
 // AchievementsRequest - Request for achievements data

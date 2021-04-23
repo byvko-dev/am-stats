@@ -162,8 +162,8 @@ func TestReplayRender(t *testing.T) {
 	}
 }
 func TestStatsRender(t *testing.T) {
-	realm := "RU"
-	id := 112833260
+	realm := "NA"
+	id := 1013072123
 
 	// Get data
 	data, err := stats.ExportSessionAsStruct(id, 0, realm, 0, 3, "", false)
@@ -174,7 +174,7 @@ func TestStatsRender(t *testing.T) {
 	}
 
 	// Get BG
-	bgImage, err := gg.LoadImage(config.AssetsPath + config.DefaultBG)
+	bgImage, err := gg.LoadImage(config.AssetsPath + "bg_code_fatal.jpg")
 	if err != nil {
 		log.Print(err)
 		t.FailNow()
