@@ -666,7 +666,7 @@ func makeStatsHeaderCard(card render.CardData, playerName, playerClan string, pr
 	clanStrW, _ := ctx.MeasureString(playerClan)
 	totalTextW := nameStrW + clanStrW
 
-	xOffset := ((float64(ctx.Width()) - nameStrW) / 2)
+	xOffset := ((float64(ctx.Width()) - totalTextW) / 2)
 	yOffset := ((float64(ctx.Height()) - nameStrH) / 2)
 	// Draw player name and tag text
 	ctx.SetColor(color.White)
