@@ -1,8 +1,10 @@
 package main
 
 import (
+	"image"
 	"image/png"
 	"log"
+	"net/http"
 	"os"
 	"testing"
 
@@ -162,9 +164,13 @@ func TestReplayRender(t *testing.T) {
 	}
 }
 func TestStatsRender(t *testing.T) {
-	realm := "RU"
-	id := 112833260
-	days := 30
+	realm := "NA"
+	id := 1013072123
+	days := 0
+
+	bg_url := ""
+	// bg_url = "https://res.cloudinary.com/vkodev/image/upload/v1619111990/Aftermath/728922283900403802.jpg"
+	bg_image := "bg_code_fatal.jpg"
 
 	// Get data
 	data, err := stats.ExportSessionAsStruct(id, 0, realm, days, 3, "", false, true)
@@ -174,12 +180,21 @@ func TestStatsRender(t *testing.T) {
 		return
 	}
 
-	// Get BG
-	bgImage, err := gg.LoadImage(config.AssetsPath + "bg_code_fatal.jpg")
-	if err != nil {
-		log.Print(err)
-		t.FailNow()
-		return
+	// Get bg Image
+	var bgImage image.Image
+	if bg_url != "" {
+		response, _ := http.Get(bg_url)
+		if response != nil {
+			bgImage, _, err = image.Decode(response.Body)
+			defer response.Body.Close()
+		}
+	}
+	if err != nil || bg_url == "" {
+		bgImage, err = gg.LoadImage(config.AssetsPath + bg_image)
+		if err != nil {
+			log.Print(err)
+			t.FailNow()
+		}
 	}
 
 	// Render image

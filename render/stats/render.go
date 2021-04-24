@@ -625,13 +625,14 @@ func makeSessionStatsCard(card render.CardData, header string, currentSession, c
 		// Accuracy Block to replace WN8
 		avgAccuracyBlock := statsBlock(defaultBlock)
 		avgAccuracyBlock.Width = blockWidth
-		avgAccuracySession := ((float64(currentSession.Hits) / float64(currentSession.Shots)) * 100)
-		avgAccuracyLastSession := "-"
-		if compareSession.Shots > 0 {
-			avgAccuracyLastSession = fmt.Sprintf("%.2f", ((float64(compareSession.Hits)/float64(compareSession.Shots))*100)) + "%"
+		avgAccuracyBlock.BigText = "-"
+		if currentSession.Shots > 0 {
+			avgAccuracyBlock.BigText = fmt.Sprintf("%.2f", ((float64(currentSession.Hits)/float64(currentSession.Shots))*100)) + "%"
 		}
-		avgAccuracyBlock.SmallText = avgAccuracyLastSession
-		avgAccuracyBlock.BigText = fmt.Sprintf("%.2f", avgAccuracySession) + "%"
+		avgAccuracyBlock.SmallText = "-"
+		if compareSession.Shots > 0 {
+			avgAccuracyBlock.SmallText = fmt.Sprintf("%.2f", ((float64(compareSession.Hits)/float64(compareSession.Shots))*100)) + "%"
+		}
 		avgAccuracyBlock.AltText = "Accuracy"
 		avgAccuracyBlock, err = addStatsBlockCtx(avgAccuracyBlock)
 		if err != nil {
