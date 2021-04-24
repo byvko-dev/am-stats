@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 	"log"
-	"math"
 	"strconv"
 	"sync"
 
@@ -13,14 +12,13 @@ import (
 	stats "github.com/cufee/am-stats/dataprep/stats"
 	"github.com/cufee/am-stats/render"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
-	"github.com/cufee/am-stats/winstreak"
 	"github.com/fogleman/gg"
 )
 
 // ImageFromStats -
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premium bool, verified bool, bgImage image.Image) (finalImage image.Image, err error) {
 	var finalCards render.AllCards
-	cardsChan := make(chan render.CardData, (2 + len(data.SessionStats.Vehicles)))
+	cardsChan := make(chan render.CardData, (3 + len(data.SessionStats.Vehicles)))
 	var wg sync.WaitGroup
 	// Work on cards in go routines
 	wg.Add(1)
@@ -34,28 +32,42 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 		}
 
 		// Make Header card
-		headerHeight := 1.0
+		headerHeight := 0.5
 		var header render.CardData
 		render.PrepNewCard(&header, 0, headerHeight, 0)
-		header, err := makeStatsHeaderCard(header, data.PlayerDetails.Name, clanTag, "Random Battles", premium, verified)
+		header, err := makeStatsHeaderCard(header, data.PlayerDetails.Name, clanTag, premium, verified)
 		if err != nil {
 			log.Println(err)
 			return
 		}
 		cardsChan <- header
 	}()
+
 	// All stats card
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		var allStats render.CardData
-		render.PrepNewCard(&allStats, 1, 1.5, 0)
-		allStats, err := makeAllStatsCard(allStats, data)
-		if err != nil {
-			log.Println(err)
-			return
+		if data.SessionStats.StatsAll.Battles > 0 {
+			var randomStats render.CardData
+			render.PrepNewCard(&randomStats, 1, 1.25, 0)
+			randomStats, err := makeSessionStatsCard(randomStats, "Random Battles", data.SessionStats.StatsAll, data.LastSession.StatsAll, data.SessionStats.SessionRating, data.PlayerDetails.CareerWN8)
+			if err != nil {
+				log.Println(err)
+			} else {
+				cardsChan <- randomStats
+			}
 		}
-		cardsChan <- allStats
+		if data.SessionStats.StatsRating.Battles > 0 {
+			var ratingStats render.CardData
+			render.PrepNewCard(&ratingStats, 1, 1.25, 0)
+			ratingStats, err := makeSessionStatsCard(ratingStats, "Rating Battles", data.SessionStats.StatsRating, data.LastSession.StatsRating, -1, -1)
+			if err != nil {
+				log.Println(err)
+			} else {
+				cardsChan <- ratingStats
+			}
+		}
+		return
 	}()
 
 	// Sort vehicles
@@ -82,9 +94,9 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 				return
 			}
 			cardsChan <- tankCard
+			return
 		}(tank, i)
 	}
-
 	wg.Wait()
 	close(cardsChan)
 
@@ -492,7 +504,7 @@ func addStatsBlockCtx(block statsBlock) (statsBlock, error) {
 	return block, nil
 }
 
-func makeAllStatsCard(card render.CardData, data stats.ExportData) (render.CardData, error) {
+func makeSessionStatsCard(card render.CardData, header string, currentSession, compareSession wgapi.StatsFrame, currentRating, compareRating int) (render.CardData, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in f", r)
@@ -500,195 +512,140 @@ func makeAllStatsCard(card render.CardData, data stats.ExportData) (render.CardD
 	}()
 
 	ctx := *card.Context
-	if err := ctx.LoadFontFace(render.FontPath, render.FontSize); err != nil {
+	if err := ctx.LoadFontFace(render.FontPath, (render.FontSize * 1.25)); err != nil {
 		return card, err
 	}
-	ctx.SetColor(color.White)
 
-	// Default Block settings
-	blockWidth := card.Context.Width() / 3
-	bottomBlockWidth := card.Context.Width() / 4
-	availableHeight := (ctx.Height()) / 2
+	if currentSession.Battles < 1 {
+		return card, fmt.Errorf("sessions battles is < 1")
+	}
+
+	ctx.SetColor(color.White)
+	// Measure header
+	headerW, headerH := ctx.MeasureString(header)
+	if err := ctx.LoadFontFace(render.FontPath, (render.FontSize * 0.75)); err != nil {
+		return card, err
+	}
+	headerHeigth := int(headerH * 2)
+	nameX := (float64(card.Context.Width()) - headerW) / 2
+	nameY := (float64(headerHeigth)-headerH)/2 + headerH
+
+	// Draw header
+	if err := ctx.LoadFontFace(render.FontPath, (render.FontSize * 1.25)); err != nil {
+		return card, err
+	}
+	ctx.DrawString(header, nameX, nameY)
+
+	blocksCnt := 4
+	blockWidth := card.Context.Width() / blocksCnt
+	availableHeight := int(ctx.Height() - (headerHeigth))
+	// Blocks will take 75% of the total card height
 	blockHeight := availableHeight
+	// Default Block
 	var defaultBlock statsBlock
-	defaultBlock.TextSize = render.FontSize * 1.5
+	defaultBlock.TextSize = render.FontSize * 1.65
+	defaultBlock.TextCoeff = 0.75
 	defaultBlock.Width = blockWidth
 	defaultBlock.Height = blockHeight
 	defaultBlock.BigTextColor = render.BigTextColor
 	defaultBlock.SmallTextColor = render.SmallTextColor
 	defaultBlock.AltTextColor = render.AltTextColor
-	// Top Row - 3 Blocks (Battles, WN8, WR)
-	badSession := true
-	if data.SessionStats.StatsAll.Battles > 0 {
-		badSession = false
-	}
-	if data.PlayerDetails.Stats.All.Battles < 1 {
-		return card, fmt.Errorf("this player has no battles")
-	}
+
+	// Bottom Row - Avg Damage, Avg XP, Winrate
 	// Block 1 - Battles
 	battlesBlock := statsBlock(defaultBlock)
-	battlesBlock.SmallText = strconv.Itoa(data.PlayerDetails.Stats.All.Battles)
-	battlesBlock.BigText = strconv.Itoa(data.SessionStats.BattlesAll)
+	battlesBlock.Width = blockWidth
+	battlesSession := strconv.Itoa(currentSession.Battles)
+	battlesLastSession := "-"
+	if compareSession.Battles > 0 {
+		battlesLastSession = strconv.Itoa(compareSession.Battles)
+	}
+	battlesBlock.SmallText = battlesLastSession
+	battlesBlock.BigText = battlesSession
 	battlesBlock.AltText = "Battles"
 	battlesBlock, err := addStatsBlockCtx(battlesBlock)
 	if err != nil {
 		return card, err
 	}
-	ctx.DrawImage(battlesBlock.Context.Image(), 0, 0)
-
-	// Block 2 - WN8
-	ratingBlock := statsBlock(defaultBlock)
-	// Icon
-	ratingBlock.HasBigIcon = true
-	ratingBlock.BigIconColor = GetRatingColor(data.SessionStats.SessionRating)
-	ratingBlock.HasSmallIcon = true
-	ratingBlock.SmallIconColor = GetRatingColor(data.PlayerDetails.CareerWN8)
-	ratingBlock.Height = blockHeight + int(render.FontSize)
-	ratingBlock.TextSize = render.FontSize * 1.75
-	careerWN8str := "-"
-	if data.PlayerDetails.CareerWN8 > 0 {
-		careerWN8str = strconv.Itoa(data.PlayerDetails.CareerWN8)
-	}
-	ratingBlock.SmallText = careerWN8str
-	ratingBlock.BigText = "-"
-	if !badSession && data.SessionStats.SessionRating > -1 {
-		ratingBlock.BigText = strconv.Itoa(data.SessionStats.SessionRating)
-	}
-	ratingBlock.AltText = "WN8"
-	ratingBlock, err = addStatsBlockCtx(ratingBlock)
-	if err != nil {
-		return card, err
-	}
-	ctx.DrawImage(ratingBlock.Context.Image(), blockWidth, 0)
-	// Block 3 - WR
-	winrateBlock := statsBlock(battlesBlock)
-	oldBattles := data.PlayerDetails.Stats.All.Battles - data.SessionStats.StatsAll.Battles
-	oldWins := data.PlayerDetails.Stats.All.Wins - data.SessionStats.StatsAll.Wins
-	oldWinrate := (float64(oldWins) / float64(oldBattles)) * 100
-	winrateAll := ((float64(data.PlayerDetails.Stats.All.Wins) / float64(data.PlayerDetails.Stats.All.Battles)) * 100)
-	winrateSession := 0.0
-	winrateChange := 0.0
-	if !badSession {
-		winrateSession = ((float64(data.SessionStats.StatsAll.Wins) / float64(data.SessionStats.StatsAll.Battles)) * 100)
-		winrateChange = math.Round((winrateAll-oldWinrate)*100) / 100
-	}
-	winrateChangeStr := ""
-	if winrateChange > 0.00 {
-		winrateChangeStr = fmt.Sprintf(" (+%.2f", winrateChange) + "%)"
-	}
-	if winrateChange < 0.00 {
-		winrateChangeStr = fmt.Sprintf(" (%.2f", winrateChange) + "%)"
-	}
-	winrateAllStr := fmt.Sprintf("%.2f", winrateAll) + "%" + winrateChangeStr
-	winrateSessionStr := "-"
-	if !badSession {
-		winrateSessionStr = fmt.Sprintf("%.2f", winrateSession) + "%"
-	}
-	winrateBlock.SmallText = winrateAllStr
-	winrateBlock.BigText = winrateSessionStr
-	winrateBlock.AltText = "Winrate"
-	winrateBlock, err = addStatsBlockCtx(winrateBlock)
-	if err != nil {
-		return card, err
-	}
-	ctx.DrawImage(winrateBlock.Context.Image(), (blockWidth * 2), 0)
-
-	// Bottom Row - 4 Blocks
-	// Block 1 - Avg Damage
+	ctx.DrawImage(battlesBlock.Context.Image(), 0, headerHeigth)
+	// Block 2 - Avg Damage
 	avgDamageBlock := statsBlock(defaultBlock)
-	avgDamageBlock.Width = bottomBlockWidth
-	avgDamageAll := "-"
-	if data.PlayerDetails.Stats.All.Battles > 0 {
-		avgDamageAll = strconv.Itoa((data.PlayerDetails.Stats.All.DamageDealt / data.PlayerDetails.Stats.All.Battles))
+	avgDamageBlock.Width = blockWidth
+	avgDamageSession := strconv.Itoa((currentSession.DamageDealt / currentSession.Battles))
+	avgDamageLastSession := "-"
+	if compareSession.Battles > 0 {
+		avgDamageLastSession = strconv.Itoa((compareSession.DamageDealt / compareSession.Battles))
 	}
-	avgDamageSession := "-"
-	if !badSession {
-		avgDamageSession = strconv.Itoa((data.SessionStats.StatsAll.DamageDealt / data.SessionStats.StatsAll.Battles))
-	}
-	avgDamageBlock.SmallText = avgDamageAll
+	avgDamageBlock.SmallText = avgDamageLastSession
 	avgDamageBlock.BigText = avgDamageSession
 	avgDamageBlock.AltText = "Avg. Damage"
 	avgDamageBlock, err = addStatsBlockCtx(avgDamageBlock)
 	if err != nil {
 		return card, err
 	}
-	ctx.DrawImage(avgDamageBlock.Context.Image(), 0, blockHeight)
-	// Block 2 - Damage Ratio
-	damageRatioBlock := statsBlock(avgDamageBlock)
-	damageRatioAll := "-"
-	if data.PlayerDetails.Stats.All.DamageReceived > 0 {
-		damageRatioAll = fmt.Sprintf("%.2f", (float64(data.PlayerDetails.Stats.All.DamageDealt) / float64(data.PlayerDetails.Stats.All.DamageReceived)))
+	ctx.DrawImage(avgDamageBlock.Context.Image(), (blockWidth), headerHeigth)
+	// Block 1 - Winrate
+	winrateBlock := statsBlock(avgDamageBlock)
+	winrateSession := ((float64(currentSession.Wins) / float64(currentSession.Battles)) * 100)
+	winrateLastSession := "-"
+	if compareSession.Battles > 0 {
+		winrateLastSession = fmt.Sprintf("%.2f", ((float64(compareSession.Wins)/float64(compareSession.Battles))*100)) + "%"
 	}
-	damageRatioSession := "-"
-	if !badSession && data.SessionStats.StatsAll.DamageReceived > 1 {
-		damageRatioSession = fmt.Sprintf("%.2f", (float64(data.SessionStats.StatsAll.DamageDealt) / float64(data.SessionStats.StatsAll.DamageReceived)))
-	}
-	damageRatioBlock.SmallText = damageRatioAll
-	damageRatioBlock.BigText = damageRatioSession
-	damageRatioBlock.AltText = "Damage Ratio"
-	damageRatioBlock, err = addStatsBlockCtx(damageRatioBlock)
+	winrateBlock.BigText = fmt.Sprintf("%.2f", winrateSession) + "%"
+	winrateBlock.SmallText = winrateLastSession
+	winrateBlock.AltText = "Winrate"
+	winrateBlock, err = addStatsBlockCtx(winrateBlock)
 	if err != nil {
 		return card, err
 	}
-	ctx.DrawImage(damageRatioBlock.Context.Image(), bottomBlockWidth, blockHeight)
-	// Block 3 - Destruction Ratio
-	destrRatioBlock := statsBlock(avgDamageBlock)
-	destrRatioAll := "-"
-	if data.PlayerDetails.Stats.All.SurvivedBattles > 0 && data.PlayerDetails.Stats.All.Battles != data.PlayerDetails.Stats.All.SurvivedBattles {
-		destrRatioAll = fmt.Sprintf("%.2f", (float64(data.PlayerDetails.Stats.All.Frags) / (float64(data.PlayerDetails.Stats.All.Battles) - float64(data.PlayerDetails.Stats.All.SurvivedBattles))))
-	}
-	destrRatioSession := "-"
-	if !badSession && data.SessionStats.StatsAll.SurvivedBattles > 0 && data.SessionStats.StatsAll.Battles != data.SessionStats.StatsAll.SurvivedBattles {
-		destrRatioSession = fmt.Sprintf("%.2f", (float64(data.SessionStats.StatsAll.Frags) / (float64(data.SessionStats.StatsAll.Battles) - float64(data.SessionStats.StatsAll.SurvivedBattles))))
-	}
-	destrRatioBlock.SmallText = destrRatioAll
-	destrRatioBlock.BigText = destrRatioSession
-	destrRatioBlock.AltText = "Destruction Ratio"
-	destrRatioBlock, err = addStatsBlockCtx(destrRatioBlock)
-	if err != nil {
-		return card, err
-	}
-	ctx.DrawImage(destrRatioBlock.Context.Image(), (bottomBlockWidth * 2), blockHeight)
-	// Block 4 - Win streak or Aces count
-	streakBlock := statsBlock(avgDamageBlock)
-	switch data.LastSession.Achievements.Achievements.MarkOfMastery > 0 {
-	case true:
-		// Ace data available
-		streakBlock.BigText = "-"
-		if data.SessionStats.Achievements.Achievements.MarkOfMastery > 0 {
-			streakBlock.BigText = strconv.Itoa(data.SessionStats.Achievements.Achievements.MarkOfMastery)
+	ctx.DrawImage(winrateBlock.Context.Image(), (blockWidth * 2), headerHeigth)
+	// Block 4 - Draw WN8
+	if currentRating > -1 || compareRating > -1 {
+		ratingBlock := statsBlock(defaultBlock)
+		// Icon
+		ratingBlock.BigText = "-"
+		if currentRating > -1 {
+			ratingBlock.HasBigIcon = true
+			ratingBlock.BigIconColor = GetRatingColor(currentRating)
+			ratingBlock.BigText = strconv.Itoa(currentRating)
 		}
-		streakBlock.SmallText = strconv.Itoa(data.LastSession.Achievements.Achievements.MarkOfMastery)
-		streakBlock.AltText = "Ace Tanker"
-	default:
-		// Show win streak instead
-		winStreak, err := winstreak.CheckStreak(data.PlayerDetails.ID, data.PlayerDetails.Stats.All)
+		ratingBlock.SmallText = "-"
+		if compareRating > -1 {
+			ratingBlock.HasSmallIcon = true
+			ratingBlock.SmallIconColor = GetRatingColor(compareRating)
+			ratingBlock.SmallText = strconv.Itoa(compareRating)
+		}
+		ratingBlock.AltText = "WN8"
+		ratingBlock, err = addStatsBlockCtx(ratingBlock)
 		if err != nil {
-			log.Print("failed to get a win streak:", err)
+			return card, err
 		}
-		streakBlock.BigText = strconv.Itoa(winStreak.Streak)
-		streakBlock.SmallText = "-"
-		if winStreak.BestStreak > 0 {
-			streakBlock.SmallText = strconv.Itoa(winStreak.BestStreak)
+		ctx.DrawImage(ratingBlock.Context.Image(), (blockWidth * 3), headerHeigth)
+	} else {
+		// Accuracy Block to replace WN8
+		avgAccuracyBlock := statsBlock(defaultBlock)
+		avgAccuracyBlock.Width = blockWidth
+		avgAccuracySession := ((float64(currentSession.Hits) / float64(currentSession.Shots)) * 100)
+		avgAccuracyLastSession := "-"
+		if compareSession.Shots > 0 {
+			avgAccuracyLastSession = fmt.Sprintf("%.2f", ((float64(compareSession.Hits)/float64(compareSession.Shots))*100)) + "%"
 		}
-		streakBlock.AltText = "Win Streak"
+		avgAccuracyBlock.SmallText = avgAccuracyLastSession
+		avgAccuracyBlock.BigText = fmt.Sprintf("%.2f", avgAccuracySession) + "%"
+		avgAccuracyBlock.AltText = "Accuracy"
+		avgAccuracyBlock, err = addStatsBlockCtx(avgAccuracyBlock)
+		if err != nil {
+			return card, err
+		}
+		ctx.DrawImage(avgAccuracyBlock.Context.Image(), (blockWidth * 3), headerHeigth)
 	}
-
-	// Add block ctx
-	streakBlock, err = addStatsBlockCtx(streakBlock)
-	if err != nil {
-		return card, err
-	}
-
-	ctx.DrawImage(streakBlock.Context.Image(), (bottomBlockWidth * 3), blockHeight)
 	// Draw lines
 	ctx.SetColor(render.DecorLinesColor)
 	lineX := float64(render.FrameMargin)
-	lineY := float64(blockHeight)
+	lineY := float64(headerHeigth)
 	lineHeight := 2.0
-	lineWidth := (float64(ctx.Width()) - float64(render.FrameMargin*2) - 80.0) / 2
+	lineWidth := (float64(ctx.Width()) - float64(render.FrameMargin*2))
 	ctx.DrawRectangle(lineX, lineY, lineWidth, lineHeight)
-	ctx.DrawRectangle((lineX + lineWidth + 80), lineY, lineWidth, lineHeight)
 	ctx.Fill()
 
 	// Render image
@@ -696,36 +653,28 @@ func makeAllStatsCard(card render.CardData, data stats.ExportData) (render.CardD
 	return card, nil
 }
 
-func makeStatsHeaderCard(card render.CardData, playerName, playerClan, battleType string, premium, verified bool) (render.CardData, error) {
+func makeStatsHeaderCard(card render.CardData, playerName, playerClan string, premium, verified bool) (render.CardData, error) {
 	ctx := *card.Context
 	if err := ctx.LoadFontFace(render.FontPath, render.FontSizeHeader); err != nil {
 		return card, err
 	}
-	playerStr := playerName + " "
-	// Calculate text size
-	nameStrW, nameStrH := ctx.MeasureString(playerStr)
-	clanStrW, _ := ctx.MeasureString(playerClan)
-	battleTypeW, battleTypeH := ctx.MeasureString(battleType)
-	totalTextW := nameStrW
-	if nameStrW < battleTypeW {
-		totalTextW = battleTypeW
+	if playerClan != "" {
+		playerName += " "
 	}
-	totalTextH := nameStrH + render.TextMargin + battleTypeH
+	// Calculate text size
+	nameStrW, nameStrH := ctx.MeasureString(playerName)
+	clanStrW, _ := ctx.MeasureString(playerClan)
+	totalTextW := nameStrW + clanStrW
 
-	xOffset := ((float64(ctx.Width()) - totalTextW) / 2)
-	yOffset := ((float64(ctx.Height()) - totalTextH) / 2)
-	// Draw battle type text
-	ctx.SetColor(color.RGBA{255, 255, 255, 200})
-	btDrawX := ((totalTextW - battleTypeW) / 2) + xOffset
-	btDrawY := yOffset + battleTypeH
-	ctx.DrawString(battleType, btDrawX, btDrawY)
+	xOffset := ((float64(ctx.Width()) - nameStrW) / 2)
+	yOffset := ((float64(ctx.Height()) - nameStrH) / 2)
 	// Draw player name and tag text
 	ctx.SetColor(color.White)
 	if premium {
 		ctx.SetColor(render.PremiumColor)
 	}
 	psDrawX := ((totalTextW - nameStrW - clanStrW) / 2) + xOffset
-	psDrawY := totalTextH + yOffset
+	psDrawY := nameStrH + yOffset
 	// Draw name
 	ctx.DrawString(playerName, psDrawX, psDrawY)
 	// Draw tag

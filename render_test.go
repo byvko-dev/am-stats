@@ -162,11 +162,12 @@ func TestReplayRender(t *testing.T) {
 	}
 }
 func TestStatsRender(t *testing.T) {
-	realm := "NA"
-	id := 1013072123
+	realm := "RU"
+	id := 112833260
+	days := 30
 
 	// Get data
-	data, err := stats.ExportSessionAsStruct(id, 0, realm, 0, 3, "", false)
+	data, err := stats.ExportSessionAsStruct(id, 0, realm, days, 3, "", false, true)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()
