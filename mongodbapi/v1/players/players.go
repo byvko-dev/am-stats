@@ -21,11 +21,8 @@ var playersCollection *mongo.Collection
 // Ctx - Context for MongoDB connection
 var ctx context.Context
 
-// Client - Client for MongoDB connection
-var client *mongo.Client
-
 func init() {
-	// Conenct to MongoDB
+	// Connect to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -115,7 +112,7 @@ func GreedyClanPlayerCapture(player wgapi.PlayerProfile, realm string) {
 	// Add new players to DB
 	for _, m := range clan.MembersIds {
 		profile, err := GetPlayerProfile(m)
-		if profile.ID != 0 || (err != nil && err.Error() == "mongo: no documents in result") {
+		if profile.ID != 0 || (err != nil && err.Error() != "mongo: no documents in result") {
 			if err != nil {
 				log.Print("Error during greedy capture GetPlayerProfile - ", err.Error())
 			}
