@@ -13,6 +13,8 @@ import (
 	"math"
 	"time"
 
+	"github.com/cufee/am-stats/config"
+	"github.com/cufee/am-stats/external"
 	dbGlossary "github.com/cufee/am-stats/mongodbapi/v1/glossary"
 	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
@@ -155,6 +157,14 @@ func calcSession(pid int, tankID int, realm string, days int, special, includeRa
 	if err != nil {
 		return session, oldSession, playerProfile, err
 	}
+
+	// Greedy Capture
+	defer func() {
+		// Send a request to cache the whole clan
+		if config.GreedySessions == true && playerProfile.ClanID != 0 {
+			go external.GreedyClanPlayerCapture(playerProfile)
+		}
+	}()
 
 	// Get live achievements
 	liveAchievements, err := wgapi.PlayerAchievements(pid, realm)

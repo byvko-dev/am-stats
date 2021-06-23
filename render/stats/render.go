@@ -17,6 +17,18 @@ import (
 
 // ImageFromStats -
 func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premium bool, verified bool, bgImage image.Image) (finalImage image.Image, err error) {
+	// // Calculate card width
+	// checkCtx := gg.NewContext(1, 1)
+	// // Measure player name and clan
+	// if err := checkCtx.LoadFontFace(render.FontPath, render.FontSizeHeader); err != nil {
+	// 	return nil, err
+	// }
+	// playerNameW, _ := checkCtx.MeasureString(data.PlayerDetails.Name + " " + data.PlayerDetails.ClanTag)
+	// if err := checkCtx.LoadFontFace(render.FontPath, render.FontSizeHeader); err != nil {
+	// 	return nil, err
+	// }
+	// maxCardWidth := playerNameW + render.FontSizeHeader
+
 	var finalCards render.AllCards
 	cardsChan := make(chan render.CardData, (3 + len(data.SessionStats.Vehicles)))
 	var wg sync.WaitGroup

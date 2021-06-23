@@ -163,6 +163,7 @@ func TestReplayRender(t *testing.T) {
 		return
 	}
 }
+
 func TestStatsRender(t *testing.T) {
 	realm := "NA"
 	id := 1013072123
