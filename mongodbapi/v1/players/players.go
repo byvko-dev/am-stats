@@ -9,6 +9,7 @@ import (
 
 	"github.com/cufee/am-stats/config"
 	mgo "github.com/cufee/am-stats/mongodbapi/v1"
+	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -100,4 +101,32 @@ func UpdatePlayer(filter interface{}, playerData DBPlayerPofile) (result string,
 	}
 	result = fmt.Sprintf("%+v", resultRaw)
 	return result, nil
+}
+
+// CheckUserByUserID - Check user profile by Discord ID
+func GreedyClanPlayerCapture(player wgapi.PlayerProfile, realm string) {
+	// Get full clan profile
+	clan, err := wgapi.ClanDataByID(player.ClanID, realm)
+	if err != nil {
+		log.Print("Failed to greedy capture clan data ", err.Error())
+		return
+	}
+
+	// Add new players to DB
+	for _, m := range clan.MembersIds {
+		profile, err := GetPlayerProfile(m)
+		if profile.ID != 0 || (err != nil && err.Error() == "mongo: no documents in result") {
+			if err != nil {
+				log.Print("Error during greedy capture GetPlayerProfile - ", err.Error())
+			}
+			continue
+		}
+		profile.ID = m
+		profile.Realm = realm
+		profile.ClanID = player.ClanID
+		profile.ClanTag = player.ClanTag
+		profile.ClanName = player.ClanName
+		err = AddPlayer(profile)
+		log.Print("Error during greedy capture AddPlayer - ", err.Error())
+	}
 }

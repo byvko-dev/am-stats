@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-type responseError struct {
-	Error string `json:"error"`
-}
-
 // HTTP client
 var clientHTTP = &http.Client{Timeout: 2 * time.Second}
 
@@ -27,10 +23,8 @@ func DecodeHTTPResponse(method string, headers map[string]string, requestURL *ur
 	}
 
 	// Set headers
-	if headers != nil {
-		for k, v := range headers {
-			req.Header.Set(k, v)
-		}
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 
 	// Send request
@@ -48,8 +42,12 @@ func DecodeHTTPResponse(method string, headers map[string]string, requestURL *ur
 	}
 	defer res.Body.Close()
 
-	// Decode body
-	return json.Unmarshal(resData, target)
+	if target != nil {
+		// Decode body
+		return json.Unmarshal(resData, target)
+	} else {
+		return err
+	}
 }
 
 // RawHTTPResponse - Send HTTP request with a payload and headers, return raw body
@@ -61,10 +59,8 @@ func RawHTTPResponse(method string, headers map[string]string, requestURL *url.U
 	}
 
 	// Set headers
-	if headers != nil {
-		for k, v := range headers {
-			req.Header.Set(k, v)
-		}
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 
 	// Send request

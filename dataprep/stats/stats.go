@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/cufee/am-stats/config"
-	"github.com/cufee/am-stats/external"
 	dbGlossary "github.com/cufee/am-stats/mongodbapi/v1/glossary"
 	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
@@ -162,7 +161,7 @@ func calcSession(pid int, tankID int, realm string, days int, special, includeRa
 	defer func() {
 		// Send a request to cache the whole clan
 		if config.GreedySessions && playerProfile.ClanID != 0 && realm != "" {
-			go external.GreedyClanPlayerCapture(playerProfile, realm)
+			go dbPlayers.GreedyClanPlayerCapture(playerProfile, realm)
 		}
 	}()
 
