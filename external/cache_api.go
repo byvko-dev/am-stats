@@ -12,9 +12,9 @@ import (
 )
 
 // CheckUserByUserID - Check user profile by Discord ID
-func GreedyClanPlayerCapture(player wgapi.PlayerProfile) {
+func GreedyClanPlayerCapture(player wgapi.PlayerProfile, realm string) {
 	// Get full clan profile
-	clan, err := wgapi.ClanDataByID(player.ClanID, player.Realm)
+	clan, err := wgapi.ClanDataByID(player.ClanID, realm)
 	if err != nil {
 		log.Print("Failed to greedy capture clan data ", err.Error())
 		return
@@ -30,7 +30,7 @@ func GreedyClanPlayerCapture(player wgapi.PlayerProfile) {
 	}
 
 	// Make URL
-	requestURL, err := url.Parse(fmt.Sprintf("%s/%s/players/update?idList=%s", config.CacheAPIURL, player.Realm, strings.Join(clanPlayers, ",")))
+	requestURL, err := url.Parse(fmt.Sprintf("%s/%s/players/update?idList=%s", config.CacheAPIURL, realm, strings.Join(clanPlayers, ",")))
 	if err != nil {
 		log.Print("Failed to parse URL for greedy capture ", err.Error())
 		return

@@ -161,8 +161,8 @@ func calcSession(pid int, tankID int, realm string, days int, special, includeRa
 	// Greedy Capture
 	defer func() {
 		// Send a request to cache the whole clan
-		if config.GreedySessions == true && playerProfile.ClanID != 0 {
-			go external.GreedyClanPlayerCapture(playerProfile)
+		if config.GreedySessions && playerProfile.ClanID != 0 && realm != "" {
+			go external.GreedyClanPlayerCapture(playerProfile, realm)
 		}
 	}()
 
