@@ -124,6 +124,8 @@ func GreedyClanPlayerCapture(player wgapi.PlayerProfile, realm string) {
 		profile.ClanTag = player.ClanTag
 		profile.ClanName = player.ClanName
 		err = AddPlayer(profile)
-		log.Print("Error during greedy capture AddPlayer - ", err.Error())
+		if err != nil {
+			log.Print("Error during greedy capture AddPlayer - ", err.Error())
+		}
 	}
 }
