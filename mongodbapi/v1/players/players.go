@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/cufee/am-stats/config"
@@ -119,10 +120,11 @@ func GreedyClanPlayerCapture(player wgapi.PlayerProfile, realm string) {
 			continue
 		}
 		profile.ID = m
-		profile.Realm = realm
+		profile.CareerWN8 = -1
 		profile.ClanID = player.ClanID
 		profile.ClanTag = player.ClanTag
 		profile.ClanName = player.ClanName
+		profile.Realm = strings.ToUpper(realm)
 		err = AddPlayer(profile)
 		if err != nil {
 			log.Print("Error during greedy capture AddPlayer - ", err.Error())
