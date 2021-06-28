@@ -12,6 +12,7 @@ import (
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	"github.com/cufee/am-stats/utils"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // ExportClanAchievementsByID - Export clan achievements LB by clan ID
@@ -127,11 +128,13 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 	// Get realm players
 	pidSlice, err := dbPlayers.GetRealmPlayers(realm)
 	if err != nil {
+		log.Print("GetRealmPlayers - ", err)
 		return export, checkData, err
 	}
 	// Get Leaderboard
 	export, _, err = exportAchievementsByPIDs(realm, pidSlice, days, medals...)
 	if err != nil {
+		log.Print("exportAchievementsByPIDs - ", err)
 		return export, checkData, err
 	}
 
@@ -157,8 +160,15 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
 	// Check cache
 	export, totalScore, err = dbAch.CheckCachedMedals(realm, medals, time.Duration(time.Minute*15))
-	log.Printf("%v", len(export))
-	log.Printf("%+v", err)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Printf("no cache hit - realm: %v | medals: %v", realm, len(medals))
+			err = nil
+		} else {
+			log.Print("CheckCachedMedals - ", err)
+			return export, totalScore, err
+		}
+	}
 	if len(export) > 0 {
 		return export, totalScore, err
 	}
@@ -257,7 +267,7 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 	sorted := quickSortPlayers(export)
 
 	// Update cache
-	go dbAch.SaveCachedMedals(realm, medals, sorted, totalScore)
+	dbAch.SaveCachedMedals(realm, medals, sorted, totalScore)
 
 	// Timer
 	timer.End()
@@ -287,7 +297,7 @@ func setField(data wgapi.AchievementsFrame, field string, value int) wgapi.Achie
 // QuickSort is a quick sort algorithm
 func quickSortPlayers(arr []dbAch.AchievementsPlayerData) []dbAch.AchievementsPlayerData {
 	// clone arr to keep immutability
-	var newArr []dbAch.AchievementsPlayerData
+	newArr := make([]dbAch.AchievementsPlayerData, len(arr))
 	copy(newArr, arr)
 
 	// call recursive funciton with initial values
@@ -331,7 +341,7 @@ func recursivePlayerSort(arr []dbAch.AchievementsPlayerData, start, end int) {
 // QuickSort is a quick sort algorithm
 func quickSortClans(arr []dbAch.ClanAchievements) []dbAch.ClanAchievements {
 	// clone arr to keep immutability
-	var newArr []dbAch.ClanAchievements
+	newArr := make([]dbAch.ClanAchievements, len(arr))
 	copy(newArr, arr)
 
 	// call recursive function with initial values

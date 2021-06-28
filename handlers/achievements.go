@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"image"
 	"image/png"
@@ -12,7 +11,6 @@ import (
 	"runtime/debug"
 
 	"github.com/cufee/am-stats/config"
-	achievements "github.com/cufee/am-stats/dataprep/achievements"
 	dataprep "github.com/cufee/am-stats/dataprep/achievements"
 	render "github.com/cufee/am-stats/render/achievements"
 	"github.com/cufee/am-stats/utils"
@@ -54,7 +52,7 @@ func HandleClanAchievementsExport(c *fiber.Ctx) error {
 	log.Print(request.ClanTag, request.Realm, request.Medals)
 
 	// Get data
-	export, total, err := achievements.ExportClanAchievementsByTag(request.ClanTag, request.Realm, request.Days, request.Medals...)
+	export, total, err := dataprep.ExportClanAchievementsByTag(request.ClanTag, request.Realm, request.Days, request.Medals...)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -99,7 +97,7 @@ func HandleClanAchievementsLbExport(c *fiber.Ctx) error {
 	}
 
 	// Get data
-	export, checkData, err := achievements.ExportClanAchievementsLbByRealm(request.Realm, request.PlayerID, request.Days, request.Limit, request.Medals...)
+	export, checkData, err := dataprep.ExportClanAchievementsLbByRealm(request.Realm, request.PlayerID, request.Days, request.Limit, request.Medals...)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -129,16 +127,16 @@ func HandlePlayersAchievementsLbExport(c *fiber.Ctx) error {
 	var request AchievementsRequest
 	err := c.BodyParser(&request)
 	if err != nil {
-		log.Println(err)
+		log.Println("BodyParser - ", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
 	// Get data
-	export, position, err := achievements.ExportAchievementsLeaderboard(request.Realm, request.Days, request.Limit, request.PlayerID, request.Medals...)
+	export, position, err := dataprep.ExportAchievementsLeaderboard(request.Realm, request.Days, request.Limit, request.PlayerID, request.Medals...)
 	if err != nil {
-		log.Println(err)
+		log.Println("ExportAchievementsLeaderboard - ", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -268,9 +266,6 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 		})
 	}
 
-	j, _ := json.Marshal(request)
-	log.Printf("%v", string(j))
-
 	// Timer
 	timer.Reset("load bg image")
 
@@ -308,9 +303,9 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 	timer.Reset("prep data")
 
 	// Get data
-	data, checkData, err := achievements.ExportClanAchievementsLbByRealm(request.Realm, request.PlayerID, request.Days, request.Limit, request.Medals...)
+	data, checkData, err := dataprep.ExportClanAchievementsLbByRealm(request.Realm, request.PlayerID, request.Days, request.Limit, request.Medals...)
 	if err != nil {
-		log.Println(err)
+		log.Println("ExportClanAchievementsLbByRealm - ", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -327,7 +322,7 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 	// Render image
 	image, err := render.ClansAchievementsLbImage(data, checkData, bgImage, request.Medals)
 	if err != nil {
-		log.Println(err)
+		log.Println("ClansAchievementsLbImage - ", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
