@@ -11,7 +11,6 @@ import (
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	"github.com/cufee/am-stats/utils"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // ExportClanAchievementsByID - Export clan achievements LB by clan ID
@@ -156,10 +155,7 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs
 func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
 	// Check cache
-	export, totalScore, err = dbAch.CheckCachedMedals(realm, medals, time.Duration(time.Minute*15))
-	if err != nil && err.Error() != mongo.ErrNoDocuments.Error() {
-		return export, totalScore, err
-	}
+	export, totalScore, _ = dbAch.CheckCachedMedals(realm, medals, time.Duration(time.Minute*15))
 	if len(export) > 0 {
 		return export, totalScore, err
 	}
