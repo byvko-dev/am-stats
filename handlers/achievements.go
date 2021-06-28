@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/png"
@@ -266,6 +267,9 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	j, _ := json.Marshal(request)
+	log.Printf("%v", j)
 
 	// Timer
 	timer.Reset("load bg image")

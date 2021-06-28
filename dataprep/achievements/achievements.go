@@ -1,6 +1,7 @@
 package dataprep
 
 import (
+	"log"
 	"reflect"
 	"strings"
 	"sync"
@@ -155,7 +156,9 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs
 func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
 	// Check cache
-	export, totalScore, _ = dbAch.CheckCachedMedals(realm, medals, time.Duration(time.Minute*15))
+	export, totalScore, err = dbAch.CheckCachedMedals(realm, medals, time.Duration(time.Minute*15))
+	log.Printf("%v", len(export))
+	log.Printf("%+v", err)
 	if len(export) > 0 {
 		return export, totalScore, err
 	}
