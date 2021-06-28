@@ -8,10 +8,10 @@ import (
 
 // MedalWeight - Object for calculating per medal scores
 type MedalWeight struct {
-	Name    string `json:"medal"`
-	Weight  int    `json:"weight"`
-	IconURL string `json:"-"`
-	Score   int    `json:"-"`
+	Name    string `json:"medal" bson:"medal"`
+	Weight  int    `json:"weight" bson:"weight"`
+	IconURL string `json:"-" bson:"-"`
+	Score   int    `json:"-" bson:"-"`
 }
 
 // AchievementsPlayerData -
@@ -27,8 +27,8 @@ type AchievementsPlayerData struct {
 	Medals    []MedalWeight           `json:"-" bson:"-"`
 }
 
-// AchivementsMap -
-type AchivementsMap struct {
+// AchievementsMap -
+type AchievementsMap struct {
 	Timestamp time.Time               `json:"timestamp,omitempty" bson:"timestamp"`
 	PID       int                     `json:"_id,omitempty" bson:"_id"`
 	Nickname  string                  `json:"nickname,omitempty" bson:"-"`
@@ -51,4 +51,18 @@ type ClanAchievements struct {
 	Score     int                     `json:"score,omitempty" bson:"score,omitempty"`
 	Position  int                     `json:"position,omitempty" bson:"position,omitempty"`
 	Medals    []MedalWeight           `json:"-" bson:"-"`
+}
+
+// CachedMedalsRequest -
+type CachedMedalsRequest struct {
+	Request struct {
+		Realm  string        `bson:"realm"`
+		Medals []MedalWeight `bson:"medals"`
+	} `bson:"request"`
+	Result struct {
+		TotalScore    int                      `bson:"total_score"`
+		SortedPlayers []AchievementsPlayerData `bson:"sorted_players"`
+		UpdatedAt     time.Time                `bson:"updated_timestamp"`
+	}
+	LastRequested time.Time `bson:"requested_timestamp"`
 }

@@ -4,12 +4,14 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 
 	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	"github.com/cufee/am-stats/utils"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // ExportClanAchievementsByID - Export clan achievements LB by clan ID
@@ -21,7 +23,7 @@ func ExportClanAchievementsByID(clanID int, realm string, days int, medals ...db
 	}
 
 	// Get clan leaderboard
-	return exportAchievementsByPIDs(ClanProfile.MembersIds, days, medals...)
+	return exportAchievementsByPIDs(realm, ClanProfile.MembersIds, days, medals...)
 }
 
 // ExportClanAchievementsByTag - Export clan achievements by clan tag
@@ -33,7 +35,7 @@ func ExportClanAchievementsByTag(clanTag string, realm string, days int, medals 
 	}
 
 	// Get clan leaderboard
-	return exportAchievementsByPIDs(ClanProfile.MembersIds, days, medals...)
+	return exportAchievementsByPIDs(realm, ClanProfile.MembersIds, days, medals...)
 }
 
 // ExportClanAchievementsLbByRealm - Export clan achievements LB by realm
@@ -52,7 +54,7 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 	timer.Reset("get leaderboard")
 
 	// Get Leaderboard
-	leaderboard, _, err := exportAchievementsByPIDs(pidSlice, days, medals...)
+	leaderboard, _, err := exportAchievementsByPIDs(realm, pidSlice, days, medals...)
 	if err != nil {
 		return export, checkData, err
 	}
@@ -118,28 +120,27 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 }
 
 // ExportAchievementsLeaderboard - Export achievements from a session
-func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, chackData AchievementsPIDPos, err error) {
+func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, checkData AchievementsPIDPos, err error) {
 	// Add realm
-	chackData.Realm = realm
+	checkData.Realm = realm
 
 	// Get realm players
 	pidSlice, err := dbPlayers.GetRealmPlayers(realm)
 	if err != nil {
-		return export, chackData, err
+		return export, checkData, err
 	}
-
 	// Get Leaderboard
-	export, _, err = exportAchievementsByPIDs(pidSlice, days, medals...)
+	export, _, err = exportAchievementsByPIDs(realm, pidSlice, days, medals...)
 	if err != nil {
-		return export, chackData, err
+		return export, checkData, err
 	}
 
 	// Check Pid position
 	if checkPid != 0 {
 		for i, d := range export {
 			if d.PID == checkPid {
-				chackData.Position = i + 1
-				chackData.AchievementsPlayerData = export[i]
+				checkData.Position = i + 1
+				checkData.AchievementsPlayerData = export[i]
 				break
 			}
 		}
@@ -147,13 +148,22 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 
 	// Check limit
 	if len(export) > limit {
-		return export[:limit], chackData, err
+		return export[:limit], checkData, err
 	}
-	return export, chackData, err
+	return export, checkData, err
 }
 
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs
-func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
+func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
+	// Check cache
+	export, totalScore, err = dbAch.CheckCachedMedals(realm, medals, time.Duration(time.Minute*15))
+	if err != nil && err != mongo.ErrNoDocuments {
+		return export, totalScore, err
+	}
+	if len(export) > 0 {
+		return export, totalScore, err
+	}
+
 	// Timer
 	timer := utils.Timer{Name: "prep", FunctionName: "exportAchievementsByPIDs", Enabled: false}
 	timer.Start()
@@ -191,6 +201,9 @@ func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWei
 
 			// Get player cached achievements
 			achCache, err := dbStats.GetPlayerSessionAchievements(pid, days, fields...)
+			if err != nil {
+				return
+			}
 			if achCache == (dbAch.AchievementsPlayerData{}).Data {
 				return
 			}
@@ -244,16 +257,18 @@ func exportAchievementsByPIDs(pidSlice []int, days int, medals ...dbAch.MedalWei
 	// Quicksort
 	sorted := quickSortPlayers(export)
 
+	// Update cache
+	go dbAch.SaveCachedMedals(realm, medals, sorted, totalScore)
+
 	// Timer
 	timer.End()
-
 	return sorted, totalScore, err
 
 }
 
 func getField(data wgapi.AchievementsFrame, field string) int {
 	v := reflect.ValueOf(&data.Achievements)
-	f := reflect.Indirect(v).FieldByNameFunc(func(n string) bool { return strings.ToLower(n) == strings.ToLower(field) })
+	f := reflect.Indirect(v).FieldByNameFunc(func(n string) bool { return strings.EqualFold(n, field) })
 	if f == (reflect.Value{}) {
 		return 0
 	}
@@ -262,7 +277,7 @@ func getField(data wgapi.AchievementsFrame, field string) int {
 
 func setField(data wgapi.AchievementsFrame, field string, value int) wgapi.AchievementsFrame {
 	v := reflect.ValueOf(&data.Achievements)
-	f := reflect.Indirect(v).FieldByNameFunc(func(n string) bool { return strings.ToLower(n) == strings.ToLower(field) })
+	f := reflect.Indirect(v).FieldByNameFunc(func(n string) bool { return strings.EqualFold(n, field) })
 	if f != (reflect.Value{}) {
 		f.SetInt(int64(value))
 		return data
@@ -273,11 +288,8 @@ func setField(data wgapi.AchievementsFrame, field string, value int) wgapi.Achie
 // QuickSort is a quick sort algorithm
 func quickSortPlayers(arr []dbAch.AchievementsPlayerData) []dbAch.AchievementsPlayerData {
 	// clone arr to keep immutability
-	newArr := make([]dbAch.AchievementsPlayerData, len(arr))
-
-	for i, v := range arr {
-		newArr[i] = v
-	}
+	var newArr []dbAch.AchievementsPlayerData
+	copy(newArr, arr)
 
 	// call recursive funciton with initial values
 	recursivePlayerSort(newArr, 0, len(newArr)-1)
@@ -320,13 +332,10 @@ func recursivePlayerSort(arr []dbAch.AchievementsPlayerData, start, end int) {
 // QuickSort is a quick sort algorithm
 func quickSortClans(arr []dbAch.ClanAchievements) []dbAch.ClanAchievements {
 	// clone arr to keep immutability
-	newArr := make([]dbAch.ClanAchievements, len(arr))
+	var newArr []dbAch.ClanAchievements
+	copy(newArr, arr)
 
-	for i, v := range arr {
-		newArr[i] = v
-	}
-
-	// call recursive funciton with initial values
+	// call recursive function with initial values
 	recursiveClanSort(newArr, 0, len(newArr)-1)
 
 	// at this point newArr is sorted

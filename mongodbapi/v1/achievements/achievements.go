@@ -15,15 +15,13 @@ import (
 
 var achievementsPlayersCollection *mongo.Collection
 var achievementsClansCollection *mongo.Collection
+var achievementsCacheCollection *mongo.Collection
 
 // Ctx - Context for MongoDB connection
 var ctx context.Context
 
-// Client - Client for MongoDB connection
-var client *mongo.Client
-
 func init() {
-	// Conenct to MongoDB
+	// Connect to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -39,8 +37,32 @@ func init() {
 	}
 	log.Println("Achievements - successfully connected and pinged.")
 
-	achievementsPlayersCollection = client.Database("achievements").Collection("players")
 	achievementsClansCollection = client.Database("achievements").Collection("clans")
+	achievementsCacheCollection = client.Database("achievements").Collection("cache")
+	achievementsPlayersCollection = client.Database("achievements").Collection("players")
+}
+
+// Check cached request
+func CheckCachedMedals(realm string, medals []MedalWeight, expiration time.Duration) (export []AchievementsPlayerData, totalScore int, err error) {
+	// Find cached request
+	var cache CachedMedalsRequest
+	var filter bson.M = bson.M{"request.realm": realm, "request.medals": medals, "request.updated_timestamp": time.Now().Add(-expiration)}
+	err = achievementsCacheCollection.FindOneAndUpdate(ctx, filter, bson.M{"$set": bson.M{"requested_timestamp": time.Now()}}).Decode(&cache)
+	return cache.Result.SortedPlayers, cache.Result.TotalScore, err
+}
+
+// Check cached request
+func SaveCachedMedals(realm string, medals []MedalWeight, sortedPlayers []AchievementsPlayerData, totalScore int) {
+	opts := options.FindOneAndReplace()
+	opts.SetUpsert(true)
+	var cache CachedMedalsRequest
+	cache.Request.Realm = realm
+	cache.Request.Medals = medals
+	cache.LastRequested = time.Now()
+	cache.Result.UpdatedAt = time.Now()
+	cache.Result.TotalScore = totalScore
+	cache.Result.SortedPlayers = sortedPlayers
+	achievementsCacheCollection.FindOneAndReplace(ctx, bson.M{"request.realm": realm, "request.medals": medals}, cache, opts)
 }
 
 // GetPlayerAchievementsLb - Get last cached players achievements leaderboard
