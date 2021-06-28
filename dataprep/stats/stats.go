@@ -17,14 +17,12 @@ import (
 	dbGlossary "github.com/cufee/am-stats/mongodbapi/v1/glossary"
 	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
-	"go.mongodb.org/mongo-driver/bson"
-
-	db "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // LiveToSession - Convert Live data to Session
-func LiveToSession(profile wgapi.PlayerProfile, vehicles []wgapi.VehicleStats, achievements wgapi.AchievementsFrame) (liveSession db.Session) {
+func LiveToSession(profile wgapi.PlayerProfile, vehicles []wgapi.VehicleStats, achievements wgapi.AchievementsFrame) (liveSession dbStats.Session) {
 	liveSession.Vehicles = vehicles
 	liveSession.Achievements = achievements
 	liveSession.PlayerID = profile.ID
@@ -158,12 +156,12 @@ func calcSession(pid int, tankID int, realm string, days int, special, includeRa
 	}
 
 	// Greedy Capture
-	defer func() {
-		// Send a request to cache the whole clan
-		if config.GreedySessions && playerProfile.ClanID != 0 && realm != "" {
+	if config.GreedySessions && playerProfile.ClanID != 0 && realm != "" {
+		defer func() {
+			// Send a request to cache the whole clan
 			go dbPlayers.GreedyClanPlayerCapture(playerProfile, realm)
-		}
-	}()
+		}()
+	}
 
 	// Get live achievements
 	liveAchievements, err := wgapi.PlayerAchievements(pid, realm)
@@ -273,7 +271,7 @@ func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit in
 	export.PlayerDetails.Realm = realm
 	export.SessionStats = session
 	export.LastSession = lastRetro
-	export.TimeToComplete = time.Now().Sub(timerStart).Seconds()
+	export.TimeToComplete = time.Since(timerStart).Seconds()
 
 	return export, nil
 }
