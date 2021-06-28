@@ -269,7 +269,7 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 	}
 
 	j, _ := json.Marshal(request)
-	log.Printf("%v", j)
+	log.Printf("%v", string(j))
 
 	// Timer
 	timer.Reset("load bg image")
