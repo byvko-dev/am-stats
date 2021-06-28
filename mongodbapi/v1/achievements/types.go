@@ -17,13 +17,13 @@ type MedalWeight struct {
 // AchievementsPlayerData -
 type AchievementsPlayerData struct {
 	Timestamp time.Time               `json:"timestamp,omitempty" bson:"timestamp"`
-	PID       int                     `json:"_id,omitempty" bson:"_id"`
-	Nickname  string                  `json:"nickname,omitempty" bson:"-"`
-	ClanTag   string                  `json:"clan_tag,omitempty" bson:"-"`
-	ClanID    int                     `json:"clan_id,omitempty" bson:"-"`
+	Nickname  string                  `json:"nickname,omitempty" bson:"nickname"`
+	ClanTag   string                  `json:"clan_tag,omitempty" bson:"clan_tag"`
+	ClanID    int                     `json:"clan_id,omitempty" bson:"clan_id"`
 	Realm     string                  `json:"realm,omitempty" bson:"realm"`
-	Data      wgapi.AchievementsFrame `json:"data" bson:"data"`
+	PID       int                     `json:"_id,omitempty" bson:"_id"`
 	Score     int                     `json:"score" bson:"score"`
+	Data      wgapi.AchievementsFrame `json:"data" bson:"data"`
 	Medals    []MedalWeight           `json:"-" bson:"-"`
 }
 
