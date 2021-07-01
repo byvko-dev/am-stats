@@ -63,7 +63,7 @@ func SaveCachedMedals(realm string, days int, medals []MedalWeight, sortedPlayer
 	cache.Result.UpdatedAt = time.Now()
 	cache.Result.TotalScore = totalScore
 	cache.Result.SortedPlayers = sortedPlayers
-	achievementsCacheCollection.FindOneAndReplace(ctx, bson.M{"request.realm": realm, "request.medals": medals}, cache, opts)
+	achievementsCacheCollection.FindOneAndReplace(ctx, bson.M{"request": cache.Request}, cache, opts)
 }
 
 // GetPlayerAchievementsLb - Get last cached players achievements leaderboard
