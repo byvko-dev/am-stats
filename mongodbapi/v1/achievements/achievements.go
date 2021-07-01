@@ -43,19 +43,20 @@ func init() {
 }
 
 // Check cached request
-func CheckCachedMedals(realm string, medals []MedalWeight, expiration time.Duration) (export []AchievementsPlayerData, totalScore int, err error) {
+func CheckCachedMedals(realm string, days int, medals []MedalWeight, expiration time.Duration) (export []AchievementsPlayerData, totalScore int, err error) {
 	// Find cached request
 	var cache CachedMedalsRequest
-	var filter bson.M = bson.M{"request.realm": realm, "request.medals": medals, "result.updated_timestamp": bson.M{"$gt": time.Now().Add(-expiration)}}
+	var filter bson.M = bson.M{"request.realm": realm, "request.days": days, "request.medals": medals, "result.updated_timestamp": bson.M{"$gt": time.Now().Add(-expiration)}}
 	err = achievementsCacheCollection.FindOneAndUpdate(ctx, filter, bson.M{"$set": bson.M{"requested_timestamp": time.Now()}}).Decode(&cache)
 	return cache.Result.SortedPlayers, cache.Result.TotalScore, err
 }
 
 // Check cached request
-func SaveCachedMedals(realm string, medals []MedalWeight, sortedPlayers []AchievementsPlayerData, totalScore int) {
+func SaveCachedMedals(realm string, days int, medals []MedalWeight, sortedPlayers []AchievementsPlayerData, totalScore int) {
 	opts := options.FindOneAndReplace()
 	opts.SetUpsert(true)
 	var cache CachedMedalsRequest
+	cache.Request.Days = days
 	cache.Request.Realm = realm
 	cache.Request.Medals = medals
 	cache.LastRequested = time.Now()

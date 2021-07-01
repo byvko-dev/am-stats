@@ -159,7 +159,7 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs
 func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
 	// Check cache
-	export, totalScore, err = dbAch.CheckCachedMedals(realm, medals, time.Duration(time.Minute*15))
+	export, totalScore, err = dbAch.CheckCachedMedals(realm, days, medals, time.Duration(time.Minute*15))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Printf("no cache hit - realm: %v | medals: %v", realm, len(medals))
@@ -267,7 +267,7 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 	sorted := quickSortPlayers(export)
 
 	// Update cache
-	dbAch.SaveCachedMedals(realm, medals, sorted, totalScore)
+	dbAch.SaveCachedMedals(realm, days, medals, sorted, totalScore)
 
 	// Timer
 	timer.End()
