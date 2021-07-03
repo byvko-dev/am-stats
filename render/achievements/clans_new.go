@@ -152,7 +152,9 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, checkData dbAch.Cla
 				medalBlock.Width = int(blueprint.IconSize)
 				medalExtra := cardBlockData(blueprint)
 				// Prep extra block data
-				medalExtra.AltText = fmt.Sprint(getField(clan.Data, m.Name))
+				if len(medals) > 1 {
+					medalExtra.AltText = fmt.Sprint(getField(clan.Data, m.Name))
+				}
 				medalExtra.AltTextColor = blueprint.SmallTextColor
 				medalExtra.IconURL = m.IconURL
 				medalExtra.TextAlign = 1

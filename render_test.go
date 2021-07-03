@@ -78,7 +78,8 @@ func TestClanAchievementsLbImage(t *testing.T) {
 	request.Days = 0
 	request.Limit = 10
 	request.ClanTag = "RGN"
-	request.Medals = []mongodbapi.MedalWeight{{Name: "markofmastery", Weight: 25}, {Name: "markofmasteryi", Weight: 5}, {Name: "markofmasteryii", Weight: 1}, {Name: "markofmasteryiii", Weight: 1}}
+	// request.Medals = []mongodbapi.MedalWeight{{Name: "markofmastery", Weight: 25}, {Name: "markofmasteryi", Weight: 5}, {Name: "markofmasteryii", Weight: 1}, {Name: "markofmasteryiii", Weight: 1}}
+	request.Medals = []mongodbapi.MedalWeight{{Name: "markofmastery", Weight: 25}}
 
 	// Get data
 	data, check, err := dataprep.ExportClanAchievementsLbByRealm(request.Realm, request.PlayerID, request.Days, request.Limit, request.Medals...)
