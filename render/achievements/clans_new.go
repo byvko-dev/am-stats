@@ -142,7 +142,9 @@ func ClansAchievementsLbImage(data []dbAch.ClanAchievements, checkData dbAch.Cla
 			// Prep extra block data
 			scoreExtra := cardBlockData(blueprint)
 			scoreExtra.BigText = fmt.Sprint(clan.Score)
-			scoreExtra.SmallText = "Score"
+			if len(medals) > 1 {
+				scoreExtra.SmallText = "Score"
+			}
 			scoreBlock.Extra = &scoreExtra
 			card.Blocks = append(card.Blocks, scoreBlock)
 
