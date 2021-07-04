@@ -172,11 +172,13 @@ func calcSession(pid int, tankID int, realm string, days int, special, includeRa
 	// Get cached profile
 	newCache := convWGtoDBprofile(playerProfile)
 	cachedPlayerProfile, err := dbPlayers.GetPlayerProfile(pid)
+	playerCache = cachedPlayerProfile
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			newCache.CareerWN8 = -1
 			newCache.Realm = strings.ToUpper(realm)
 			err = dbPlayers.AddPlayer(newCache)
+			playerCache = newCache
 		}
 		if err != nil {
 			return session, oldSession, playerProfile, playerCache, err
