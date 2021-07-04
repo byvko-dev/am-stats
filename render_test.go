@@ -14,6 +14,7 @@ import (
 	stats "github.com/cufee/am-stats/dataprep/stats"
 	"github.com/cufee/am-stats/handlers"
 	mongodbapi "github.com/cufee/am-stats/mongodbapi/v1/achievements"
+	players "github.com/cufee/am-stats/mongodbapi/v1/players"
 	render "github.com/cufee/am-stats/render/achievements"
 	renderReplay "github.com/cufee/am-stats/render/replays"
 	renderStats "github.com/cufee/am-stats/render/stats"
@@ -200,7 +201,10 @@ func TestStatsRender(t *testing.T) {
 	}
 
 	// Render image
-	image, err := renderStats.ImageFromStats(data, "", 3, false, true, bgImage)
+	image, err := renderStats.ImageFromStats(data, "", 3, true, true, bgImage, players.UserPin{URL: "https://cdn.iconscout.com/icon/free/png-512/code-280-460136.png", Label: "Developer"}, players.UserPin{URL: "https://cdn.iconscout.com/icon/free/png-512/code-280-460136.png", Label: "Developer"}, players.UserPin{URL: "https://cdn.iconscout.com/icon/free/png-512/code-280-460136.png", Label: "Developer"})
+	// image, err := renderStats.ImageFromStats(data, "", 3, true, true, bgImage, players.UserPin{URL: "https://cdn.iconscout.com/icon/free/png-512/code-280-460136.png", Label: "Developer"}, players.UserPin{URL: "https://cdn.iconscout.com/icon/free/png-512/code-280-460136.png", Label: "Developer"})
+	// image, err := renderStats.ImageFromStats(data, "", 3, true, true, bgImage, players.UserPin{URL: "https://cdn.iconscout.com/icon/free/png-512/code-280-460136.png", Label: "Developer"})
+	// image, err := renderStats.ImageFromStats(data, "", 3, true, true, bgImage)
 	if err != nil {
 		log.Print(err)
 		t.FailNow()

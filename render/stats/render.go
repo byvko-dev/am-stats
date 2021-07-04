@@ -8,27 +8,15 @@ import (
 	"strconv"
 	"sync"
 
-	dataprep "github.com/cufee/am-stats/dataprep/stats"
 	stats "github.com/cufee/am-stats/dataprep/stats"
+	players "github.com/cufee/am-stats/mongodbapi/v1/players"
 	"github.com/cufee/am-stats/render"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"github.com/fogleman/gg"
 )
 
 // ImageFromStats -
-func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premium bool, verified bool, bgImage image.Image) (finalImage image.Image, err error) {
-	// // Calculate card width
-	// checkCtx := gg.NewContext(1, 1)
-	// // Measure player name and clan
-	// if err := checkCtx.LoadFontFace(render.FontPath, render.FontSizeHeader); err != nil {
-	// 	return nil, err
-	// }
-	// playerNameW, _ := checkCtx.MeasureString(data.PlayerDetails.Name + " " + data.PlayerDetails.ClanTag)
-	// if err := checkCtx.LoadFontFace(render.FontPath, render.FontSizeHeader); err != nil {
-	// 	return nil, err
-	// }
-	// maxCardWidth := playerNameW + render.FontSizeHeader
-
+func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premium bool, verified bool, bgImage image.Image, pins ...players.UserPin) (finalImage image.Image, err error) {
 	var finalCards render.AllCards
 	cardsChan := make(chan render.CardData, (3 + len(data.SessionStats.Vehicles)))
 	var wg sync.WaitGroup
@@ -46,8 +34,13 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 		// Make Header card
 		headerHeight := 0.5
 		var header render.CardData
-		render.PrepNewCard(&header, 0, headerHeight, 0)
-		header, err := makeStatsHeaderCard(header, data.PlayerDetails.Name, clanTag, premium, verified)
+		if premium && len(pins) > 0 {
+			render.PrepNewCard(&header, 0, headerHeight*2.5, 0)
+			header, err = makeStatsPlusHeaderCard(header, data.PlayerDetails.Name, clanTag, premium, verified, pins...)
+		} else {
+			render.PrepNewCard(&header, 0, headerHeight, 0)
+			header, err = makeStatsHeaderCard(header, data.PlayerDetails.Name, clanTag, premium, verified)
+		}
 		if err != nil {
 			log.Println(err)
 			return
@@ -79,11 +72,10 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 				cardsChan <- ratingStats
 			}
 		}
-		return
 	}()
 
 	// Sort vehicles
-	vehicles := dataprep.SortTanks(data.SessionStats.Vehicles, sortKey)
+	vehicles := stats.SortTanks(data.SessionStats.Vehicles, sortKey)
 	// Create cards for each vehicle in routines
 	for i, tank := range vehicles {
 		if i == tankLimit {
@@ -106,7 +98,6 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 				return
 			}
 			cardsChan <- tankCard
-			return
 		}(tank, i)
 	}
 	wg.Wait()
@@ -302,7 +293,7 @@ func makeSlimCard(card render.CardData, session wgapi.VehicleStats, lastSession 
 	finalName := ""
 	dotsW, _ := ctx.MeasureString("...")
 
-	for _, r := range []rune(session.TankName) {
+	for _, r := range session.TankName {
 		w, _ := ctx.MeasureString(finalName)
 		if (w + dotsW) > (tankNameWidth - (float64(render.FrameMargin) * 1.5)) {
 			finalName = finalName + "..."
@@ -385,7 +376,7 @@ func makeSlimCard(card render.CardData, session wgapi.VehicleStats, lastSession 
 func addStatsBlockCtx(block statsBlock) (statsBlock, error) {
 	ctx := gg.NewContext(block.Width, block.Height)
 	// Color is requested
-	if block.IsColored == true {
+	if block.IsColored {
 		ctx.SetColor(block.Color)
 		ctx.DrawRectangle(0, 0, float64(block.Width), float64(block.Height))
 		ctx.Fill()
@@ -462,7 +453,7 @@ func addStatsBlockCtx(block statsBlock) (statsBlock, error) {
 	}
 
 	// Draw icons
-	if block.HasBigIcon == true {
+	if block.HasBigIcon {
 		ctx.SetColor(block.BigIconColor)
 		if block.BigArrowDirection == 0 {
 			iR := 8.0 * (block.TextSize / render.FontSize)
@@ -488,7 +479,7 @@ func addStatsBlockCtx(block statsBlock) (statsBlock, error) {
 			ctx.Fill()
 		}
 	}
-	if block.HasSmallIcon == true {
+	if block.HasSmallIcon {
 		ctx.SetColor(block.SmallIconColor)
 		if block.SmallArrowDirection == 0 {
 			iR := 8.0 * 0.75 * (block.TextSize / render.FontSize)

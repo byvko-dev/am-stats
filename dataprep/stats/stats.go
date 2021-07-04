@@ -148,11 +148,11 @@ func sessionDiff(oldStats dbStats.Session, liveStats dbStats.Session) (session d
 }
 
 // CalcSession - Calculate a new session
-func calcSession(pid int, tankID int, realm string, days int, special, includeRating bool) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, err error) {
+func calcSession(pid int, tankID int, realm string, days int, special, includeRating bool) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, playerCache dbPlayers.DBPlayerPofile, err error) {
 	// Get live profile
 	playerProfile, err = wgapi.PlayerProfileData(pid, realm)
 	if err != nil {
-		return session, oldSession, playerProfile, err
+		return session, oldSession, playerProfile, playerCache, err
 	}
 
 	// Greedy Capture
@@ -166,7 +166,7 @@ func calcSession(pid int, tankID int, realm string, days int, special, includeRa
 	// Get live achievements
 	liveAchievements, err := wgapi.PlayerAchievements(pid, realm)
 	if err != nil {
-		return session, oldSession, playerProfile, err
+		return session, oldSession, playerProfile, playerCache, err
 	}
 
 	// Get cached profile
@@ -179,7 +179,7 @@ func calcSession(pid int, tankID int, realm string, days int, special, includeRa
 			err = dbPlayers.AddPlayer(newCache)
 		}
 		if err != nil {
-			return session, oldSession, playerProfile, err
+			return session, oldSession, playerProfile, playerCache, err
 		}
 	}
 
@@ -201,7 +201,7 @@ func calcSession(pid int, tankID int, realm string, days int, special, includeRa
 	playerProfile.CareerWN8 = cachedPlayerProfile.CareerWN8
 	playerVehicles, err := wgapi.PlayerVehicleStats(pid, tankID, realm)
 	if err != nil {
-		return session, oldSession, playerProfile, err
+		return session, oldSession, playerProfile, playerCache, err
 	}
 
 	// -1 rating will never find anything valid
@@ -236,17 +236,17 @@ func calcSession(pid int, tankID int, realm string, days int, special, includeRa
 				}
 			}
 		}
-		return session, oldSession, playerProfile, err
+		return session, oldSession, playerProfile, playerCache, err
 	}
 
 	// Calculate session differance and return
-	return sessionDiff(oldSession, LiveToSession(playerProfile, playerVehicles, liveAchievements)), oldSession, playerProfile, nil
+	return sessionDiff(oldSession, LiveToSession(playerProfile, playerVehicles, liveAchievements)), oldSession, playerProfile, playerCache, nil
 }
 
 // ExportSessionAsStruct - Export a full player session as a struct
 func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit int, sort string, special, includeRating bool) (export ExportData, err error) {
 	timerStart := time.Now()
-	session, lastSession, playerProfile, err := calcSession(pid, tankID, realm, days, special, includeRating)
+	session, lastSession, playerProfile, playerCache, err := calcSession(pid, tankID, realm, days, special, includeRating)
 	if err != nil {
 		return export, err
 	}
@@ -267,6 +267,7 @@ func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit in
 		lastRetro.Vehicles = limitedLastSession
 	}
 
+	export.PlayerCache = playerCache
 	export.PlayerDetails = playerProfile
 	export.PlayerDetails.Realm = realm
 	export.SessionStats = session

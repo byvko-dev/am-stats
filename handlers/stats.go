@@ -83,7 +83,7 @@ func HandleStatsImageExport(c *fiber.Ctx) error {
 		}
 	}
 
-	img, err := statsRender.ImageFromStats(export, request.Sort, request.TankLimit, request.Premium, request.Verified, bgImage)
+	img, err := statsRender.ImageFromStats(export, request.Sort, request.TankLimit, request.Premium, request.Verified, bgImage, export.PlayerCache.PlayerPins...)
 	if err != nil {
 		log.Println(err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{

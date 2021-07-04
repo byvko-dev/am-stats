@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 
@@ -146,4 +147,19 @@ func RealmToEmoji(r string) string {
 	default:
 		return "asia.png"
 	}
+}
+
+// Load image from URL
+func LoadIcon(url string) (img image.Image, err error) {
+	// Get image
+	response, _ := http.Get(url)
+	if response != nil {
+		defer response.Body.Close()
+
+		// Decode image
+		if img, _, err = image.Decode(response.Body); err != nil {
+			return img, err
+		}
+	}
+	return img, err
 }
