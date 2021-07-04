@@ -1,8 +1,10 @@
 package render
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"log"
 	"sort"
 
 	db "github.com/cufee/am-stats/mongodbapi/v1/players"
@@ -10,7 +12,7 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-func makeStatsPlusHeaderCard(card render.CardData, playerName, playerClan string, premium, verified bool, pins ...db.UserPin) (render.CardData, error) {
+func makeStatsPlusHeaderCard(card render.CardData, playerName, playerClan string, premium, verified bool, pins []db.UserPin) (render.CardData, error) {
 	// Prep pins
 	sort.Slice(pins, func(i, j int) bool { return pins[i].Weight > pins[j].Weight })
 	if len(pins) > 3 {
@@ -110,6 +112,10 @@ func makeStatsPlusHeaderCard(card render.CardData, playerName, playerClan string
 		var icon image.Image
 		if icon, err = render.LoadIcon(pin.URL); err != nil {
 			return card, err
+		}
+		if icon == nil {
+			log.Print("nil image")
+			return card, fmt.Errorf("image was nil")
 		}
 		// Resize
 		icon = imaging.Fill(icon, pin.Size, pin.Size, imaging.Center, imaging.Box)
