@@ -1,10 +1,12 @@
 package render
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"sort"
 	"strings"
+	"time"
 
 	"image"
 	"image/color"
@@ -151,8 +153,9 @@ func RealmToEmoji(r string) string {
 
 // Load image from URL
 func LoadIcon(url string) (img image.Image, err error) {
+	var clientHTTP = &http.Client{Timeout: 8 * time.Second, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 	// Get image
-	response, err := http.Get(url)
+	response, err := clientHTTP.Get(url)
 	if response != nil {
 		defer response.Body.Close()
 
