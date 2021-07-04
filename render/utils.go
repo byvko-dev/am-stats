@@ -152,7 +152,7 @@ func RealmToEmoji(r string) string {
 // Load image from URL
 func LoadIcon(url string) (img image.Image, err error) {
 	// Get image
-	response, _ := http.Get(url)
+	response, err := http.Get(url)
 	if response != nil {
 		defer response.Body.Close()
 
