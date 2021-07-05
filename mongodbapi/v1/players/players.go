@@ -51,7 +51,7 @@ func GetPinsBulk(pinIDs ...primitive.ObjectID) ([]UserPin, error) {
 	if len(pinIDs) == 0 {
 		return pins, nil
 	}
-	filter := bson.M{"_id": bson.M{"$in": pinIDs}}
+	filter := bson.M{"_id": bson.M{"$in": pinIDs}, "hidden": bson.M{"$ne": true}}
 	cur, err := pinsCollection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
