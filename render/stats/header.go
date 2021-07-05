@@ -15,8 +15,8 @@ import (
 func makeStatsPlusHeaderCard(card render.CardData, playerName, playerClan string, premium, verified bool, pins []db.UserPin) (render.CardData, error) {
 	// Prep pins
 	sort.Slice(pins, func(i, j int) bool { return pins[i].Weight > pins[j].Weight })
-	if len(pins) > 3 {
-		pins = pins[:2]
+	if len(pins) > 7 {
+		pins = pins[:7]
 	}
 
 	ctx := *card.Context
@@ -78,11 +78,21 @@ func makeStatsPlusHeaderCard(card render.CardData, playerName, playerClan string
 	ctx.DrawRectangle(lineX, lineY, lineWidth, lineHeight)
 	ctx.Fill()
 
+	// Draw label
+	if err := ctx.LoadFontFace(render.FontPath, render.FontSizeHeader/2); err != nil {
+		return card, err
+	}
+	ctx.SetColor(render.AltTextColor)
+	labelStrW, labelStrH := ctx.MeasureString("Pins Collection")
+	var labelX float64 = (float64(ctx.Width()) - labelStrW) / 2
+	var labelY float64 = lineY + labelStrH + labelStrH/1.25
+	ctx.DrawString("Pins Collection", labelX, labelY)
+
 	// Draw pins
 	var iconMarginX int = render.FrameMargin / 2
-	var pinSize int = (ctx.Height() - int(lineY) - iconMarginX)
+	var pinSize int = (ctx.Height() - int(labelY) - iconMarginX)
 	var lastX int = (ctx.Width() - (len(pins)*pinSize + (len(pins)-1)*(iconMarginX))) / 2
-	var iconsY int = int(lineY) + (ctx.Height()-pinSize-int(lineY))/2
+	var iconsY int = int(labelY) + (ctx.Height()-pinSize-int(labelY))/2
 	for i, pin := range pins {
 		var drawX int
 		if i == 0 {

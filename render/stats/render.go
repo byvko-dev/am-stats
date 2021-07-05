@@ -34,7 +34,7 @@ func ImageFromStats(data stats.ExportData, sortKey string, tankLimit int, premiu
 		// Make Header card
 		headerHeight := 0.5
 		var header render.CardData
-		if premium && len(pins) > 0 {
+		if len(pins) > 0 {
 			render.PrepNewCard(&header, 0, headerHeight*2.5, 0)
 			header, err = makeStatsPlusHeaderCard(header, data.PlayerDetails.Name, clanTag, premium, verified, pins)
 			if err != nil {
