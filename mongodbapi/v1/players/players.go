@@ -47,8 +47,11 @@ func init() {
 
 // GetPlayerProfile - Get a player record from DB
 func GetPinsBulk(pinIDs ...primitive.ObjectID) ([]UserPin, error) {
-	filter := bson.M{"_id": bson.M{"$in": pinIDs}}
 	var pins []UserPin
+	if len(pinIDs) == 0 {
+		return pins, nil
+	}
+	filter := bson.M{"_id": bson.M{"$in": pinIDs}}
 	cur, err := pinsCollection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
