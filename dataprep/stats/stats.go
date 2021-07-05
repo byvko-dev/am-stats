@@ -148,7 +148,7 @@ func sessionDiff(oldStats dbStats.Session, liveStats dbStats.Session) (session d
 }
 
 // CalcSession - Calculate a new session
-func calcSession(pid int, tankID int, realm string, days int, special, includeRating bool) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, playerCache dbPlayers.DBPlayerPofile, err error) {
+func calcSession(pid int, tankID int, realm string, days int, special, includeRating bool) (session dbStats.Session, oldSession dbStats.Session, playerProfile wgapi.PlayerProfile, playerCache dbPlayers.DBPlayerProfile, err error) {
 	// Get live profile
 	playerProfile, err = wgapi.PlayerProfileData(pid, realm)
 	if err != nil {
@@ -254,6 +254,13 @@ func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit in
 	}
 	lastRetro := lastSession.ToRetro()
 
+	// Get player pins
+	pins, err := dbPlayers.GetPinsBulk(playerCache.PlayerPins...)
+	if err != nil {
+		return export, err
+	}
+	playerCache.UniquePins = append(playerCache.UniquePins, pins...)
+
 	// Sort
 	if sort != "" {
 		session.Vehicles = SortTanks(session.Vehicles, sort)
@@ -279,7 +286,7 @@ func ExportSessionAsStruct(pid int, tankID int, realm string, days int, limit in
 	return export, nil
 }
 
-func convWGtoDBprofile(wgData wgapi.PlayerProfile) (dbData dbPlayers.DBPlayerPofile) {
+func convWGtoDBprofile(wgData wgapi.PlayerProfile) (dbData dbPlayers.DBPlayerProfile) {
 	dbData.ID = wgData.ID
 	dbData.LastBattle = time.Unix(int64(wgData.LastBattle), 0)
 	dbData.Nickname = wgData.Name

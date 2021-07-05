@@ -12,12 +12,14 @@ import (
 	mgo "github.com/cufee/am-stats/mongodbapi/v1"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var playersCollection *mongo.Collection
+var pinsCollection *mongo.Collection
 
 // Ctx - Context for MongoDB connection
 var ctx context.Context
@@ -40,10 +42,22 @@ func init() {
 	log.Println("Players - successfully connected and pinged.")
 
 	playersCollection = client.Database("stats").Collection("players")
+	pinsCollection = client.Database("stats").Collection("pins")
+}
+
+// GetPlayerProfile - Get a player record from DB
+func GetPinsBulk(pinIDs ...primitive.ObjectID) ([]UserPin, error) {
+	filter := bson.M{"_id": bson.M{"$in": pinIDs}}
+	var pins []UserPin
+	cur, err := pinsCollection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return pins, cur.All(ctx, &pins)
 }
 
 // AddPlayer - Add a new player record to DB
-func AddPlayer(playerData DBPlayerPofile) error {
+func AddPlayer(playerData DBPlayerProfile) error {
 	_, err := playersCollection.InsertOne(ctx, playerData)
 	if err != nil {
 		return err
@@ -52,7 +66,7 @@ func AddPlayer(playerData DBPlayerPofile) error {
 }
 
 // getPlayer - Get a player record from DB
-func getPlayer(filter interface{}) (result DBPlayerPofile, err error) {
+func getPlayer(filter interface{}) (result DBPlayerProfile, err error) {
 	err = playersCollection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		return result, err
@@ -61,7 +75,7 @@ func getPlayer(filter interface{}) (result DBPlayerPofile, err error) {
 }
 
 // GetPlayerProfile - Get a player record from DB
-func GetPlayerProfile(pid int) (DBPlayerPofile, error) {
+func GetPlayerProfile(pid int) (DBPlayerProfile, error) {
 	filter := mgo.MakeFilter(mgo.FilterPair{Key: "_id", Value: pid})
 	return getPlayer(filter)
 }
@@ -92,7 +106,7 @@ func GetRealmPlayers(realm string) (pidSlice []int, err error) {
 }
 
 // UpdatePlayer - Update a player record in DB
-func UpdatePlayer(filter interface{}, playerData DBPlayerPofile) (result string, err error) {
+func UpdatePlayer(filter interface{}, playerData DBPlayerProfile) (result string, err error) {
 	resultRaw, err := playersCollection.UpdateOne(ctx, filter, bson.M{"$set": playerData})
 	if err != nil {
 		return "mongoapi/UpdatePlayer: Error updating player record.", err

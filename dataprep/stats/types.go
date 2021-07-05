@@ -8,10 +8,10 @@ import (
 
 // ExportData - Struct to export final data for use in Python bot
 type ExportData struct {
-	PlayerCache   dbPlayers.DBPlayerPofile `json:"player_cache"`
-	PlayerDetails wgapi.PlayerProfile      `json:"player_details"`
-	SessionStats  dbStats.Session          `json:"session"`
-	LastSession   dbStats.RetroSession     `json:"last_session"`
+	PlayerCache   dbPlayers.DBPlayerProfile `json:"player_cache"`
+	PlayerDetails wgapi.PlayerProfile       `json:"player_details"`
+	SessionStats  dbStats.Session           `json:"session"`
+	LastSession   dbStats.RetroSession      `json:"last_session"`
 	Analytics     `json:"analytics"`
 }
 
