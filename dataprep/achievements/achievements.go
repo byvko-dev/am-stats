@@ -12,6 +12,7 @@ import (
 	dbStats "github.com/cufee/am-stats/mongodbapi/v1/stats"
 	"github.com/cufee/am-stats/utils"
 	wgapi "github.com/cufee/am-stats/wargamingapi"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // ExportClanAchievementsByID - Export clan achievements LB by clan ID
@@ -21,9 +22,17 @@ func ExportClanAchievementsByID(clanID int, realm string, days int, medals ...db
 	if err != nil {
 		return export, clanTotalScore, err
 	}
+	membersMap := make(map[int]AchievementsPlayerSettings)
+	for _, member := range ClanProfile.Members {
+		if timeDaysBack(days).After(time.Unix(member.JoinedAt, 10)) {
+			membersMap[member.AccountID] = AchievementsPlayerSettings{PersonalCutoff: time.Unix(member.JoinedAt, 10)}
+		} else {
+			membersMap[member.AccountID] = AchievementsPlayerSettings{PersonalCutoff: timeDaysBack(days)}
+		}
+	}
 
 	// Get clan leaderboard
-	return exportAchievementsByPIDs(realm, ClanProfile.MembersIds, days, medals...)
+	return exportAchievementsByPIDs(realm, membersMap, days, medals...)
 }
 
 // ExportClanAchievementsByTag - Export clan achievements by clan tag
@@ -33,9 +42,17 @@ func ExportClanAchievementsByTag(clanTag string, realm string, days int, medals 
 	if err != nil {
 		return export, clanTotalScore, err
 	}
+	membersMap := make(map[int]AchievementsPlayerSettings)
+	for _, member := range ClanProfile.Members {
+		if timeDaysBack(days).After(time.Unix(member.JoinedAt, 10)) {
+			membersMap[member.AccountID] = AchievementsPlayerSettings{PersonalCutoff: time.Unix(member.JoinedAt, 10)}
+		} else {
+			membersMap[member.AccountID] = AchievementsPlayerSettings{PersonalCutoff: timeDaysBack(days)}
+		}
+	}
 
 	// Get clan leaderboard
-	return exportAchievementsByPIDs(realm, ClanProfile.MembersIds, days, medals...)
+	return exportAchievementsByPIDs(realm, membersMap, days, medals...)
 }
 
 // ExportClanAchievementsLbByRealm - Export clan achievements LB by realm
@@ -62,10 +79,12 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 		go func(clan wgapi.ClanProfile) {
 			defer wg.Done()
 			// Get valid clan members
-			var validMembers []int
+			validMembers := make(map[int]AchievementsPlayerSettings)
 			for _, player := range clan.Members {
-				if time.Now().Add(time.Hour * 24 * -time.Duration(days)).After(time.Unix(player.JoinedAt, 10)) {
-					validMembers = append(validMembers, player.AccountID)
+				if timeDaysBack(days).After(time.Unix(player.JoinedAt, 10)) {
+					validMembers[player.AccountID] = AchievementsPlayerSettings{PersonalCutoff: time.Unix(player.JoinedAt, 10)}
+				} else {
+					validMembers[player.AccountID] = AchievementsPlayerSettings{PersonalCutoff: timeDaysBack(days)}
 				}
 			}
 			if len(validMembers) == 0 {
@@ -148,8 +167,14 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 		log.Print("GetRealmPlayers - ", err)
 		return export, checkData, err
 	}
+
+	pidMap := make(map[int]AchievementsPlayerSettings)
+	for _, pid := range pidSlice {
+		pidMap[pid] = AchievementsPlayerSettings{PersonalCutoff: timeDaysBack(days)}
+	}
+
 	// Get Leaderboard
-	export, _, err = exportAchievementsByPIDs(realm, pidSlice, days, medals...)
+	export, _, err = exportAchievementsByPIDs(realm, pidMap, days, medals...)
 	if err != nil {
 		log.Print("exportAchievementsByPIDs - ", err)
 		return export, checkData, err
@@ -174,16 +199,18 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 }
 
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs
-func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
+func exportAchievementsByPIDs(realm string, pidSlice map[int]AchievementsPlayerSettings, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
 	// Check cache
-	// export, totalScore, err = dbAch.CheckCachedMedals(realm, days, pidSlice, medals, time.Duration(time.Minute*15))
-	// if err != nil && err != mongo.ErrNoDocuments {
-	// 	log.Print("CheckCachedMedals - ", err)
-	// 	return export, totalScore, err
-	// }
-	// if len(export) > 0 {
-	// 	return export, totalScore, err
-	// }
+	if len(pidSlice) > 50 {
+		export, totalScore, err = dbAch.CheckCachedMedals(realm, days, medals, time.Duration(time.Minute*15))
+		if err != nil && err != mongo.ErrNoDocuments {
+			log.Print("CheckCachedMedals - ", err)
+			return export, totalScore, err
+		}
+		if len(export) > 0 {
+			return export, totalScore, err
+		}
+	}
 
 	// Timer
 	timer := utils.Timer{Name: "prep", FunctionName: "exportAchievementsByPIDs", Enabled: false}
@@ -203,10 +230,10 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 	timer.Reset("fill player data")
 
 	// Fill nicknames and clan tags
-	for _, pid := range pidSlice {
+	for pid, settings := range pidSlice {
 		wg.Add(1)
 
-		go func(pid int) {
+		go func(pid int, settings AchievementsPlayerSettings) {
 			defer wg.Done()
 
 			player, err := dbAch.GetPlayerAchievements(pid, medals...)
@@ -221,7 +248,7 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 			}
 
 			// Get player cached achievements
-			achCache, err := dbStats.GetPlayerSessionAchievements(pid, days, fields...)
+			achCache, err := dbStats.GetPlayerSessionAchievements(pid, settings.PersonalCutoff, fields...)
 			if err != nil {
 				return
 			}
@@ -253,7 +280,7 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 
 			// Send to chan
 			dataChan <- player
-		}(pid)
+		}(pid, settings)
 	}
 	wg.Wait()
 	close(dataChan)
@@ -279,7 +306,9 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 	sorted := quickSortPlayers(export)
 
 	// Update cache
-	// dbAch.SaveCachedMedals(realm, days, pidSlice, medals, sorted, totalScore)
+	if len(pidSlice) > 50 {
+		dbAch.SaveCachedMedals(realm, days, medals, sorted, totalScore)
+	}
 
 	// Timer
 	timer.End()
@@ -392,4 +421,8 @@ func recursiveClanSort(arr []dbAch.ClanAchievements, start, end int) {
 
 	recursiveClanSort(arr, start, splitIndex-1)
 	recursiveClanSort(arr, splitIndex+1, end)
+}
+
+func timeDaysBack(days int) time.Time {
+	return time.Now().Add(time.Hour * 24 * -time.Duration(days))
 }
