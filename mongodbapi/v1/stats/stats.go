@@ -22,8 +22,11 @@ var streaksCollection *mongo.Collection
 // Ctx - Context for MongoDB connection
 var ctx context.Context
 
+// Client - Client for MongoDB connection
+var client *mongo.Client
+
 func init() {
-	// Connect to MongoDB
+	// Conenct to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -91,7 +94,7 @@ func GetPlayerSpecialSession(pid int, battlesRandom int, battlesRating int) (ses
 }
 
 // GetPlayerSessionAchievements -
-func GetPlayerSessionAchievements(pid int, cutoff time.Time, fields ...string) (data wgapi.AchievementsFrame, err error) {
+func GetPlayerSessionAchievements(pid int, days int, fields ...string) (data wgapi.AchievementsFrame, err error) {
 	// Sorting options
 	queryOptions := options.FindOneOptions{}
 	queryOptions.SetSort(bson.M{"timestamp": -1})
@@ -109,10 +112,11 @@ func GetPlayerSessionAchievements(pid int, cutoff time.Time, fields ...string) (
 	// Make a filter
 	var filters []mgo.FilterPair
 	filters = append(filters, mgo.FilterPair{Key: "player_id", Value: pid})
-	if cutoff != (time.Time{}) {
+	if days > 0 {
 		// Setting days to negative to look back
 		queryOptions.SetSort(bson.M{"timestamp": 1})
-		filters = append(filters, mgo.FilterPair{Key: "timestamp", Value: bson.M{"$gt": cutoff}})
+		sessionTime := time.Now().AddDate(0, 0, -(days + 1))
+		filters = append(filters, mgo.FilterPair{Key: "timestamp", Value: bson.M{"$gt": sessionTime}})
 	}
 	query := mgo.MakeFilter(filters...)
 
