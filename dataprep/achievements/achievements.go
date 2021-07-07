@@ -88,8 +88,10 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 			clanData.ClanID = clan.ID
 			clanData.Score = totalScore
 			clanData.ClanTag = clan.Tag
-			clanData.Timestamp = time.Now()
 			for _, player := range leaderboard {
+				if player.Timestamp.After(clanData.Timestamp) {
+					clanData.Timestamp = player.Timestamp
+				}
 				clanData.Members++
 				for _, m := range medals {
 					playerMedals := getField(player.Data, m.Name)
