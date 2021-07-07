@@ -42,57 +42,69 @@ func ExportClanAchievementsByTag(clanTag string, realm string, days int, medals 
 // ExportClanAchievementsLbByRealm - Export clan achievements LB by realm
 func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit int, medals ...dbAch.MedalWeight) (export []dbAch.ClanAchievements, checkData dbAch.ClanAchievements, err error) {
 	// Timer
-	timer := utils.Timer{Name: "get players on realm", FunctionName: "ExportClanAchievementsLbByRealm", Enabled: false}
+	timer := utils.Timer{Name: "get clans on realm", FunctionName: "ExportClanAchievementsLbByRealm", Enabled: false}
 	timer.Start()
 
-	// Get realm players
-	pidSlice, err := dbPlayers.GetRealmPlayers(realm)
+	// Get all clans in a realm
+	clans, err := dbAch.GetClansCacheByRealm(realm)
 	if err != nil {
 		return export, checkData, err
 	}
 
 	// Timer
-	timer.Reset("get leaderboard")
+	timer.Reset("calculate clan achievements")
 
-	// Get Leaderboard
-	leaderboard, _, err := exportAchievementsByPIDs(realm, pidSlice, days, medals...)
-	if err != nil {
-		return export, checkData, err
+	// Loop through all clans and get achievements for all players that joined after the cutoff
+	clansChan := make(chan dbAch.ClanAchievements, len(clans))
+
+	var wg sync.WaitGroup
+	for _, c := range clans {
+		wg.Add(1)
+		go func(clan wgapi.ClanProfile) {
+			defer wg.Done()
+			// Get valid clan members
+			var validMembers []int
+			for _, player := range clan.Members {
+				if time.Now().Add(time.Hour * 24 * -time.Duration(days)).After(time.Unix(player.JoinedAt, 10)) {
+					validMembers = append(validMembers, player.AccountID)
+				}
+			}
+			if len(validMembers) == 0 {
+				return
+			}
+
+			// Get Leaderboard
+			leaderboard, totalScore, err := exportAchievementsByPIDs(realm, validMembers, days, medals...)
+			if err != nil {
+				return
+			}
+			// Add all achievements together
+			var clanData dbAch.ClanAchievements
+			clanData.Realm = realm
+			clanData.Medals = medals
+			clanData.ClanID = clan.ID
+			clanData.Score = totalScore
+			clanData.ClanTag = clan.Tag
+			clanData.Members = len(validMembers)
+			clanData.Timestamp = time.Now()
+			for _, player := range leaderboard {
+				for _, m := range medals {
+					playerMedals := getField(player.Data, m.Name)
+					clanMedals := getField(clanData.Data, m.Name)
+					clanData.Data = setField(clanData.Data, m.Name, (clanMedals + playerMedals))
+				}
+			}
+			clansChan <- clanData
+		}(c)
 	}
+	wg.Wait()
+	close(clansChan)
 
 	// Timer
-	timer.Reset("sort players by clan")
+	timer.Reset("calculate clan scores")
 
-	// Sort by clan
-	clanMap := make(map[int]dbAch.ClanAchievements)
-	for _, p := range leaderboard {
-		clanData := clanMap[p.ClanID]
-		if p.ClanID == 0 {
-			continue
-		}
-
-		for _, m := range medals {
-			oldVal := getField(clanData.Data, m.Name)
-			pScore := getField(p.Data, m.Name)
-			clanData.Data = setField(clanData.Data, m.Name, (oldVal + pScore))
-		}
-
-		if clanData.Timestamp.Before(p.Timestamp) {
-			clanData.Timestamp = p.Timestamp
-		}
-
-		clanData.ClanID = p.ClanID
-		clanData.ClanTag = p.ClanTag
-		clanData.Score += p.Score
-		clanData.Members++
-		clanMap[p.ClanID] = clanData
-
-		if checkPID != 0 && p.ClanID != 0 && p.PID == checkPID {
-			checkData = clanData
-		}
-	}
 	// Create a slice
-	for _, clan := range clanMap {
+	for clan := range clansChan {
 		export = append(export, clan)
 	}
 
@@ -159,15 +171,10 @@ func ExportAchievementsLeaderboard(realm string, days int, limit int, checkPid i
 // ExportAchievementsByPIDs - Export achievements from a slice of player IDs
 func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...dbAch.MedalWeight) (export []dbAch.AchievementsPlayerData, totalScore int, err error) {
 	// Check cache
-	export, totalScore, err = dbAch.CheckCachedMedals(realm, days, medals, time.Duration(time.Minute*15))
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			log.Printf("no cache hit - realm: %v | medals: %v", realm, len(medals))
-			err = nil
-		} else {
-			log.Print("CheckCachedMedals - ", err)
-			return export, totalScore, err
-		}
+	export, totalScore, err = dbAch.CheckCachedMedals(realm, days, pidSlice, medals, time.Duration(time.Minute*15))
+	if err != nil && err != mongo.ErrNoDocuments {
+		log.Print("CheckCachedMedals - ", err)
+		return export, totalScore, err
 	}
 	if len(export) > 0 {
 		return export, totalScore, err
@@ -267,7 +274,7 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 	sorted := quickSortPlayers(export)
 
 	// Update cache
-	dbAch.SaveCachedMedals(realm, days, medals, sorted, totalScore)
+	dbAch.SaveCachedMedals(realm, days, pidSlice, medals, sorted, totalScore)
 
 	// Timer
 	timer.End()

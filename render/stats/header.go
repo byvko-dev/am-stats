@@ -83,10 +83,10 @@ func makeStatsPlusHeaderCard(card render.CardData, playerName, playerClan string
 		return card, err
 	}
 	ctx.SetColor(render.AltTextColor)
-	labelStrW, labelStrH := ctx.MeasureString("Pins Collection")
+	labelStrW, labelStrH := ctx.MeasureString("Pin Collection")
 	var labelX float64 = (float64(ctx.Width()) - labelStrW) / 2
 	var labelY float64 = lineY + labelStrH + labelStrH/1.25
-	ctx.DrawString("Pins Collection", labelX, labelY)
+	ctx.DrawString("Pin Collection", labelX, labelY)
 
 	// Draw pins
 	var iconMarginX int = render.FrameMargin / 2

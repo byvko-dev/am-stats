@@ -56,9 +56,10 @@ type ClanAchievements struct {
 // CachedMedalsRequest -
 type CachedMedalsRequest struct {
 	Request struct {
-		Realm  string        `bson:"realm"`
-		Days   int           `bson:"days"`
-		Medals []MedalWeight `bson:"medals"`
+		Realm   string        `bson:"realm"`
+		Days    int           `bson:"days"`
+		Players []int         `bson:"players"`
+		Medals  []MedalWeight `bson:"medals"`
 	} `bson:"request"`
 	Result struct {
 		TotalScore    int                      `bson:"total_score"`

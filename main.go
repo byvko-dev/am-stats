@@ -45,8 +45,6 @@ func main() {
 
 	// Achievements
 	// Clan
-	app.Get("/achievements/clan", handlers.HandleClanAchievementsExport)
-	app.Get("/achievements/clan/image", handlers.HandleClanAchievementsExport)
 	app.Get("/achievements/leaderboard/clans", handlers.HandleClanAchievementsLbExport)
 	app.Get("/achievements/leaderboard/clans/image", handlers.HandlerClansLeaderboardImage)
 	// Players Leaderboard

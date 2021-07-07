@@ -146,6 +146,141 @@ type AchievementsFrame struct {
 	} `json:"achievements"`
 }
 
+// Add - Add two Achievement structs together
+func (a AchievementsFrame) Add(more AchievementsFrame) (result AchievementsFrame) {
+	// Achievements
+	result.Achievements.ArmorPiercer = a.Achievements.ArmorPiercer + more.Achievements.ArmorPiercer
+	result.Achievements.MedalFadin = a.Achievements.MedalFadin + more.Achievements.MedalFadin
+	result.Achievements.MedalCarius = a.Achievements.MedalCarius + more.Achievements.MedalCarius
+	result.Achievements.MedalEkins = a.Achievements.MedalEkins + more.Achievements.MedalEkins
+	result.Achievements.CollectorGuP = a.Achievements.CollectorGuP + more.Achievements.CollectorGuP
+	result.Achievements.MedalHalonen = a.Achievements.MedalHalonen + more.Achievements.MedalHalonen
+	result.Achievements.HeroesOfRassenay = a.Achievements.HeroesOfRassenay + more.Achievements.HeroesOfRassenay
+	result.Achievements.FirstVictory = a.Achievements.FirstVictory + more.Achievements.FirstVictory
+	result.Achievements.Defender = a.Achievements.Defender + more.Achievements.Defender
+	result.Achievements.Creative = a.Achievements.Creative + more.Achievements.Creative
+	result.Achievements.ESportFinal = a.Achievements.ESportFinal + more.Achievements.ESportFinal
+	result.Achievements.Supporter = a.Achievements.Supporter + more.Achievements.Supporter
+	result.Achievements.GoldClanRibbonSEA = a.Achievements.GoldClanRibbonSEA + more.Achievements.GoldClanRibbonSEA
+	result.Achievements.PlatinumTwisterMedalSEA = a.Achievements.PlatinumTwisterMedalSEA + more.Achievements.PlatinumTwisterMedalSEA
+	result.Achievements.MedalLehvaslaiho = a.Achievements.MedalLehvaslaiho + more.Achievements.MedalLehvaslaiho
+	result.Achievements.TankExpert = a.Achievements.TankExpert + more.Achievements.TankExpert
+	result.Achievements.ESportQualification = a.Achievements.ESportQualification + more.Achievements.ESportQualification
+	result.Achievements.MarkI = a.Achievements.MarkI + more.Achievements.MarkI
+	result.Achievements.MedalSupremacy = a.Achievements.MedalSupremacy + more.Achievements.MedalSupremacy
+	result.Achievements.ParticipantofWGFest2017 = a.Achievements.ParticipantofWGFest2017 + more.Achievements.ParticipantofWGFest2017
+	result.Achievements.MedalTournamentOffseason1 = a.Achievements.MedalTournamentOffseason1 + more.Achievements.MedalTournamentOffseason1
+	result.Achievements.JointVictory = a.Achievements.JointVictory + more.Achievements.JointVictory
+	result.Achievements.MedalTournamentOffseason2 = a.Achievements.MedalTournamentOffseason2 + more.Achievements.MedalTournamentOffseason2
+	result.Achievements.MedalTournamentOffseason4 = a.Achievements.MedalTournamentOffseason4 + more.Achievements.MedalTournamentOffseason4
+	result.Achievements.Sniper = a.Achievements.Sniper + more.Achievements.Sniper
+	result.Achievements.TitleSniper = a.Achievements.TitleSniper + more.Achievements.TitleSniper
+	result.Achievements.MedalCrucialContribution = a.Achievements.MedalCrucialContribution + more.Achievements.MedalCrucialContribution
+	result.Achievements.Scout = a.Achievements.Scout + more.Achievements.Scout
+	result.Achievements.GoldTwisterMedalRU = a.Achievements.GoldTwisterMedalRU + more.Achievements.GoldTwisterMedalRU
+	result.Achievements.TankExpert3 = a.Achievements.TankExpert3 + more.Achievements.TankExpert3
+	result.Achievements.TankExpert2 = a.Achievements.TankExpert2 + more.Achievements.TankExpert2
+	result.Achievements.TankExpert1 = a.Achievements.TankExpert1 + more.Achievements.TankExpert1
+	result.Achievements.TankExpert0 = a.Achievements.TankExpert0 + more.Achievements.TankExpert0
+	result.Achievements.MarkOfMastery = a.Achievements.MarkOfMastery + more.Achievements.MarkOfMastery
+	result.Achievements.TankExpert6 = a.Achievements.TankExpert6 + more.Achievements.TankExpert6
+	result.Achievements.TankExpert5 = a.Achievements.TankExpert5 + more.Achievements.TankExpert5
+	result.Achievements.TankExpert4 = a.Achievements.TankExpert4 + more.Achievements.TankExpert4
+	result.Achievements.GoldTwisterMedalEU = a.Achievements.GoldTwisterMedalEU + more.Achievements.GoldTwisterMedalEU
+	result.Achievements.ChristmasTreeLevelUpNY2019 = a.Achievements.ChristmasTreeLevelUpNY2019 + more.Achievements.ChristmasTreeLevelUpNY2019
+	result.Achievements.MedalLavrinenko = a.Achievements.MedalLavrinenko + more.Achievements.MedalLavrinenko
+	result.Achievements.MedalKolobanov = a.Achievements.MedalKolobanov + more.Achievements.MedalKolobanov
+	result.Achievements.MedalLafayettePool = a.Achievements.MedalLafayettePool + more.Achievements.MedalLafayettePool
+	result.Achievements.GoldClanRibbonEU = a.Achievements.GoldClanRibbonEU + more.Achievements.GoldClanRibbonEU
+	result.Achievements.OlimpicGolden = a.Achievements.OlimpicGolden + more.Achievements.OlimpicGolden
+	result.Achievements.MedalKnispel = a.Achievements.MedalKnispel + more.Achievements.MedalKnispel
+	result.Achievements.Invader = a.Achievements.Invader + more.Achievements.Invader
+	result.Achievements.GoldTwisterMedalNA = a.Achievements.GoldTwisterMedalNA + more.Achievements.GoldTwisterMedalNA
+	result.Achievements.MechanicEngineer = a.Achievements.MechanicEngineer + more.Achievements.MechanicEngineer
+	result.Achievements.MarkOfMasteryII = a.Achievements.MarkOfMasteryII + more.Achievements.MarkOfMasteryII
+	result.Achievements.FirstBlood = a.Achievements.FirstBlood + more.Achievements.FirstBlood
+	result.Achievements.MedalKay = a.Achievements.MedalKay + more.Achievements.MedalKay
+	result.Achievements.MedalOrlik = a.Achievements.MedalOrlik + more.Achievements.MedalOrlik
+	result.Achievements.MedalBrothersInArms = a.Achievements.MedalBrothersInArms + more.Achievements.MedalBrothersInArms
+	result.Achievements.MedalAbrams = a.Achievements.MedalAbrams + more.Achievements.MedalAbrams
+	result.Achievements.MedalAtgm = a.Achievements.MedalAtgm + more.Achievements.MedalAtgm
+	result.Achievements.MainGun = a.Achievements.MainGun + more.Achievements.MainGun
+	result.Achievements.IronMan = a.Achievements.IronMan + more.Achievements.IronMan
+	result.Achievements.PlatinumClanRibbonEU = a.Achievements.PlatinumClanRibbonEU + more.Achievements.PlatinumClanRibbonEU
+	result.Achievements.PlatinumClanRibbonSEA = a.Achievements.PlatinumClanRibbonSEA + more.Achievements.PlatinumClanRibbonSEA
+	result.Achievements.Warrior = a.Achievements.Warrior + more.Achievements.Warrior
+	result.Achievements.GoldClanRibbonRU = a.Achievements.GoldClanRibbonRU + more.Achievements.GoldClanRibbonRU
+	result.Achievements.MedalRadleyWalters = a.Achievements.MedalRadleyWalters + more.Achievements.MedalRadleyWalters
+	result.Achievements.Raider = a.Achievements.Raider + more.Achievements.Raider
+	result.Achievements.ParticipantofNewStart = a.Achievements.ParticipantofNewStart + more.Achievements.ParticipantofNewStart
+	result.Achievements.DiamondClanRibbon = a.Achievements.DiamondClanRibbon + more.Achievements.DiamondClanRibbon
+	result.Achievements.MedalBillotte = a.Achievements.MedalBillotte + more.Achievements.MedalBillotte
+	result.Achievements.PlatinumTwisterMedalEU = a.Achievements.PlatinumTwisterMedalEU + more.Achievements.PlatinumTwisterMedalEU
+	result.Achievements.Diehard = a.Achievements.Diehard + more.Achievements.Diehard
+	result.Achievements.MasterofContinents = a.Achievements.MasterofContinents + more.Achievements.MasterofContinents
+	result.Achievements.Evileye = a.Achievements.Evileye + more.Achievements.Evileye
+	result.Achievements.Cadet = a.Achievements.Cadet + more.Achievements.Cadet
+	result.Achievements.SupremacyHunter = a.Achievements.SupremacyHunter + more.Achievements.SupremacyHunter
+	result.Achievements.ContinentalContender = a.Achievements.ContinentalContender + more.Achievements.ContinentalContender
+	result.Achievements.Steelwall = a.Achievements.Steelwall + more.Achievements.Steelwall
+	result.Achievements.SupremacyLegend = a.Achievements.SupremacyLegend + more.Achievements.SupremacyLegend
+	result.Achievements.Punisher = a.Achievements.Punisher + more.Achievements.Punisher
+	result.Achievements.ESport = a.Achievements.ESport + more.Achievements.ESport
+	result.Achievements.PlatinumTwisterMark = a.Achievements.PlatinumTwisterMark + more.Achievements.PlatinumTwisterMark
+	result.Achievements.GoldClanRibbonNA = a.Achievements.GoldClanRibbonNA + more.Achievements.GoldClanRibbonNA
+	result.Achievements.MedalPoppel = a.Achievements.MedalPoppel + more.Achievements.MedalPoppel
+	result.Achievements.MechanicEngineer6 = a.Achievements.MechanicEngineer6 + more.Achievements.MechanicEngineer6
+	result.Achievements.MechanicEngineer4 = a.Achievements.MechanicEngineer4 + more.Achievements.MechanicEngineer4
+	result.Achievements.GoldTwisterMedalSEA = a.Achievements.GoldTwisterMedalSEA + more.Achievements.GoldTwisterMedalSEA
+	result.Achievements.MechanicEngineer2 = a.Achievements.MechanicEngineer2 + more.Achievements.MechanicEngineer2
+	result.Achievements.MechanicEngineer3 = a.Achievements.MechanicEngineer3 + more.Achievements.MechanicEngineer3
+	result.Achievements.MechanicEngineer0 = a.Achievements.MechanicEngineer0 + more.Achievements.MechanicEngineer0
+	result.Achievements.MechanicEngineer1 = a.Achievements.MechanicEngineer1 + more.Achievements.MechanicEngineer1
+	result.Achievements.MechanicEngineer5 = a.Achievements.MechanicEngineer5 + more.Achievements.MechanicEngineer5
+	result.Achievements.MedalTarczay = a.Achievements.MedalTarczay + more.Achievements.MedalTarczay
+	result.Achievements.Sinai = a.Achievements.Sinai + more.Achievements.Sinai
+	result.Achievements.PattonValley = a.Achievements.PattonValley + more.Achievements.PattonValley
+	result.Achievements.MedalDeLanglade = a.Achievements.MedalDeLanglade + more.Achievements.MedalDeLanglade
+	result.Achievements.DiamondTwisterMedal = a.Achievements.DiamondTwisterMedal + more.Achievements.DiamondTwisterMedal
+	result.Achievements.Beasthunter = a.Achievements.Beasthunter + more.Achievements.Beasthunter
+	result.Achievements.SupremacyVeteran = a.Achievements.SupremacyVeteran + more.Achievements.SupremacyVeteran
+	result.Achievements.Kamikaze = a.Achievements.Kamikaze + more.Achievements.Kamikaze
+	result.Achievements.OlimpicBronze = a.Achievements.OlimpicBronze + more.Achievements.OlimpicBronze
+	result.Achievements.MedalTournamentOffseason3 = a.Achievements.MedalTournamentOffseason3 + more.Achievements.MedalTournamentOffseason3
+	result.Achievements.PlatinumClanRibbonRU = a.Achievements.PlatinumClanRibbonRU + more.Achievements.PlatinumClanRibbonRU
+	result.Achievements.MedalOskin = a.Achievements.MedalOskin + more.Achievements.MedalOskin
+	result.Achievements.Invincible = a.Achievements.Invincible + more.Achievements.Invincible
+	result.Achievements.PlatinumClanRibbonNA = a.Achievements.PlatinumClanRibbonNA + more.Achievements.PlatinumClanRibbonNA
+	result.Achievements.PlatinumTwisterMedalRU = a.Achievements.PlatinumTwisterMedalRU + more.Achievements.PlatinumTwisterMedalRU
+	result.Achievements.ContinentalViceChampion = a.Achievements.ContinentalViceChampion + more.Achievements.ContinentalViceChampion
+	result.Achievements.OlimpicSilver = a.Achievements.OlimpicSilver + more.Achievements.OlimpicSilver
+	result.Achievements.MarkOfMasteryI = a.Achievements.MarkOfMasteryI + more.Achievements.MarkOfMasteryI
+	result.Achievements.ContinentalCompetitor = a.Achievements.ContinentalCompetitor + more.Achievements.ContinentalCompetitor
+	result.Achievements.MedalTournamentSummerSeason = a.Achievements.MedalTournamentSummerSeason + more.Achievements.MedalTournamentSummerSeason
+	result.Achievements.Mousebane = a.Achievements.Mousebane + more.Achievements.Mousebane
+	result.Achievements.MedalBrunoPietro = a.Achievements.MedalBrunoPietro + more.Achievements.MedalBrunoPietro
+	result.Achievements.MedalTournamentSpringSeason = a.Achievements.MedalTournamentSpringSeason + more.Achievements.MedalTournamentSpringSeason
+	result.Achievements.GoldTwisterMark = a.Achievements.GoldTwisterMark + more.Achievements.GoldTwisterMark
+	result.Achievements.CollectorWarhammer = a.Achievements.CollectorWarhammer + more.Achievements.CollectorWarhammer
+	result.Achievements.MarkOfMasteryIII = a.Achievements.MarkOfMasteryIII + more.Achievements.MarkOfMasteryIII
+	result.Achievements.MedalLeClerc = a.Achievements.MedalLeClerc + more.Achievements.MedalLeClerc
+	result.Achievements.MedalTournamentProfessional = a.Achievements.MedalTournamentProfessional + more.Achievements.MedalTournamentProfessional
+	result.Achievements.MedalCommunityChampion = a.Achievements.MedalCommunityChampion + more.Achievements.MedalCommunityChampion
+	result.Achievements.DiamondTwisterMark = a.Achievements.DiamondTwisterMark + more.Achievements.DiamondTwisterMark
+	result.Achievements.PlatinumTwisterMedalNA = a.Achievements.PlatinumTwisterMedalNA + more.Achievements.PlatinumTwisterMedalNA
+	result.Achievements.HandOfDeath = a.Achievements.HandOfDeath + more.Achievements.HandOfDeath
+	result.Achievements.Huntsman = a.Achievements.Huntsman + more.Achievements.Huntsman
+	result.Achievements.Camper = a.Achievements.Camper + more.Achievements.Camper
+	result.Achievements.MedalNikolas = a.Achievements.MedalNikolas + more.Achievements.MedalNikolas
+	result.Achievements.AndroidTest = a.Achievements.AndroidTest + more.Achievements.AndroidTest
+	result.Achievements.Sturdy = a.Achievements.Sturdy + more.Achievements.Sturdy
+	result.Achievements.MedalTwitch = a.Achievements.MedalTwitch + more.Achievements.MedalTwitch
+	result.Achievements.MedalWGfestTicket = a.Achievements.MedalWGfestTicket + more.Achievements.MedalWGfestTicket
+	result.Achievements.ChampionofNewStart = a.Achievements.ChampionofNewStart + more.Achievements.ChampionofNewStart
+
+	return result
+}
+
 // Diff - Find changes in achievements
 func (new AchievementsFrame) Diff(old AchievementsFrame) (result AchievementsFrame) {
 	// Achievements

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cufee/am-stats/config"
+	wargamingapi "github.com/cufee/am-stats/wargamingapi"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -43,22 +44,23 @@ func init() {
 }
 
 // Check cached request
-func CheckCachedMedals(realm string, days int, medals []MedalWeight, expiration time.Duration) (export []AchievementsPlayerData, totalScore int, err error) {
+func CheckCachedMedals(realm string, days int, players []int, medals []MedalWeight, expiration time.Duration) (export []AchievementsPlayerData, totalScore int, err error) {
 	// Find cached request
 	var cache CachedMedalsRequest
-	var filter bson.M = bson.M{"request.realm": realm, "request.days": days, "request.medals": medals, "result.updated_timestamp": bson.M{"$gt": time.Now().Add(-expiration)}}
+	var filter bson.M = bson.M{"request.realm": realm, "request.days": days, "request.players": bson.M{"$in": players}, "request.medals": medals, "result.updated_timestamp": bson.M{"$gt": time.Now().Add(-expiration)}}
 	err = achievementsCacheCollection.FindOneAndUpdate(ctx, filter, bson.M{"$set": bson.M{"requested_timestamp": time.Now()}}).Decode(&cache)
 	return cache.Result.SortedPlayers, cache.Result.TotalScore, err
 }
 
 // Check cached request
-func SaveCachedMedals(realm string, days int, medals []MedalWeight, sortedPlayers []AchievementsPlayerData, totalScore int) {
+func SaveCachedMedals(realm string, days int, players []int, medals []MedalWeight, sortedPlayers []AchievementsPlayerData, totalScore int) {
 	opts := options.FindOneAndReplace()
 	opts.SetUpsert(true)
 	var cache CachedMedalsRequest
 	cache.Request.Days = days
 	cache.Request.Realm = realm
 	cache.Request.Medals = medals
+	cache.Request.Players = players
 	cache.LastRequested = time.Now()
 	cache.Result.UpdatedAt = time.Now()
 	cache.Result.TotalScore = totalScore
@@ -118,32 +120,13 @@ func GetPlayerAchievements(pid int, medals ...MedalWeight) (data AchievementsPla
 }
 
 // GetClanAchievementsCache - Get last cached clans achievements leaderboard
-func GetClanAchievementsCache(clanID int, fields ...string) (data []AchievementsPlayerData, err error) {
-	opts := options.Find()
-	// Generate projection
-	if len(fields) > 0 {
-		var project bson.D
-		// Loop over field, compile project and sort
-		for _, f := range fields {
-			project = append(project, bson.E{Key: fmt.Sprintf("data.achievements.%s", f), Value: 1}) // Show field
-		}
-		project = append(project, bson.E{Key: "_id", Value: 1})      // Always show Clan ID
-		project = append(project, bson.E{Key: "clan_tag", Value: 1}) // Always show clan tag
-		project = append(project, bson.E{Key: "members", Value: 1})  // Always show members
-		opts.Projection = project
-	}
-
+func GetClansCacheByRealm(realm string) (data []wargamingapi.ClanProfile, err error) {
 	// Find
-	cur, err := achievementsClansCollection.Find(ctx, bson.M{"_id": clanID}, opts)
+	cur, err := achievementsClansCollection.Find(ctx, bson.M{"realm": realm})
 	if err != nil {
 		return data, err
 	}
-
-	// Decode and return
-	if err = cur.All(ctx, &data); err != nil {
-		return data, err
-	}
-	return data, err
+	return data, cur.All(ctx, &data)
 }
 
 // SearchClanAchievementsLb - Get last cached achievements data for clan tag and realm

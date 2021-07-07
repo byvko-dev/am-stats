@@ -137,11 +137,22 @@ type clanDetailsRes struct {
 	Data map[string]ClanProfile `json:"data"`
 }
 
-// ClanProfile -
+// ClanData
 type ClanProfile struct {
-	Tag          string `json:"tag"`
-	Name         string `json:"name"`
-	ClanID       int    `json:"clan_id"`
-	MembersIds   []int  `json:"members_ids"`
-	MembersCount int    `json:"members_count"`
+	ID           int                          `json:"-" bson:"_id"`
+	Tag          string                       `json:"tag" bson:"tag"`
+	Name         string                       `json:"name" bson:"name"`
+	Realm        string                       `json:"realm" bson:"realm"`
+	ClanID       int                          `json:"clan_id" bson:"clan_id"`
+	MembersIds   []int                        `json:"members_ids" bson:"members_ids"`
+	MembersCount int                          `json:"members_count" bson:"members_count"`
+	Members      map[string]ClanMemberProfile `json:"members" bson:"members"`
+}
+
+// ClanMemberProfile
+type ClanMemberProfile struct {
+	PlayerName string `json:"account_name" bson:"account_name"`
+	AccountID  int    `json:"account_id" bson:"account_id"`
+	JoinedAt   int64  `json:"joined_at" bson:"joined_at"`
+	Role       string `json:"role" bson:"role"`
 }
