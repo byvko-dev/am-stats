@@ -77,6 +77,10 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 			if err != nil {
 				return
 			}
+			if totalScore == 0 {
+				return
+			}
+
 			// Add all achievements together
 			var clanData dbAch.ClanAchievements
 			clanData.Realm = realm
@@ -84,9 +88,9 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 			clanData.ClanID = clan.ID
 			clanData.Score = totalScore
 			clanData.ClanTag = clan.Tag
-			clanData.Members = len(validMembers)
 			clanData.Timestamp = time.Now()
 			for _, player := range leaderboard {
+				clanData.Members++
 				for _, m := range medals {
 					playerMedals := getField(player.Data, m.Name)
 					clanMedals := getField(clanData.Data, m.Name)
