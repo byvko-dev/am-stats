@@ -273,7 +273,7 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 	sorted := quickSortPlayers(export)
 
 	// Update cache
-	dbAch.SaveCachedMedals(realm, days, pidSlice, medals, sorted, totalScore)
+	// dbAch.SaveCachedMedals(realm, days, pidSlice, medals, sorted, totalScore)
 
 	// Timer
 	timer.End()
