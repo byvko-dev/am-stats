@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-	"time"
 
 	dbAch "github.com/cufee/am-stats/mongodbapi/v1/achievements"
 	dbPlayers "github.com/cufee/am-stats/mongodbapi/v1/players"
@@ -61,19 +60,8 @@ func ExportClanAchievementsLbByRealm(realm string, checkPID int, days int, limit
 		wg.Add(1)
 		go func(clan wgapi.ClanProfile) {
 			defer wg.Done()
-			// Get valid clan members
-			var validMembers []int
-			for _, player := range clan.Members {
-				if time.Now().Add(time.Hour * 24 * -time.Duration(days)).After(time.Unix(player.JoinedAt, 10)) {
-					validMembers = append(validMembers, player.AccountID)
-				}
-			}
-			if len(validMembers) == 0 {
-				return
-			}
-
 			// Get Leaderboard
-			leaderboard, totalScore, err := exportAchievementsByPIDs(realm, validMembers, days, medals...)
+			leaderboard, totalScore, err := exportAchievementsByPIDs(realm, clan.MembersIds, days, medals...)
 			if err != nil {
 				return
 			}
