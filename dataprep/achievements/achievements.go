@@ -174,7 +174,7 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 	// }
 
 	// Timer
-	timer := utils.Timer{Name: "prep", FunctionName: "exportAchievementsByPIDs", Enabled: false}
+	timer := utils.Timer{Name: "prep", FunctionName: "exportAchievementsByPIDs", Enabled: true}
 	timer.Start()
 
 	// Generate fields
@@ -197,6 +197,16 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 		go func(pid int) {
 			defer wg.Done()
 
+			// Get player cached achievements
+			achCache, err := dbStats.GetPlayerSessionAchievements(pid, days, fields...)
+			if err != nil {
+				return
+			}
+			if achCache == (dbAch.AchievementsPlayerData{}).Data {
+				return
+			}
+
+			// Get last cached achievements
 			player, err := dbAch.GetPlayerAchievements(pid, medals...)
 			if err != nil {
 				return
@@ -205,15 +215,6 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 			// Get player profile
 			playerData, err := dbPlayers.GetPlayerProfile(player.PID)
 			if err != nil {
-				return
-			}
-
-			// Get player cached achievements
-			achCache, err := dbStats.GetPlayerSessionAchievements(pid, days, fields...)
-			if err != nil {
-				return
-			}
-			if achCache == (dbAch.AchievementsPlayerData{}).Data {
 				return
 			}
 
@@ -263,15 +264,15 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 	// Timer
 	timer.Reset("sort")
 
-	// Quicksort
-	sorted := quickSortPlayers(export)
+	// Sort
+	SortPlayerLeaderboard(export)
 
 	// Update cache
 	// dbAch.SaveCachedMedals(realm, days, pidSlice, medals, sorted, totalScore)
 
 	// Timer
 	timer.End()
-	return sorted, totalScore, err
+	return export, totalScore, err
 
 }
 
@@ -292,50 +293,6 @@ func setField(data wgapi.AchievementsFrame, field string, value int) wgapi.Achie
 		return data
 	}
 	return data
-}
-
-// QuickSort is a quick sort algorithm
-func quickSortPlayers(arr []dbAch.AchievementsPlayerData) []dbAch.AchievementsPlayerData {
-	// clone arr to keep immutability
-	newArr := make([]dbAch.AchievementsPlayerData, len(arr))
-	copy(newArr, arr)
-
-	// call recursive funciton with initial values
-	recursivePlayerSort(newArr, 0, len(newArr)-1)
-
-	// at this point newArr is sorted
-	return newArr
-}
-
-func recursivePlayerSort(arr []dbAch.AchievementsPlayerData, start, end int) {
-	if (end - start) < 1 {
-		return
-	}
-
-	pivot := arr[end]
-	splitIndex := start
-
-	// Iterate sub array to find values less than pivot
-	//   and move them to the beginning of the array
-	//   keeping splitIndex denoting less-value array size
-	for i := start; i < end; i++ {
-		if arr[i].Score > pivot.Score {
-			if splitIndex != i {
-				temp := arr[splitIndex]
-
-				arr[splitIndex] = arr[i]
-				arr[i] = temp
-			}
-
-			splitIndex++
-		}
-	}
-
-	arr[end] = arr[splitIndex]
-	arr[splitIndex] = pivot
-
-	recursivePlayerSort(arr, start, splitIndex-1)
-	recursivePlayerSort(arr, splitIndex+1, end)
 }
 
 // QuickSort is a quick sort algorithm
