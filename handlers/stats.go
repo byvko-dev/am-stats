@@ -110,7 +110,11 @@ func HandleStatsImageExport(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	return c.Send(s)
+	return c.JSON(fiber.Map{
+		"image":        s,
+		"analytics":    export.Analytics,
+		"unique_cards": len(export.SessionStats.Vehicles),
+	})
 }
 
 // HandleStatsJSONExport - Get stats as JSON

@@ -174,7 +174,7 @@ func exportAchievementsByPIDs(realm string, pidSlice []int, days int, medals ...
 	// }
 
 	// Timer
-	timer := utils.Timer{Name: "prep", FunctionName: "exportAchievementsByPIDs", Enabled: true}
+	timer := utils.Timer{Name: "prep", FunctionName: "exportAchievementsByPIDs", Enabled: false}
 	timer.Start()
 
 	// Generate fields

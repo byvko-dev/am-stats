@@ -236,7 +236,9 @@ func HandlerPlayersLeaderboardImage(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Send(s)
+	return c.JSON(fiber.Map{
+		"image": s,
+	})
 }
 
 // HandlerClansLeaderboardImage -
@@ -356,5 +358,7 @@ func HandlerClansLeaderboardImage(c *fiber.Ctx) error {
 	// Timer
 	timer.End()
 
-	return c.Send(s)
+	return c.JSON(fiber.Map{
+		"image": s,
+	})
 }

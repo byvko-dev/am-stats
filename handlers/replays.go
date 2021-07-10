@@ -145,5 +145,7 @@ func HandleReplayImageExport(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-	return c.Send(s)
+	return c.JSON(fiber.Map{
+		"image": s,
+	})
 }
