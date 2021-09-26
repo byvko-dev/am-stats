@@ -40,7 +40,8 @@ func main() {
 	app.Get("/replay/image", handlers.HandleReplayImageExport)
 
 	// Stats
-	app.Get("/stats", handlers.HandleStatsJSONExport)
+	app.Get("/stats", handlers.HandleStatsJSONExport) // Legacy
+	app.Post("/stats", handlers.HandleStatsJSONExport)
 	app.Get("/stats/image", handlers.HandleStatsImageExport)
 
 	// Achievements
