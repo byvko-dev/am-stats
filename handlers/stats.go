@@ -150,6 +150,13 @@ func HandleStatsJSONExport(c *fiber.Ctx) error {
 			"error": "bad player data",
 		})
 	}
+	// Sort
+	export.SessionStats.Vehicles = stats.SortTanks(export.SessionStats.Vehicles, request.Sort)
+
+	// Reduce response size
+	if request.TankLimit > 0 && len(export.SessionStats.Vehicles) > request.TankLimit {
+		export.SessionStats.Vehicles = export.SessionStats.Vehicles[0:request.TankLimit]
+	}
 
 	return c.JSON(export)
 }
