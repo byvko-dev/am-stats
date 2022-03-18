@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/cufee/am-stats/auth"
-	"github.com/cufee/am-stats/config"
 	"github.com/cufee/am-stats/handlers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -24,33 +24,35 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
+	api := app.Group("/stats/v1")
+
 	// Public endpoints
 	// Stats
-	app.Post("/public/stats", handlers.HandlePublicStatsJSONExport)
-	app.Post("/public/stats/reset-special", handlers.HandleSpecialSessionReset)
+	api.Post("/public/stats", handlers.HandlePublicStatsJSONExport)
+	api.Post("/public/stats/reset-special", handlers.HandleSpecialSessionReset)
 
 	// API key validator
-	app.Use(auth.Validator)
+	api.Use(auth.Validator)
 
 	// Checks
-	app.Get("/player/id/:id", handlers.HandlePlayerCheck)
+	api.Get("/player/id/:id", handlers.HandlePlayerCheck)
 
 	// Replays
-	app.Get("/replay", handlers.HandleReplayJSONExport)
-	app.Get("/replay/image", handlers.HandleReplayImageExport)
+	api.Get("/replay", handlers.HandleReplayJSONExport)
+	api.Get("/replay/image", handlers.HandleReplayImageExport)
 
 	// Stats
-	app.Get("/stats", handlers.HandleStatsJSONExport) // Legacy
-	app.Post("/stats", handlers.HandleStatsJSONExport)
-	app.Get("/stats/image", handlers.HandleStatsImageExport)
+	api.Get("/stats", handlers.HandleStatsJSONExport) // Legacy
+	api.Post("/stats", handlers.HandleStatsJSONExport)
+	api.Get("/stats/image", handlers.HandleStatsImageExport)
 
 	// Achievements
 	// Clan
-	app.Get("/achievements/leaderboard/clans", handlers.HandleClanAchievementsLbExport)
-	app.Get("/achievements/leaderboard/clans/image", handlers.HandlerClansLeaderboardImage)
+	api.Get("/achievements/leaderboard/clans", handlers.HandleClanAchievementsLbExport)
+	api.Get("/achievements/leaderboard/clans/image", handlers.HandlerClansLeaderboardImage)
 	// Players Leaderboard
-	app.Get("/achievements/leaderboard/players", handlers.HandlePlayersAchievementsLbExport)
-	app.Get("/achievements/leaderboard/players/image", handlers.HandlerPlayersLeaderboardImage)
+	api.Get("/achievements/leaderboard/players", handlers.HandlePlayersAchievementsLbExport)
+	api.Get("/achievements/leaderboard/players/image", handlers.HandlerPlayersLeaderboardImage)
 
-	log.Print(app.Listen(fmt.Sprintf(":%v", config.APIport)))
+	log.Panic(app.Listen(fmt.Sprintf(":%v", os.Getenv("PORT"))))
 }

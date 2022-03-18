@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
-	"sync"
 
 	"crypto/tls"
 	"encoding/json"
@@ -32,7 +31,6 @@ var wgAPIClanDetails string = fmt.Sprintf("/wotb/clans/info/?application_id=%s&f
 var clientHTTP = &http.Client{Timeout: 750 * time.Millisecond, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 
 // Mutex lock for rps counter
-var waitGroup sync.WaitGroup
 var limiterChan chan int = make(chan int, config.OutRPSlimit)
 
 // getJSON -
@@ -42,7 +40,7 @@ func getJSON(url string, target interface{}) error {
 	limiterChan <- 1
 	defer func() {
 		go func() {
-			timer := time.Now().Sub(start)
+			timer := time.Since(start)
 
 			if timer < (time.Second * 1) {
 				toSleep := (time.Second * 1) - timer
@@ -54,7 +52,6 @@ func getJSON(url string, target interface{}) error {
 
 	var resData []byte
 	res, err := clientHTTP.Get(url)
-
 	if res == nil {
 		// Change timeout to account for cold starts
 		timeout := clientHTTP.Timeout
@@ -106,10 +103,13 @@ func getJSON(url string, target interface{}) error {
 		// Set error to proxy error
 		err = pErr
 	} else {
+		// Check error from he original request
+		if err != nil {
+			return err
+		}
+
 		resData, err = ioutil.ReadAll(res.Body)
 	}
-
-	// Check error
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func PlayerVehicleStats(playerID int, tankID int, realm string) (finalResponse [
 		return nil, err
 	}
 	if rawResponse.Error.Message != "" {
-		return finalResponse, fmt.Errorf("WG error: %s", rawResponse.Error.Message)
+		return finalResponse, fmt.Errorf("WG error: %+v", rawResponse.Error)
 	}
 	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
 	if len(finalResponse) < 1 {
@@ -208,12 +208,12 @@ func PlayerProfileData(playerID int, realm string) (finalResponse PlayerProfile,
 		return finalResponse, err
 	}
 	if rawResponse.Error.Message != "" {
-		return finalResponse, fmt.Errorf("WG error: %s", rawResponse.Error.Message)
+		return finalResponse, fmt.Errorf("WG error: %+v", rawResponse.Error)
 	}
 	if rawResponse.Status != "ok" {
-		return finalResponse, fmt.Errorf("WG error: %v", rawResponse.Error.Message)
+		return finalResponse, fmt.Errorf("WG error: %+v", rawResponse.Error)
 	}
-	if _, ok := rawResponse.Data[strconv.Itoa(playerID)]; ok == false || rawResponse.Data[strconv.Itoa(playerID)].ID != playerID {
+	if _, ok := rawResponse.Data[strconv.Itoa(playerID)]; !ok || rawResponse.Data[strconv.Itoa(playerID)].ID != playerID {
 		return finalResponse, fmt.Errorf("WG: player not found in response. status %v", rawResponse.Status)
 	}
 	finalResponse = rawResponse.Data[strconv.Itoa(playerID)]
@@ -257,10 +257,10 @@ func PlayerSliceProfileData(realm string, playerIDsRaw []int) (finalResponse map
 		return finalResponse, err
 	}
 	if rawResponse.Error.Message != "" {
-		return finalResponse, fmt.Errorf("WG error: %s", rawResponse.Error.Message)
+		return finalResponse, fmt.Errorf("WG error: %+v", rawResponse.Error)
 	}
 	if rawResponse.Status != "ok" {
-		return finalResponse, fmt.Errorf("WG error: %v", rawResponse.Error.Message)
+		return finalResponse, fmt.Errorf("WG error: %+v", rawResponse.Error)
 	}
 
 	// Get clan data

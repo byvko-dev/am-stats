@@ -1,18 +1,21 @@
-# Use the official image as a parent image.
-FROM ubuntu:latest
+FROM golang:alpine as builder
 
-# Set the working directory.
+WORKDIR /app 
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o binary .
+
+FROM scratch
+
 WORKDIR /app
 
-# Copy the file from your host to your current location.
-COPY ./build .
-COPY ./assets ./assets
+ENV TZ=Europe/Berlin
+ENV ZONEINFO=/zoneinfo.zip
+COPY --from=builder /app/assets /app/assets
+COPY --from=builder /app/assets /usr/bin/assets
+COPY --from=builder /app/binary /usr/bin/
+COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Run the command inside your image filesystem.
-RUN chmod +x app
-
-# Add metadata to the image to describe which port the container is listening on at runtime.
-EXPOSE 4000
-
-# Run the specified command within the container.
-CMD [ "./app" ]
+ENTRYPOINT ["binary"]

@@ -174,7 +174,7 @@ func HandleSpecialSessionReset(c *fiber.Ctx) error {
 
 	httpClient := &http.Client{Timeout: 10 * time.Second, Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 	// Make request
-	req, err := http.NewRequest("GET", config.AMCacheURL+fmt.Sprintf("/%v/special-session/%v", request.Realm, request.PlayerID), nil)
+	req, err := http.NewRequest("GET", config.CacheAPIURL+fmt.Sprintf("/%v/special-session/%v", request.Realm, request.PlayerID), nil)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
