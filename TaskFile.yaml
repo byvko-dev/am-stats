@@ -7,7 +7,7 @@ vars:
 env:
   BASE_APP_NAME: am-stats-legacy
   NAMESPACE: aftermath-services
-  REGISTRY: ghcr.io/byvko-dev
+  REGISTRY: gcr.io/aftermath-327212
   K8S_TYPE: deployment
 
 tasks:

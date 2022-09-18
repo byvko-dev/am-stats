@@ -38,21 +38,20 @@ func main() {
 	api.Get("/player/id/:id", handlers.HandlePlayerCheck)
 
 	// Replays
-	api.Get("/replay", handlers.HandleReplayJSONExport)
-	api.Get("/replay/image", handlers.HandleReplayImageExport)
+	api.Post("/replay", handlers.HandleReplayJSONExport)
+	api.Post("/replay/image", handlers.HandleReplayImageExport)
 
 	// Stats
-	api.Get("/stats", handlers.HandleStatsJSONExport) // Legacy
 	api.Post("/stats", handlers.HandleStatsJSONExport)
-	api.Get("/stats/image", handlers.HandleStatsImageExport)
+	api.Post("/stats/image", handlers.HandleStatsImageExport)
 
 	// Achievements
 	// Clan
-	api.Get("/achievements/leaderboard/clans", handlers.HandleClanAchievementsLbExport)
-	api.Get("/achievements/leaderboard/clans/image", handlers.HandlerClansLeaderboardImage)
+	api.Post("/achievements/leaderboard/clans", handlers.HandleClanAchievementsLbExport)
+	api.Post("/achievements/leaderboard/clans/image", handlers.HandlerClansLeaderboardImage)
 	// Players Leaderboard
-	api.Get("/achievements/leaderboard/players", handlers.HandlePlayersAchievementsLbExport)
-	api.Get("/achievements/leaderboard/players/image", handlers.HandlerPlayersLeaderboardImage)
+	api.Post("/achievements/leaderboard/players", handlers.HandlePlayersAchievementsLbExport)
+	api.Post("/achievements/leaderboard/players/image", handlers.HandlerPlayersLeaderboardImage)
 
 	log.Panic(app.Listen(fmt.Sprintf(":%v", os.Getenv("PORT"))))
 }
