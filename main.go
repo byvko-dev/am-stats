@@ -24,7 +24,7 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
-	api := app.Group("/stats/v1")
+	api := app.Group("/v1")
 
 	// Public endpoints
 	// Stats
